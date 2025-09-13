@@ -6,7 +6,7 @@ class GetLocalAuth {
   static LocalAuthentication auth = LocalAuthentication();
 
   static Future<bool> handleBiometricAuth() async {
-    // Kiểm tra quyền sinh trắc học (Android 11+ cần permission sinh trắc học)
+    // Kiểm tra quyền sinh trắc học
     await Permission.sensors.request();
     var status = await Permission.sensors.status;
     if (!status.isGranted) {

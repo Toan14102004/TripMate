@@ -1,125 +1,146 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/routes/app_route.dart';
 
-class AnimatedSplashScreen extends StatefulWidget {
-  const AnimatedSplashScreen({Key? key}) : super(key: key);
-
+class TravelSplashScreen extends StatefulWidget {
   @override
-  State<AnimatedSplashScreen> createState() => _AnimatedSplashScreenState();
+  _TravelSplashScreenState createState() => _TravelSplashScreenState();
 }
 
-class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
+class _TravelSplashScreenState extends State<TravelSplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _mascotController;
-  late AnimationController _waveController;
-  late AnimationController _loadingController;
-  late AnimationController _floatController;
-  late AnimationController _blinkController;
-
-  late Animation<double> _slideAnimation;
+  late AnimationController _fadeController;
+  late AnimationController _scaleController;
+  late AnimationController _rotateController;
+  late AnimationController _handsController;
+  late AnimationController _auraController;
+  late AnimationController _pulseController;
+  
+  late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _waveAnimation;
-  late Animation<double> _loadingAnimation;
-  late Animation<double> _floatAnimation;
-  late Animation<double> _blinkAnimation;
+  late Animation<double> _rotateAnimation;
+  late Animation<double> _handsAnimation;
+  late Animation<double> _auraAnimation;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-
-    // Animation controllers
-    _mascotController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    
+    // Khởi tạo các AnimationController
+    _fadeController = AnimationController(
+      duration: Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _scaleController = AnimationController(
+      duration: Duration(milliseconds: 2500),
+      vsync: this,
+    );
+    
+    _rotateController = AnimationController(
+      duration: Duration(seconds: 10),
+      vsync: this,
+    );
+    
+    _handsController = AnimationController(
+      duration: Duration(milliseconds: 3000),
+      vsync: this,
+    );
+    
+    _auraController = AnimationController(
+      duration: Duration(seconds: 4),
       vsync: this,
     );
 
-    _waveController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    _pulseController = AnimationController(
+      duration: Duration(seconds: 2),
       vsync: this,
     );
 
-    _loadingController = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    );
+    // Tạo các animation
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    ));
 
-    _floatController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.elasticOut,
+    ));
 
-    _blinkController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
-      vsync: this,
-    );
+    _rotateAnimation = Tween<double>(
+      begin: 0.0,
+      end: 2.0 * math.pi,
+    ).animate(CurvedAnimation(
+      parent: _rotateController,
+      curve: Curves.linear,
+    ));
 
-    // Animations
-    _slideAnimation = Tween<double>(begin: 300.0, end: 0.0).animate(
-      CurvedAnimation(parent: _mascotController, curve: Curves.elasticOut),
-    );
+    _handsAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _handsController,
+      curve: Curves.easeInOutCubic,
+    ));
 
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _mascotController,
-        curve: const Interval(0.3, 1.0, curve: Curves.bounceOut),
-      ),
-    );
+    _auraAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _auraController,
+      curve: Curves.easeOut,
+    ));
 
-    _waveAnimation = Tween<double>(
-      begin: -0.2, // Bắt đầu ở một góc nhỏ để trông tự nhiên hơn
-      end: 0.2, // Góc vẫy
-    ).animate(
-      CurvedAnimation(
-        parent: _waveController,
-        curve: Curves.easeInOutSine, // Sử dụng curve khác cho cảm giác mượt mà
-      ),
-    );
+    _pulseAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
 
-    _loadingAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
-    );
-
-    _floatAnimation = Tween<double>(begin: 0.0, end: 10.0).animate(
-      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
-    );
-
-    _blinkAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
-    );
-
-    // Start animations
+    // Bắt đầu animations
     _startAnimations();
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    await Future.delayed(const Duration(seconds: 4));
+    Navigator.of(context).pushNamed(AppRoutes.onBoarding);
   }
 
   void _startAnimations() async {
-    // Mascot enters
-    _mascotController.forward();
-
-    _mascotController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        // Bắt đầu vẫy tay, lặp lại với reverse: true để tạo hiệu ứng vẫy liên tục
-        _waveController.repeat(reverse: true);
-        // Bắt đầu nổi và nháy mắt
-        _floatController.repeat(reverse: true);
-        _blinkController.repeat();
-        // Bắt đầu loading
-        _loadingController.forward();
-      }
-    });
-    // Navigate after loading completes
-    await Future.delayed(const Duration(seconds: 4));
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
+    await Future.delayed(Duration(milliseconds: 300));
+    _fadeController.forward();
+    
+    await Future.delayed(Duration(milliseconds: 500));
+    _scaleController.forward();
+    _handsController.forward();
+    
+    await Future.delayed(Duration(milliseconds: 1000));
+    _rotateController.repeat();
+    _auraController.repeat();
+    _pulseController.repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _mascotController.dispose();
-    _waveController.dispose();
-    _loadingController.dispose();
-    _floatController.dispose();
-    _blinkController.dispose();
+    _fadeController.dispose();
+    _scaleController.dispose();
+    _rotateController.dispose();
+    _handsController.dispose();
+    _auraController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -131,306 +152,382 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF4A90E2), Color(0xFF357ABD), Color(0xFF2E5F8A)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0F172A), 
+              Color(0xFF1E293B), 
+              Color(0xFF334155), 
+              Color(0xFF475569),
+            ],
           ),
         ),
         child: Stack(
           children: [
-            // Background particles
-            ...List.generate(20, (index) => _buildParticle(index)),
-
+            // Stars background
+            ...List.generate(30, (index) => _buildStar(index)),
+            
             // Main content
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Mascot character
+                  // Two hands holding Earth with aura
                   AnimatedBuilder(
                     animation: Listenable.merge([
-                      _mascotController,
-                      _floatController,
-                      _blinkController,
+                      _scaleAnimation,
+                      _handsAnimation,
                     ]),
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(
-                          _slideAnimation.value,
-                          -_floatAnimation.value,
-                        ),
-                        child: Transform.scale(
-                          scale: _scaleAnimation.value,
-                          child: _buildMascot(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // Logo
-                  AnimatedBuilder(
-                    animation: _mascotController,
                     builder: (context, child) {
                       return Transform.scale(
                         scale: _scaleAnimation.value,
-                        child: _buildLogo(),
+                        child: Transform.translate(
+                          offset: Offset(0, -10 * math.sin(_handsAnimation.value * math.pi)),
+                          child: _buildHandsWithEarthAndAura(),
+                        ),
                       );
                     },
                   ),
-
-                  const SizedBox(height: 60),
-
-                  // Loading indicator
-                  AnimatedBuilder(
-                    animation: _loadingController,
-                    builder: (context, child) {
-                      return _buildLoadingIndicator();
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Wave hand animation
-            AnimatedBuilder(
-              animation: _waveAnimation,
-              builder: (context, child) {
-                if (_waveAnimation.value == 0) return Container();
-                return Positioned(
-                  top: MediaQuery.of(context).size.height * 0.35,
-                  right: MediaQuery.of(context).size.width * 0.25,
-                  child: Transform.rotate(
-                    angle: _waveAnimation.value * 0.5,
-                    child: const Text('👋', style: TextStyle(fontSize: 40)),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMascot() {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.9),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Body
-          Center(
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: AppColors.neonGreen,
-                shape: BoxShape.circle,
-              ),
-              child: Stack(
-                children: [
-                  // Eyes
-                  Positioned(
-                    top: 20,
-                    left: 15,
-                    child: AnimatedBuilder(
-                      animation: _blinkAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          width: 12,
-                          height: _blinkAnimation.value > 0.1 ? 12 : 2,
-                          decoration: const BoxDecoration(
-                            color: AppColors.black,
-                            shape: BoxShape.circle,
+                  
+                  const SizedBox(height: 80),
+                  
+                  // App title
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Tralto',
+                          style: TextStyle(
+                            fontSize: 42,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                            letterSpacing: 3,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(0, 4),
+                                blurRadius: 15,
+                                color: const Color(0xFF3B82F6).withOpacity(0.6),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  Positioned(
-                    top: 20,
-                    right: 15,
-                    child: AnimatedBuilder(
-                      animation: _blinkAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          width: 12,
-                          height: _blinkAnimation.value > 0.1 ? 12 : 2,
-                          decoration: const BoxDecoration(
-                            color: AppColors.black,
-                            shape: BoxShape.circle,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  // Mouth
-                  Positioned(
-                    bottom: 25,
-                    left: 25,
-                    child: Container(
-                      width: 30,
-                      height: 15,
-                      decoration: const BoxDecoration(
-                        color: AppColors.black,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
                         ),
-                      ),
+                        const SizedBox(height: 15),
+                        const Text(
+                          'Thế giới trong vòng tay bạn',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white70,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  // Cheeks
-                  Positioned(
-                    top: 35,
-                    left: 5,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.darkGreen.withOpacity(0.6),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 35,
-                    right: 5,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.darkGreen.withOpacity(0.6),
-                        shape: BoxShape.circle,
-                      ),
+                  
+                  const SizedBox(height: 100),
+                  
+                  // Loading indicator
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                            strokeWidth: 3,
+                            backgroundColor: AppColors.white.withOpacity(0.1),
+                          ),
+                        ),
+                        const SizedBox(height: 25),
+                        const Text(
+                          'Đang khởi tạo hành trình...',
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHandsWithEarthAndAura() {
+    return SizedBox(
+      width: 300,
+      height: 280,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Aura effects - outer rings
+          ...List.generate(4, (index) => _buildAuraRing(index)),
+          
+          // Left hand
+          AnimatedBuilder(
+            animation: _handsAnimation,
+            builder: (context, child) {
+              return Positioned(
+                left: 20 + (10 * _handsAnimation.value),
+                bottom: 40,
+                child: Transform.rotate(
+                  angle: -0.3 + (0.1 * math.sin(_handsAnimation.value * math.pi)),
+                  child: Icon(
+                    Icons.back_hand,
+                    size: 90,
+                    color: AppColors.white.withOpacity((0.4 + 0.3 * _handsAnimation.value).clamp(0.0, 1.0)),
+                  ),
+                ),
+              );
+            },
           ),
+          
+          // Right hand
+          AnimatedBuilder(
+            animation: _handsAnimation,
+            builder: (context, child) {
+              return Positioned(
+                right: 20 + (10 * _handsAnimation.value),
+                bottom: 40,
+                child: Transform.rotate(
+                  angle: 0.3 + (0.1 * math.sin(_handsAnimation.value * math.pi)),
+                  child: Transform.scale(
+                    scaleX: -1,
+                    child: Icon(
+                      Icons.back_hand,
+                      size: 90,
+                      color: AppColors.white.withOpacity((0.4 + 0.3 * _handsAnimation.value).clamp(0.0, 1.0)),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          // Earth with rotation and pulse
+          AnimatedBuilder(
+            animation: Listenable.merge([_rotateAnimation, _pulseAnimation]),
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Transform.rotate(
+                  angle: _rotateAnimation.value,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const RadialGradient(
+                        colors: [
+                          Color(0xFF10B981), // Emerald
+                          Color(0xFF059669), // Dark emerald
+                          Color(0xFF3B82F6), // Blue
+                          Color(0xFF1E40AF), // Dark blue
+                        ],
+                        stops: [0.0, 0.3, 0.7, 1.0],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF3B82F6).withOpacity(0.6),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                        BoxShadow(
+                          color: Color(0xFF10B981).withOpacity(0.4),
+                          blurRadius: 50,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      children: [
+                        // Continents with more detail
+                        Positioned(
+                          top: 18,
+                          left: 15,
+                          child: Container(
+                            width: 25,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF065F46),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 12,
+                          right: 20,
+                          child: Container(
+                            width: 15,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF065F46),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 45,
+                          right: 12,
+                          child: Container(
+                            width: 20,
+                            height: 15,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF065F46),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 20,
+                          left: 25,
+                          child: Container(
+                            width: 22,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF065F46),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 25,
+                          right: 30,
+                          child: Container(
+                            width: 12,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF065F46),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                        ),
+                        // Cloud effects
+                        Positioned(
+                          top: 30,
+                          left: 10,
+                          child: Container(
+                            width: 30,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          // Energy particles around earth
+          ...List.generate(8, (index) => _buildEnergyParticle(index)),
         ],
       ),
     );
   }
 
-  Widget _buildLogo() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFB347),
-                shape: BoxShape.circle,
-              ),
+  Widget _buildAuraRing(int index) {
+    return AnimatedBuilder(
+      animation: _auraAnimation,
+      builder: (context, child) {
+        double baseSize = 120.0 + (index * 40);
+        double animatedSize = baseSize + (20 * math.sin((_auraAnimation.value + index * 0.25) * 2 * math.pi));
+        double opacity = ((0.8 - index * 0.15) * (0.5 + 0.5 * math.sin(_auraAnimation.value * 2 * math.pi))).clamp(0.0, 1.0);
+        
+        return Container(
+          width: animatedSize,
+          height: animatedSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Color(0xFF3B82F6).withOpacity(opacity * 0.6),
+              width: 2,
             ),
-            const SizedBox(width: 10),
-            const Text(
-              'TRALTO',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-              ),
+            gradient: RadialGradient(
+              colors: [
+                Colors.transparent,
+                Color(0xFF3B82F6).withOpacity(opacity * 0.1),
+                Color(0xFF10B981).withOpacity(opacity * 0.2),
+                Colors.transparent,
+              ],
+              stops: [0.0, 0.7, 0.9, 1.0],
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Cùng nhau khám phá thế giới nhé ❤️',
-          style: TextStyle(
-            color: AppColors.white.withOpacity(0.8),
-            fontSize: 16,
-            fontWeight: FontWeight.w300,
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildLoadingIndicator() {
-    return Column(
-      children: [
-        Container(
-          width: 200,
-          height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              width: 200 * _loadingAnimation.value,
-              height: 4,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFB347), Color(0xFFFF8C42)],
+  Widget _buildEnergyParticle(int index) {
+    return AnimatedBuilder(
+      animation: _auraAnimation,
+      builder: (context, child) {
+        double angle = (index * 45.0) * (math.pi / 180);
+        double radius = 80 + (15 * math.sin(_auraAnimation.value * 2 * math.pi + index));
+        double x = radius * math.cos(angle + _auraAnimation.value * math.pi);
+        double y = radius * math.sin(angle + _auraAnimation.value * math.pi);
+        
+        return Transform.translate(
+          offset: Offset(x, y),
+          child: Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: index % 2 == 0 ? Color(0xFF3B82F6) : Color(0xFF10B981),
+              boxShadow: [
+                BoxShadow(
+                  color: (index % 2 == 0 ? Color(0xFF3B82F6) : Color(0xFF10B981)).withOpacity(0.8),
+                  blurRadius: 8,
+                  spreadRadius: 2,
                 ),
-                borderRadius: BorderRadius.circular(2),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStar(int index) {
+    return AnimatedBuilder(
+      animation: _auraAnimation,
+      builder: (context, child) {
+        double opacity = (0.5 + 0.4 * math.sin((_auraAnimation.value + index * 0.1) * 2 * math.pi)).clamp(0.0, 1.0);
+        
+        return Positioned(
+          left: (index * 37) % MediaQuery.of(context).size.width.toInt().toDouble(),
+          top: (index * 41) % MediaQuery.of(context).size.height.toInt().toDouble(),
+          child: Opacity(
+            opacity: opacity,
+            child: Container(
+              width: 2 + (index % 3),
+              height: 2 + (index % 3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFB347).withOpacity(0.5),
-                    blurRadius: 8,
-                    spreadRadius: 2,
+                    color: AppColors.white.withOpacity(0.5),
+                    blurRadius: 4,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Loading...',
-          style: TextStyle(
-            color: AppColors.white.withOpacity(0.7),
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildParticle(int index) {
-    final random = (index * 1234) % 1000 / 1000.0;
-    final size = 2.0 + random * 4;
-    final left = random * MediaQuery.of(context).size.width;
-    final animationDelay = random * 3000;
-
-    return AnimatedBuilder(
-      animation: _loadingController,
-      builder: (context, child) {
-        final progress =
-            (_loadingController.value * 3000 + animationDelay) % 3000 / 3000;
-        final top = MediaQuery.of(context).size.height * (1 - progress);
-
-        return Positioned(
-          left: left,
-          top: top,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.6 * (1 - progress)),
-              shape: BoxShape.circle,
             ),
           ),
         );
