@@ -1,11 +1,13 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:trip_mate/commons/storage_keys/auth.dart';
 
 class AuthRepository {
   // Tạo một instance của FlutterSecureStorage
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   // Khóa (key) để lưu token
-  static const String _kAuthTokenKey = 'authToken';
+  static const String _kAuthTokenKey = AuthKeys.kAuthTokenKey;
+  // Khóa (key) để lưu token
 
   // --- Các phương thức để thao tác với token ---
 
