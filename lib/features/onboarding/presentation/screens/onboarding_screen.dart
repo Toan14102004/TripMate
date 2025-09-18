@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/routes/app_route.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -51,8 +52,7 @@ class OnboardingScreen extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // Handle email login
-                        print('Continue with Email pressed');
+                        Navigator.of(context).pushNamed(AppRoutes.signin);
                       },
                       icon: const Icon(
                         Icons.email_outlined,
@@ -84,8 +84,7 @@ class OnboardingScreen extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // Handle Google login
-                        print('Continue with Google pressed');
+                        
                       },
                       icon: Image.asset(
                         'assets/images/google_logo.jpg',
