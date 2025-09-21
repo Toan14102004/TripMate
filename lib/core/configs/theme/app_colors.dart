@@ -6,6 +6,10 @@ class AppColors {
   static const Color darkerGreen = Color(0xFF0A2E1D); 
   static const Color pink = Colors.pink;
   static const Color neonRed = Color(0xFFFF073A);
+  static const Color red = Colors.red;
+  static const Color green = Colors.green;
+  static const Color blue = Colors.blue;
+  static const Color cyan = Colors.cyan;
   static const Color neonGreen = Color(0xFF39FF14);
   static const Color darkGreen = Color(0xFF1A4D2E);
   static const Color deepBlack = Color(0xFF0A0A0A);
