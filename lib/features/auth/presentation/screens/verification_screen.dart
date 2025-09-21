@@ -9,13 +9,16 @@ import 'package:trip_mate/features/auth/presentation/providers/verification/veri
 import 'package:trip_mate/features/auth/presentation/providers/verification/verification_state.dart';
 import 'package:trip_mate/routes/app_route.dart';
 
+// ignore: must_be_immutable
 class VerificationScreen extends StatefulWidget {
   final String email;
-  
-  const VerificationScreen({
-    Key? key,
+  WidgetBuilder? navigatorRouterNext = AppRoutes.routes[AppRoutes.signin];
+
+  VerificationScreen({
+    super.key,
     required this.email,
-  }) : super(key: key);
+    this.navigatorRouterNext,
+  });
 
   @override
   State<VerificationScreen> createState() => _VerificationScreenState();
@@ -23,19 +26,22 @@ class VerificationScreen extends StatefulWidget {
 
 class _VerificationScreenState extends State<VerificationScreen>
     with TickerProviderStateMixin {
-  final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    4,
+    (index) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
-  
+
   late AnimationController _slideController;
   late AnimationController _fadeController;
   late AnimationController _pulseController;
   late AnimationController _shakeController;
-  
+
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<double> _shakeAnimation;
-  
+
   int _countdownSeconds = 57;
   bool _isResendEnabled = false;
 
@@ -80,17 +86,11 @@ class _VerificationScreenState extends State<VerificationScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
 
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _shakeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(
+    _shakeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
     );
   }
@@ -99,7 +99,7 @@ class _VerificationScreenState extends State<VerificationScreen>
     await Future.delayed(const Duration(milliseconds: 300));
     _fadeController.forward();
     _slideController.forward();
-    
+
     _pulseController.repeat(reverse: true);
   }
 
@@ -197,8 +197,10 @@ class _VerificationScreenState extends State<VerificationScreen>
           child: BlocListener<VerificationCubit, VerificationState>(
             listener: (context, state) {
               if (state is VerificationSuccess) {
-                Navigator.of(context).pushReplacementNamed(AppRoutes.signin);
-                ToastUtil.showSuccessToast("Success", title:  "Chào mừng bạn");
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: widget.navigatorRouterNext!),
+                );
+                ToastUtil.showSuccessToast("Success", title: state.message);
               } else if (state is VerificationError) {
                 _shakeFields();
                 _clearFields();
@@ -213,11 +215,11 @@ class _VerificationScreenState extends State<VerificationScreen>
             child: BlocBuilder<VerificationCubit, VerificationState>(
               builder: (context, state) {
                 final cubit = context.read<VerificationCubit>();
-                
+
                 if (state is VerificationLoading) {
                   return const TravelLoadingScreen();
                 }
-                
+
                 return Column(
                   children: [
                     // Header
@@ -248,14 +250,14 @@ class _VerificationScreenState extends State<VerificationScreen>
                         ],
                       ),
                     ),
-    
+
                     Expanded(
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
                           children: [
                             const SizedBox(height: 20),
-    
+
                             // Logo
                             FadeTransition(
                               opacity: _fadeAnimation,
@@ -269,9 +271,9 @@ class _VerificationScreenState extends State<VerificationScreen>
                                 },
                               ),
                             ),
-    
+
                             const SizedBox(height: 40),
-    
+
                             // Main content
                             SlideTransition(
                               position: _slideAnimation,
@@ -305,9 +307,9 @@ class _VerificationScreenState extends State<VerificationScreen>
                                         ),
                                         textAlign: TextAlign.center,
                                       ),
-                                      
+
                                       const SizedBox(height: 8),
-                                      
+
                                       Text(
                                         _maskedEmail,
                                         style: const TextStyle(
@@ -316,30 +318,37 @@ class _VerificationScreenState extends State<VerificationScreen>
                                           color: Color(0xFF2D3748),
                                         ),
                                       ),
-    
+
                                       const SizedBox(height: 40),
-    
+
                                       // OTP Input Fields
                                       AnimatedBuilder(
                                         animation: _shakeAnimation,
                                         builder: (context, child) {
                                           return Transform.translate(
-                                            offset: Offset(_shakeAnimation.value * 10, 0),
+                                            offset: Offset(
+                                              _shakeAnimation.value * 10,
+                                              0,
+                                            ),
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                              children: List.generate(4, (index) {
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: List.generate(4, (
+                                                index,
+                                              ) {
                                                 return _buildOTPField(index);
                                               }),
                                             ),
                                           );
                                         },
                                       ),
-    
+
                                       const SizedBox(height: 40),
-    
+
                                       // Countdown and Resend
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             'Get Code in 0:${_countdownSeconds.toString().padLeft(2, '0')} ',
@@ -370,42 +379,53 @@ class _VerificationScreenState extends State<VerificationScreen>
                                             ),
                                         ],
                                       ),
-    
+
                                       const SizedBox(height: 40),
-    
+
                                       // Confirm Button
                                       SizedBox(
                                         width: double.infinity,
                                         height: 56,
                                         child: ElevatedButton(
-                                          onPressed: state is VerificationLoading 
-                                              ? null 
-                                              : _verifyCode,
+                                          onPressed:
+                                              state is VerificationLoading
+                                                  ? null
+                                                  : _verifyCode,
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF4facfe),
+                                            backgroundColor: const Color(
+                                              0xFF4facfe,
+                                            ),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(28),
+                                              borderRadius:
+                                                  BorderRadius.circular(28),
                                             ),
                                             elevation: 8,
-                                            shadowColor: const Color(0xFF4facfe).withOpacity(0.3),
+                                            shadowColor: const Color(
+                                              0xFF4facfe,
+                                            ).withOpacity(0.3),
                                           ),
-                                          child: state is VerificationLoading
-                                              ? const SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                  child: CircularProgressIndicator(
-                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                    strokeWidth: 2,
+                                          child:
+                                              state is VerificationLoading
+                                                  ? const SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child: CircularProgressIndicator(
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                            Color
+                                                          >(Colors.white),
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  )
+                                                  : const Text(
+                                                    'Confirm',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
-                                                )
-                                              : const Text(
-                                                  'Confirm',
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
                                         ),
                                       ),
                                     ],
@@ -432,7 +452,7 @@ class _VerificationScreenState extends State<VerificationScreen>
       controller.clear();
     }
     _focusNodes[0].requestFocus();
-}
+  }
 
   Widget _buildOTPField(int index) {
     return Container(
@@ -441,9 +461,10 @@ class _VerificationScreenState extends State<VerificationScreen>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _controllers[index].text.isNotEmpty 
-              ? const Color(0xFF4facfe) 
-              : Colors.grey[300]!,
+          color:
+              _controllers[index].text.isNotEmpty
+                  ? const Color(0xFF4facfe)
+                  : Colors.grey[300]!,
           width: 2,
         ),
         color: Colors.white,
@@ -470,9 +491,7 @@ class _VerificationScreenState extends State<VerificationScreen>
           counterText: '',
           border: InputBorder.none,
         ),
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-        ],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (value) => _onCodeChanged(value, index),
       ),
     );

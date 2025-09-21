@@ -1,11 +1,13 @@
 // sign_in_cubit.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/validate.dart';
 import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:trip_mate/features/auth/presentation/providers/sign_up/sign_up_state.dart';
+import 'package:trip_mate/features/auth/presentation/screens/verification_screen.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 
@@ -69,7 +71,7 @@ class SignUpCubit extends Cubit<SignUpState> {
         return;
       }
 
-      if (!_isValidEmail(currentState.email)) {
+      if (!Validate.isValidEmail(currentState.email)) {
         ToastUtil.showErrorToast(title: "Error", 'Email không hợp lệ');
         return;
       }
@@ -99,7 +101,7 @@ class SignUpCubit extends Cubit<SignUpState> {
           },
           (right) {
             ToastUtil.showSuccessToast(title: "Success", right);
-            Navigator.of(AppGlobal.navigatorKey.currentContext!).pushNamed(AppRoutes.verification, arguments: currentState.email);
+            Navigator.of(AppGlobal.navigatorKey.currentContext!).push(MaterialPageRoute(builder: (context) => VerificationScreen(email: currentState.email)));
           },
         );
       } catch (e) {
@@ -143,10 +145,6 @@ class SignUpCubit extends Cubit<SignUpState> {
       ToastUtil.showErrorToast(title: "Error", 'Đăng nhập Apple thất bại: ${e.toString()}');
       resetState();
     }
-  }
-
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
   void resetState() {

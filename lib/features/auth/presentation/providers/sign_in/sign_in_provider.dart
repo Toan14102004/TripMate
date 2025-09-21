@@ -1,6 +1,6 @@
 // sign_in_cubit.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/commons/validate.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/data/dtos/signin_request.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
@@ -61,7 +61,7 @@ class SignInCubit extends Cubit<SignInState> {
         return;
       }
 
-      if (!_isValidEmail(currentState.email)) {
+      if (!Validate.isValidEmail(currentState.email)) {
         ToastUtil.showErrorToast(title: "Error", 'Email không hợp lệ');
         return;
       }
@@ -154,10 +154,6 @@ class SignInCubit extends Cubit<SignInState> {
       );
       resetState();
     }
-  }
-
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
   void resetState() {

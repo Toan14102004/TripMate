@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/storage_keys/auth.dart';
+import 'package:trip_mate/core/ultils/generate_random_number.dart';
 import 'package:trip_mate/features/auth/data/dtos/signin_request.dart';
 import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
 
@@ -18,16 +19,9 @@ class AuthApiSource {
     }
   }
 
-  int _generateRandomNumber() {
-    final random = Random();
-    int min = 1000;
-    int max = 9999;
-    return min + random.nextInt(max - min + 1);
-  }
-
   Future<Either> signUpWithEmailAndPassword(CreateUserReq createUserReq) async {
     final prefs = await SharedPreferences.getInstance();
-    int verifyKey = _generateRandomNumber();
+    int verifyKey = generateRandomNumber(min: 1000, max: 9999);
     logDebug(verifyKey.toString());
     await prefs.setString(AuthKeys.kAuthVerifyKey, verifyKey.toString());
     return const Right("Đăng ký thành công!");
@@ -46,7 +40,7 @@ class AuthApiSource {
     try{
       final prefs = await SharedPreferences.getInstance();
       prefs.remove(AuthKeys.kAuthTokenKey);
-      int verifyKey = _generateRandomNumber();
+      int verifyKey = generateRandomNumber(min: 1000, max: 9999);
       logDebug(verifyKey);
       prefs.setString(AuthKeys.kAuthVerifyKey, verifyKey.toString());
       return const Right("Thành công");
