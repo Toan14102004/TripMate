@@ -1,10 +1,13 @@
 // sign_in_cubit.dart
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/validate.dart';
+import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/data/dtos/signin_request.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
 import 'package:trip_mate/features/auth/presentation/providers/sign_in/sign_in_state.dart';
+import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 
 class SignInCubit extends Cubit<SignInState> {
@@ -90,6 +93,7 @@ class SignInCubit extends Cubit<SignInState> {
           },
           (right) {
             ToastUtil.showSuccessToast(title: "Success", right);
+            comeToMainPage();
           },
         );
       } catch (e) {
@@ -111,6 +115,7 @@ class SignInCubit extends Cubit<SignInState> {
         title: "Success",
         'Đăng nhập Google thành công!',
       );
+      comeToMainPage();
     } catch (e) {
       ToastUtil.showErrorToast(
         title: "Error",
@@ -129,6 +134,7 @@ class SignInCubit extends Cubit<SignInState> {
         title: "Success",
         'Đăng nhập Facebook thành công!',
       );
+      comeToMainPage();
     } catch (e) {
       ToastUtil.showErrorToast(
         title: "Error",
@@ -147,6 +153,7 @@ class SignInCubit extends Cubit<SignInState> {
         title: "Success",
         'Đăng nhập Apple thành công!',
       );
+      comeToMainPage();
     } catch (e) {
       ToastUtil.showErrorToast(
         title: "Error",
@@ -154,6 +161,10 @@ class SignInCubit extends Cubit<SignInState> {
       );
       resetState();
     }
+  }
+
+  void comeToMainPage(){
+     Navigator.of(AppGlobal.navigatorKey.currentContext!).pushReplacementNamed(AppRoutes.rootPage);
   }
 
   void resetState() {
