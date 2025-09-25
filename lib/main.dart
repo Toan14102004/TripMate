@@ -10,6 +10,9 @@ import 'package:trip_mate/core/configs/theme/app_theme.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/presentation/providers/verification/verification_provider.dart';
 import 'package:trip_mate/features/choose_mode/presentation/bloc/theme_cubit.dart';
+import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
+import 'package:trip_mate/features/root/presentation/screens/root_screen.dart';
+import 'package:trip_mate/features/settings/presentation/providers/settings_bloc.dart';
 import 'package:trip_mate/features/splash/presentation/screens/splash_screen.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
@@ -37,7 +40,9 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeCubit>(create: (context) => ThemeCubit()),
-        BlocProvider<VerificationCubit>(create:  (context) => VerificationCubit())
+        BlocProvider<VerificationCubit>(create:  (context) => VerificationCubit()),
+        BlocProvider<PageCubit>(create: (context) => PageCubit()),
+        BlocProvider<SettingsCubit>(create: (context) => SettingsCubit())
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, state) {
@@ -51,8 +56,8 @@ class MyApp extends StatelessWidget {
             onGenerateRoute: (settings) => AppRoutes.onGenerateRoute(settings),
             title: 'Tralto',
             theme: AppTheme.lightTheme,
-            home: HomeScreen(),
-            // home: TravelSplashScreen(),
+            home: const RootScreen(),
+
           );
         },
       ),

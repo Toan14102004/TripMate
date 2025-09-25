@@ -32,7 +32,6 @@ class _SignInScreenState extends State<SignInScreen>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _floatingAnimation;
-  late Animation<double> _rippleAnimation;
 
   double _logoScale = 1.0;
 
@@ -81,10 +80,6 @@ class _SignInScreenState extends State<SignInScreen>
       end: const Offset(0, -0.1),
     ).animate(
       CurvedAnimation(parent: _floatingController, curve: Curves.easeInOut),
-    );
-
-    _rippleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _rippleController, curve: Curves.easeOut),
     );
 
     // Start animations
@@ -345,7 +340,9 @@ class _SignInScreenState extends State<SignInScreen>
                                             ],
                                           ),
                                           GestureDetector(
-                                            onTap: () {},
+                                            onTap: () {
+                                              Navigator.of(context).pushNamed(AppRoutes.resetPassword);
+                                            },
                                             child: const Text(
                                               'Forgot Password?',
                                               style: TextStyle(
@@ -562,38 +559,6 @@ class _SignInScreenState extends State<SignInScreen>
         onPressed: onPressed,
         icon: Icon(icon, color: color, size: 28),
       ),
-    );
-  }
-
-  Widget _buildRippleEffect() {
-    return AnimatedBuilder(
-      animation: _rippleAnimation,
-      builder: (context, child) {
-        return Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(
-                0.1 * (1 - _rippleAnimation.value),
-              ),
-            ),
-            child: Center(
-              child: Container(
-                width: 300 * _rippleAnimation.value,
-                height: 300 * _rippleAnimation.value,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.green.withOpacity(
-                      0.3 * (1 - _rippleAnimation.value),
-                    ),
-                    width: 2,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
