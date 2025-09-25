@@ -13,6 +13,7 @@ import 'package:trip_mate/features/choose_mode/presentation/bloc/theme_cubit.dar
 import 'package:trip_mate/features/splash/presentation/screens/splash_screen.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
+import 'package:trip_mate/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 String path = '';
 
@@ -50,7 +51,8 @@ class MyApp extends StatelessWidget {
             onGenerateRoute: (settings) => AppRoutes.onGenerateRoute(settings),
             title: 'Tralto',
             theme: AppTheme.lightTheme,
-            home: TravelSplashScreen(),
+            home: HomeScreen(),
+            // home: TravelSplashScreen(),
           );
         },
       ),
