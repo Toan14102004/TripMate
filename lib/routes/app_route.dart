@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trip_mate/features/auth/presentation/screens/signin_screen.dart';
 import 'package:trip_mate/features/auth/presentation/screens/signup_screen.dart';
 import 'package:trip_mate/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:trip_mate/features/profile/presentation/screens/profile_screen.dart';
 import 'package:trip_mate/features/root/presentation/screens/root_screen.dart';
 import 'package:trip_mate/features/security/presentation/screens/new_password_screen.dart';
 import 'package:trip_mate/features/security/presentation/screens/reset_password_screen.dart';
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String resetPassword = '/reset-password';
   static const String newPassword = '/new-password';
   static const String rootPage = '/root-page';
+  static const String profilePage = '/profile-page';
   // onGenerateRoute dùng để định nghĩa các route động
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -34,6 +36,7 @@ class AppRoutes {
     signup: (context) => const SignUpScreen(),
     resetPassword: (context) => const ResetPasswordScreen(),
     newPassword: (context) => const NewPasswordScreen(),
-    rootPage: (context) => const RootScreen()
+    rootPage: (context) => const RootScreen(),
+    profilePage: (context) => const ProfileScreen()
   };
 }

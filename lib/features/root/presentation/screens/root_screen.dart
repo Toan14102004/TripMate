@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
-import 'package:trip_mate/commons/widgets/drawer.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_state.dart';
 import 'package:trip_mate/features/root/presentation/widgets/my_drawer.dart';
@@ -132,7 +131,7 @@ class _RootScreenState extends State<RootScreen>
             index: 1,
             icon: Icons.map_outlined,
             activeIcon: Icons.map,
-            label: 'My Trip',
+            label: 'My Trips',
             isSelected: state.selectedIndex == 1,
             state: state,
           ),
