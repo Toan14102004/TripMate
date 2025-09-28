@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class TravelLoadingScreen extends StatefulWidget {
-  const TravelLoadingScreen({Key? key}) : super(key: key);
+  const TravelLoadingScreen({super.key});
 
   @override
   State<TravelLoadingScreen> createState() => _TravelLoadingScreenState();

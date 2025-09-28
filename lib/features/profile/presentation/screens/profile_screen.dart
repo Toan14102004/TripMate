@@ -1,0 +1,679 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/commons/widgets/error_screen.dart';
+import 'package:trip_mate/commons/widgets/loading_screen.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
+import 'package:trip_mate/features/profile/presentation/widgets/action_buttons.dart';
+import 'package:trip_mate/features/profile/presentation/widgets/success_dialog.dart';
+import 'package:trip_mate/features/profile/presentation/widgets/text_field.dart';
+
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  _AdvancedProfilePageState createState() => _AdvancedProfilePageState();
+}
+
+class _AdvancedProfilePageState extends State<ProfileScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late AnimationController _scaleController;
+  late AnimationController _rotationController;
+  late AnimationController _pulseController;
+  late AnimationController _shakeController;
+  late AnimationController _waveController;
+
+  bool _isEditing = false;
+  String _selectedAvatar = '😊';
+  final List<String> _avatarOptions = [
+    '😊',
+    '🤔',
+    '😎',
+    '🚀',
+    '💪',
+    '🎯',
+    '✨',
+    '🌟',
+  ];
+
+  final TextEditingController _nameController = TextEditingController(
+    text: 'Jonathan Smith',
+  );
+  final TextEditingController _emailController = TextEditingController(
+    text: 'jonathansmith@gmail.com',
+  );
+  // Thay đổi: Phone -> Date of Birth
+  final TextEditingController _dobController = TextEditingController(
+    text: '1995-01-20',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAnimations();
+    _startAnimations();
+    context.read<ProfileCubit>().initialize();
+  }
+
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _rotationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _waveController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    );
+
+    // Repeating animations
+    _pulseController.repeat(reverse: true);
+    _waveController.repeat();
+  }
+
+  void _startAnimations() {
+    Future.delayed(
+      const Duration(milliseconds: 100),
+      () => _scaleController.forward(),
+    );
+    Future.delayed(
+      const Duration(milliseconds: 300),
+      () => _fadeController.forward(),
+    );
+    Future.delayed(
+      const Duration(milliseconds: 500),
+      () => _slideController.forward(),
+    );
+  }
+
+  void _shakeAnimation() {
+    HapticFeedback.lightImpact();
+    _shakeController.forward().then((_) => _shakeController.reset());
+  }
+
+  // Hàm chọn ngày sinh
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.tryParse(_dobController.text) ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data:
+              context.isDarkMode
+                  ? ThemeData.dark().copyWith(
+                    colorScheme: ColorScheme.dark(
+                      primary: Colors.orange.shade600,
+                      onPrimary: Colors.white,
+                      surface: const Color(0xFF1B1B1B),
+                      onSurface: Colors.white,
+                    ),
+                    textButtonTheme: TextButtonThemeData(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.orange.shade600,
+                      ),
+                    ),
+                  )
+                  : ThemeData.light().copyWith(
+                    colorScheme: ColorScheme.light(
+                      primary: Colors.blue.shade600,
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: Colors.black87,
+                    ),
+                    textButtonTheme: TextButtonThemeData(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.blue.shade600,
+                      ),
+                    ),
+                  ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _dobController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+      context.read<ProfileCubit>().onChangeProfile(
+        dob: DateTime.parse(_dobController.text),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    _scaleController.dispose();
+    _rotationController.dispose();
+    _pulseController.dispose();
+    _shakeController.dispose();
+    _waveController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        if (state is ProfileError) {
+          return TravelErrorScreen(
+            errorMessage: state.message,
+            onRetry: () => context.read<ProfileCubit>().initialize(),
+          );
+        } else if (state is ProfileData) {
+          _nameController.text = state.fullname;
+          _emailController.text = state.email;
+          _dobController.text = state.dob.toString();
+          return Scaffold(
+            backgroundColor:
+                context.isDarkMode ? const Color(0xFF1B1B1B) : Colors.white,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  _buildAdvancedHeader(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.5),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _slideController,
+                            curve: Curves.elasticOut,
+                          ),
+                        ),
+                        child: FadeTransition(
+                          opacity: _fadeController,
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              children: [
+                                _buildInteractiveAvatarSection(),
+                                const SizedBox(height: 30),
+                                _buildAdvancedFormFields(),
+                                const SizedBox(height: 40),
+                                _buildActionButtons(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return const TravelLoadingScreen();
+      },
+    );
+  }
+
+  Widget _buildAdvancedHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors:
+              context.isDarkMode
+                  ? [const Color(0xFF2E1A1A), const Color(0xFF1A2E2E)]
+                  : [Colors.orange.shade50, Colors.blue.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              _rotationController.forward().then(
+                (_) => _rotationController.reset(),
+              );
+              _shakeAnimation();
+              Navigator.of(context).pop();
+            },
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _rotationController,
+                _shakeController,
+              ]),
+              builder: (context, child) {
+                double shake = 0;
+                if (_shakeController.isAnimating) {
+                  shake = 5 * (0.5 - (0.5 - _shakeController.value).abs());
+                }
+                return Transform.translate(
+                  offset: Offset(shake, 0),
+                  child: Transform.rotate(
+                    angle: _rotationController.value * 2 * 3.14159,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color:
+                            context.isDarkMode
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios,
+                        color:
+                            context.isDarkMode ? Colors.white : Colors.black87,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return ShaderMask(
+                    shaderCallback: (bounds) {
+                      return LinearGradient(
+                        colors: [
+                          Colors.orange.shade400,
+                          const Color(0xFF1B1B1B),
+                          const Color(0xFF1B1B1B),
+                          Colors.blue.shade400,
+                        ],
+                        stops:
+                            [
+                              _waveController.value - 0.3,
+                              _waveController.value - 0.1,
+                              _waveController.value + 0.1,
+                              _waveController.value + 0.3,
+                            ].map((e) => e.clamp(0.0, 1.0)).toList(),
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ).createShader(bounds);
+                    },
+                    child: const Text(
+                      'My Profile ✨',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              showQuickActionsDialog(context);
+              _shakeAnimation();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color:
+                    context.isDarkMode
+                        ? Colors.yellow.withOpacity(0.2)
+                        : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.apps_rounded,
+                color: context.isDarkMode ? Colors.yellow : Colors.grey[700],
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInteractiveAvatarSection() {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => _showAvatarPicker(),
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  return Container(
+                    width: 130 + (_pulseController.value * 10),
+                    height: 130 + (_pulseController.value * 10),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.orange.withOpacity(0.3),
+                          Colors.blue.withOpacity(0.1),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade400, Colors.blue.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    _selectedAvatar,
+                    style: const TextStyle(fontSize: 50),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () => _showAvatarPicker(),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade400, Colors.orange.shade400],
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        AnimatedBuilder(
+          animation: _waveController,
+          builder: (context, child) {
+            return Text(
+              'Tap to customize!',
+              style: TextStyle(
+                fontSize: 14,
+                color: (context.isDarkMode ? Colors.white : Colors.grey[600])
+                    ?.withOpacity(
+                      (0.7 +
+                              0.3 *
+                                  (0.5 +
+                                      0.5 *
+                                          Curves.easeInOut.transform(
+                                            ((_waveController.value * 2) % 1.0),
+                                          )))
+                          .clamp(0.0, 1.0),
+                    ),
+                fontStyle: FontStyle.italic,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdvancedFormFields() {
+    return Column(
+      children: [
+        AdvancedTextField(
+          label: 'Name',
+          icon: Icons.person_outline,
+          controller: _nameController,
+          delay: 0,
+          isEditing: _isEditing,
+          onToggleEdit:
+              () => setState(() {
+                _isEditing = !_isEditing;
+              }),
+          onSelectDate: _selectDate, 
+          onTextChange: (value) {
+            context.read<ProfileCubit>().onChangeProfile(fullname: value);
+          },
+        ),
+        const SizedBox(height: 20),
+        AdvancedTextField(
+          label: 'Email',
+          icon: Icons.email_outlined,
+          controller: _emailController,
+          delay: 200,
+          isEditing: _isEditing,
+          onToggleEdit:
+              () => setState(() {
+                _isEditing = !_isEditing;
+              }),
+          onSelectDate: _selectDate, 
+          onTextChange: (value) {
+            context.read<ProfileCubit>().onChangeProfile(email: value);
+          },
+        ),
+        const SizedBox(height: 20),
+        // Thay thế Phone bằng Date of Birth
+        AdvancedTextField(
+          label: 'Date of Birth',
+          icon: Icons.calendar_today_outlined,
+          controller: _dobController,
+          delay: 400,
+          isEditing: _isEditing,
+          onToggleEdit:
+              () => setState(() {
+                _isEditing = !_isEditing;
+              }),
+          onSelectDate: _selectDate, 
+          onTextChange: (value) {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Flexible(
+          child: GestureDetector(
+            onTap: () async {
+              if (_emailController.text.isEmpty ||
+                  _dobController.text.isEmpty ||
+                  _nameController.text.isEmpty) {
+                ToastUtil.showErrorToast('Please fill your form');
+              } else {
+                await context.read<ProfileCubit>().updateProfile(
+                  ProfileData(
+                    email: _emailController.text,
+                    dob:
+                        DateTime.tryParse(_dobController.text) ??
+                        DateTime.now(),
+                    fullname: _nameController.text,
+                  ),
+                );
+                showSuccessAnimation(context);
+                HapticFeedback.heavyImpact();
+              }
+            },
+            child: AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.orange.shade400, Colors.blue.shade400],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(
+                          (0.4 + 0.2 * _pulseController.value).clamp(0.0, 1.0),
+                        ),
+                        blurRadius: 20 + 10 * _pulseController.value,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Text(
+                        'Update Profile',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAvatarPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color:
+                  context.isDarkMode ? const Color(0xFF1B1B1B) : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Choose Your Avatar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: context.isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                  ),
+                  itemCount: _avatarOptions.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedAvatar = _avatarOptions[index]);
+                        Navigator.pop(context);
+                        _shakeAnimation();
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient:
+                              _selectedAvatar == _avatarOptions[index]
+                                  ? LinearGradient(
+                                    colors: [
+                                      Colors.orange.shade300,
+                                      Colors.blue.shade300,
+                                    ],
+                                  )
+                                  : null,
+                          color:
+                              _selectedAvatar == _avatarOptions[index]
+                                  ? null
+                                  : Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _avatarOptions[index],
+                            style: const TextStyle(fontSize: 30),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+}

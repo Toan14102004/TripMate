@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_state.dart';
-
+import 'package:trip_mate/features/root/presentation/widgets/my_drawer.dart';
+final GlobalKey<ScaffoldState> rootScaffoldKey = GlobalKey<ScaffoldState>();
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
 
@@ -54,7 +56,9 @@ class _RootScreenState extends State<RootScreen>
       builder: (context, state) {
         if (state is PageInitial) {
           return Scaffold(
-            backgroundColor: Colors.white,
+            key: rootScaffoldKey,
+            drawer: const MyDrawer(),
+            backgroundColor: context.isDarkMode ? Colors.black : Colors.white,
             body: Stack(
               children: [
                 AnimatedSwitcher(
@@ -98,7 +102,7 @@ class _RootScreenState extends State<RootScreen>
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.isDarkMode ? Colors.black : Colors.white,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(25),
           topRight: Radius.circular(25),
@@ -127,7 +131,7 @@ class _RootScreenState extends State<RootScreen>
             index: 1,
             icon: Icons.map_outlined,
             activeIcon: Icons.map,
-            label: 'My Trip',
+            label: 'My Trips',
             isSelected: state.selectedIndex == 1,
             state: state,
           ),
