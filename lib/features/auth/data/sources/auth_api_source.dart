@@ -12,6 +12,8 @@ import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
 class AuthApiSource {
   Future<Either> signInWithEmailAndPassword(SigninUserReq signInUserReq) async {
     if(signInUserReq.email == 'test@example.com' && signInUserReq.password == 'password'){
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString(AuthKeys.kEmail, signInUserReq.email);
       return const Right("Đăng nhập thành công!");
     }
     else{
@@ -22,6 +24,9 @@ class AuthApiSource {
   Future<Either> signUpWithEmailAndPassword(CreateUserReq createUserReq) async {
     final prefs = await SharedPreferences.getInstance();
     int verifyKey = generateRandomNumber(min: 1000, max: 9999);
+    logDebug(createUserReq.fullName);
+    prefs.setString(AuthKeys.kFullName, createUserReq.fullName);
+    prefs.setString(AuthKeys.kDob, createUserReq.dob.toIso8601String());
     logDebug(verifyKey.toString());
     await prefs.setString(AuthKeys.kAuthVerifyKey, verifyKey.toString());
     return const Right("Đăng ký thành công!");

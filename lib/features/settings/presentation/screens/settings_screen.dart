@@ -19,7 +19,10 @@ class SettingsScreen extends StatelessWidget {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                backgroundColor: isDark ? const Color(0xFF1C1C1E) : Theme.of(context).scaffoldBackgroundColor,
+                backgroundColor:
+                    isDark
+                        ? const Color(0xFF1C1C1E)
+                        : Theme.of(context).scaffoldBackgroundColor,
                 expandedHeight: 70.0,
                 floating: true,
                 pinned: false,
@@ -38,7 +41,10 @@ class SettingsScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 16, top: 8),
                   child: CircleAvatar(
                     backgroundColor: Colors.orange,
-                    child: Icon(Icons.person, color: !isDark ? Colors.white : Colors.black),
+                    child: Icon(
+                      Icons.person,
+                      color: !isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
                 actions: [
@@ -48,7 +54,7 @@ class SettingsScreen extends StatelessWidget {
                         iconSize: 28,
                         icon: const Icon(Icons.menu),
                         onPressed: () {
-                           rootScaffoldKey.currentState?.openDrawer(); 
+                          rootScaffoldKey.currentState?.openDrawer();
                         },
                         color: isDark ? Colors.white : Colors.black,
                       );
@@ -57,68 +63,72 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
               ),
-              
+
               SliverList(
-                delegate: SliverChildListDelegate(
-                  [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _buildSettingSection(
-                            context,
-                            children: [
-                              _buildSwitchTile(
-                                context,
-                                title: 'Notification',
-                                icon: Icons.notifications,
-                                value: state.isNotificationEnabled,
-                                onChanged: (value) =>
-                                    context.read<SettingsCubit>().toggleNotification(),
-                                isDark: isDark,
-                              ),
-                              _buildDivider(isDark),
-                              _buildDarkModeTile(context, isDark: isDark),
-                              _buildDivider(isDark),
-                              _buildSwitchTile(
-                                context,
-                                title: 'Email Notification',
-                                icon: Icons.email,
-                                value: state.isEmailNotificationEnabled,
-                                onChanged: (value) =>
-                                    context.read<SettingsCubit>().toggleEmailNotification(),
-                                isDark: isDark,
-                              ),
-                            ],
-                            isDark: isDark,
-                          ),
-                          const SizedBox(height: 32),
-                          _buildSettingSection(
-                            context,
-                            children: [
-                              _buildNavigationTile(
-                                context,
-                                title: 'About App',
-                                icon: Icons.info,
-                                onTap: () => _showAboutDialog(context),
-                                isDark: isDark,
-                              ),
-                              _buildDivider(isDark),
-                              _buildNavigationTile(
-                                context,
-                                title: 'Share App',
-                                icon: Icons.share,
-                                onTap: () => _showShareDialog(context),
-                                isDark: isDark,
-                              ),
-                            ],
-                            isDark: isDark,
-                          ),
-                        ],
-                      ),
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildSettingSection(
+                          context,
+                          children: [
+                            _buildSwitchTile(
+                              context,
+                              title: 'Notification',
+                              icon: Icons.notifications,
+                              value: state.isNotificationEnabled,
+                              onChanged:
+                                  (value) =>
+                                      context
+                                          .read<SettingsCubit>()
+                                          .toggleNotification(),
+                              isDark: isDark,
+                            ),
+                            _buildDivider(isDark),
+                            _buildDarkModeTile(context, isDark: isDark),
+                            _buildDivider(isDark),
+                            _buildSwitchTile(
+                              context,
+                              title: 'Email Notification',
+                              icon: Icons.email,
+                              value: state.isEmailNotificationEnabled,
+                              onChanged:
+                                  (value) =>
+                                      context
+                                          .read<SettingsCubit>()
+                                          .toggleEmailNotification(),
+                              isDark: isDark,
+                            ),
+                          ],
+                          isDark: isDark,
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSettingSection(
+                          context,
+                          children: [
+                            _buildNavigationTile(
+                              context,
+                              title: 'About App',
+                              icon: Icons.info,
+                              onTap: () => _showAboutDialog(context),
+                              isDark: isDark,
+                            ),
+                            _buildDivider(isDark),
+                            _buildNavigationTile(
+                              context,
+                              title: 'Share App',
+                              icon: Icons.share,
+                              onTap: () => _showShareDialog(context),
+                              isDark: isDark,
+                            ),
+                          ],
+                          isDark: isDark,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ]),
               ),
             ],
           ),
@@ -126,10 +136,6 @@ class SettingsScreen extends StatelessWidget {
       },
     );
   }
-
-  // -------------------------------------------------------------------------
-  //                           WIDGET HỖ TRỢ CHO SETTINGS
-  // -------------------------------------------------------------------------
 
   Widget _buildSettingSection(
     BuildContext context, {
@@ -141,7 +147,6 @@ class SettingsScreen extends StatelessWidget {
     List<BoxShadow> shadows = [];
 
     if (!isDark) {
-      // Đổ bóng nhẹ khi ở chế độ sáng
       shadows.add(
         BoxShadow(
           color: Colors.grey.withOpacity(0.1),
@@ -163,12 +168,12 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildSwitchTile(
-      BuildContext context, {
-      required String title,
-      required IconData icon,
-      required bool value,
-      required Function(bool) onChanged,
-      required bool isDark,
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required bool value,
+    required Function(bool) onChanged,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -197,22 +202,20 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildNavigationTile(
-      BuildContext context, {
-      required String title,
-      required IconData icon,
-      required VoidCallback onTap,
-      required bool isDark,
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool isDark,
   }) {
     return InkWell(
       onTap: onTap,
-      // Hiệu ứng highlight khi chạm
       highlightColor: isDark ? Colors.white10 : Colors.grey[200],
       borderRadius: const BorderRadius.all(Radius.circular(12)),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            // Icon màu xám nhẹ
             Icon(icon, color: isDark ? Colors.blueGrey[300] : Colors.blueGrey),
             const SizedBox(width: 12),
             Expanded(
@@ -242,7 +245,6 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          // AnimatedSwitcher cho hiệu ứng chuyển đổi icon
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             transitionBuilder: (Widget child, Animation<double> animation) {
@@ -266,8 +268,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           Switch.adaptive(
             value: isDark,
-            onChanged: (value) =>
-                themeCubit.updateTheme(value ? ThemeMode.dark : ThemeMode.light),
+            onChanged:
+                (value) => themeCubit.updateTheme(
+                  value ? ThemeMode.dark : ThemeMode.light,
+                ),
             activeColor: const Color(0xFF007AFF),
           ),
         ],
@@ -284,11 +288,11 @@ class SettingsScreen extends StatelessWidget {
       endIndent: 16,
     );
   }
-  
+
   // -------------------------------------------------------------------------
   //                           HÀM HIỂN THỊ DIALOG
   // -------------------------------------------------------------------------
-  
+
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,

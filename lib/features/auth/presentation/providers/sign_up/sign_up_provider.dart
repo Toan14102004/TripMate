@@ -1,6 +1,7 @@
 // sign_in_cubit.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/validate.dart';
 import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
@@ -12,62 +13,68 @@ import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 
 class SignUpCubit extends Cubit<SignUpState> {
-  SignUpCubit() : super(SignUpInitial(
-    isPasswordVisible: false, 
-    email: '', 
-    password: '', 
-    isConfirmPasswordVisible: false, 
-    name: '',
-    birthDay: DateTime.now()
-  ));
+  SignUpCubit()
+    : super(
+        SignUpInitial(
+          isPasswordVisible: false,
+          email: '',
+          password: '',
+          isConfirmPasswordVisible: false,
+          name: '',
+          birthDay: DateTime.now(),
+        ),
+      );
 
   void togglePasswordVisibility(bool value) {
-    if(state is SignUpInitial){
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(isPasswordVisible: value));
     }
   }
 
   void toggleConfirmPasswordVisiblity(bool value) {
-    if(state is SignUpInitial){
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(isConfirmPasswordVisible: value));
     }
   }
 
   void onChangedEmail(String email) {
-    if(state is SignUpInitial){
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(email: email));
     }
   }
 
   void onChangedName(String name) {
-    if(state is SignUpInitial){
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(name: name));
     }
   }
 
   void onChangedPass(String password) {
-    if(state is SignUpInitial){
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(password: password));
     }
   }
 
-  void onChangedDob(DateTime dob){
-    if(state is SignUpInitial){
+  void onChangedDob(DateTime dob) {
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(birthDay: dob));
     }
   }
 
-  Future<void> SignUp() async {
-    if(state is SignUpInitial){
+  Future<void> signUp({required SignUpInitial data}) async {
+    if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       if (currentState.email.isEmpty || currentState.password.isEmpty) {
-        ToastUtil.showErrorToast(title: "Error", 'Vui lòng nhập đầy đủ thông tin');
+        ToastUtil.showErrorToast(
+          title: "Error",
+          'Vui lòng nhập đầy đủ thông tin',
+        );
         return;
       }
 
@@ -81,31 +88,35 @@ class SignUpCubit extends Cubit<SignUpState> {
       try {
         // Simulate API call
         await Future.delayed(const Duration(seconds: 2));
-        
         final result = await sl<SignUpUseCase>().call(
           params: CreateUserReq(
-            email: currentState.email,
-            password: currentState.password,
-            dob: currentState.birthDay, 
-            fullName: currentState.name
+            email: data.email,
+            password: data.password,
+            dob: data.birthDay,
+            fullName: data.name,
           ),
         );
 
         result.fold(
           (left) {
-            ToastUtil.showErrorToast(
-              title: "Error",
-              left,
-            );
+            ToastUtil.showErrorToast(title: "Error", left);
             emit(currentState);
           },
           (right) {
             ToastUtil.showSuccessToast(title: "Success", right);
-            Navigator.of(AppGlobal.navigatorKey.currentContext!).push(MaterialPageRoute(builder: (context) => VerificationScreen(email: currentState.email)));
+            Navigator.of(AppGlobal.navigatorKey.currentContext!).push(
+              MaterialPageRoute(
+                builder:
+                    (context) => VerificationScreen(email: currentState.email),
+              ),
+            );
           },
         );
       } catch (e) {
-        ToastUtil.showErrorToast(title: "Error", 'Đã xảy ra lỗi: ${e.toString()}');
+        ToastUtil.showErrorToast(
+          title: "Error",
+          'Đã xảy ra lỗi: ${e.toString()}',
+        );
         emit(currentState);
       }
     }
@@ -116,9 +127,15 @@ class SignUpCubit extends Cubit<SignUpState> {
     try {
       // Simulate Google Sign In
       await Future.delayed(const Duration(seconds: 1));
-      ToastUtil.showSuccessToast(title: "Success", 'Đăng nhập Google thành công!');
+      ToastUtil.showSuccessToast(
+        title: "Success",
+        'Đăng nhập Google thành công!',
+      );
     } catch (e) {
-      ToastUtil.showErrorToast(title: "Error", 'Đăng nhập Google thất bại: ${e.toString()}');
+      ToastUtil.showErrorToast(
+        title: "Error",
+        'Đăng nhập Google thất bại: ${e.toString()}',
+      );
       resetState();
     }
   }
@@ -128,9 +145,15 @@ class SignUpCubit extends Cubit<SignUpState> {
     try {
       // Simulate Facebook Sign In
       await Future.delayed(const Duration(seconds: 1));
-      ToastUtil.showSuccessToast(title: "Success", 'Đăng nhập Facebook thành công!');
+      ToastUtil.showSuccessToast(
+        title: "Success",
+        'Đăng nhập Facebook thành công!',
+      );
     } catch (e) {
-      ToastUtil.showErrorToast(title: "Error", 'Đăng nhập Facebook thất bại: ${e.toString()}');
+      ToastUtil.showErrorToast(
+        title: "Error",
+        'Đăng nhập Facebook thất bại: ${e.toString()}',
+      );
       resetState();
     }
   }
@@ -140,21 +163,29 @@ class SignUpCubit extends Cubit<SignUpState> {
     try {
       // Simulate Apple Sign In
       await Future.delayed(const Duration(seconds: 1));
-      ToastUtil.showSuccessToast(title: "Success", 'Đăng nhập Apple thành công!');
+      ToastUtil.showSuccessToast(
+        title: "Success",
+        'Đăng nhập Apple thành công!',
+      );
     } catch (e) {
-      ToastUtil.showErrorToast(title: "Error", 'Đăng nhập Apple thất bại: ${e.toString()}');
+      ToastUtil.showErrorToast(
+        title: "Error",
+        'Đăng nhập Apple thất bại: ${e.toString()}',
+      );
       resetState();
     }
   }
 
   void resetState() {
-    emit(SignUpInitial(
-      isPasswordVisible: false, 
-      email: '', 
-      password: '', 
-      isConfirmPasswordVisible: false, 
-      name: '', 
-      birthDay: DateTime.now()
-    ));
+    emit(
+      SignUpInitial(
+        isPasswordVisible: false,
+        email: '',
+        password: '',
+        isConfirmPasswordVisible: false,
+        name: '',
+        birthDay: DateTime.now(),
+      ),
+    );
   }
 }
