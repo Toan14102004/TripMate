@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:trip_mate/commons/check_sign_in.dart';
 import 'dart:math' as math;
 
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
@@ -125,6 +124,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     else {
       Navigator.of(context).pushNamed(AppRoutes.onBoarding);
     }
+    Navigator.of(context).pushNamed(AppRoutes.onboarding);
   }
 
   void _startAnimations() async {
