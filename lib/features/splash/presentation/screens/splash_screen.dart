@@ -116,7 +116,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
 
   Future<void> _initializeServices() async {
     await Future.delayed(const Duration(seconds: 4));
-    Navigator.of(context).pushNamed(AppRoutes.onBoarding);
+    Navigator.of(context).pushNamed(AppRoutes.onboarding);
   }
 
   void _startAnimations() async {

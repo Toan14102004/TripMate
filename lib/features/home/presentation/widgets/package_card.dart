@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+
+import 'package:flutter/material.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart'; // Giả sử helper này hoạt động đúng
 
 class PackageCard extends StatelessWidget {
   final String image;
@@ -18,10 +22,23 @@ class PackageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = context.isDarkMode;
+
+    final Color cardBackgroundColor = isDarkMode ? Colors.grey.shade700 : Colors.white;
+    final Color ratingTextColor = isDarkMode ? Colors.black : Colors.black; // Đen trong dark mode
+
+    const Color ratingContainerColor = Colors.white;
+
+    final Color titleTextColor = isDarkMode ? Colors.white : Colors.black;
+    final Color locationTextColor = isDarkMode ? Colors.white : Colors.grey.shade700;
+    final Color priceTextColor = isDarkMode ? Colors.white : Colors.deepOrangeAccent;
+    const Color starIconColor = Colors.orange;
+
+
     return Container(
       width: 160,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBackgroundColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
@@ -32,7 +49,20 @@ class PackageCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.asset(image, height: 100, width: 160, fit: BoxFit.cover),
+                child: Image.asset(
+                  image,
+                  height: 100,
+                  width: 160,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 100,
+                      width: 160,
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  },
+                ),
               ),
               Positioned(
                 top: 8,
@@ -40,14 +70,20 @@ class PackageCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: ratingContainerColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.star, color: Colors.orange, size: 14),
+                      const Icon(Icons.star, color: starIconColor, size: 14),
                       const SizedBox(width: 2),
-                      Text(rating.toString(), style: const TextStyle(fontSize: 12)),
+                      Text(
+                        rating.toString(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ratingTextColor,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -59,9 +95,33 @@ class PackageCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(location, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                Text(price, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: titleTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  location,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: locationTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  price,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: priceTextColor,
+                  ),
+                ),
               ],
             ),
           ),

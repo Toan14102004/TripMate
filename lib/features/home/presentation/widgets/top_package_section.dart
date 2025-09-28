@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
+import 'package:trip_mate/features/home/domain/models/tour_model.dart';
+import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/screens/top_packages_screen.dart';
 import 'top_package_card.dart';
-import 'package:trip_mate/features/home/domain/models/tour_model.dart'; 
 
 class TopPackageSection extends StatefulWidget {
   const TopPackageSection({super.key});
@@ -19,6 +21,15 @@ class _TopPackageSectionState extends State<TopPackageSection> {
     _futureTopPackages = HomeApiSource().fetchTopPackages();
   }
 
+  void _navigateToDetail(TourModel package) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PackageDetailScreen(package: package),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -26,9 +37,25 @@ class _TopPackageSectionState extends State<TopPackageSection> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text("Top Packages", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text("See All", style: TextStyle(color: Colors.blue)),
+          children: [
+            const Text(
+              "Top Packages",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TopPackagesScreen(),
+                  ),
+                );
+              },
+              child: const Text(
+                "See All",
+                style: TextStyle(color: Colors.blue),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -42,15 +69,24 @@ class _TopPackageSectionState extends State<TopPackageSection> {
               return const Center(child: Text('No top packages'));
             }
             final packages = snapshot.data!;
-            return Column(
-              children: packages.map((pkg) => TopPackageCard(
-                image: pkg.image ?? '',
-                title: pkg.title,
-                location: pkg.destination ?? '',
-                price: '\$${pkg.price?.toStringAsFixed(0) ?? '0'}/Night',
-                rating: pkg.rating ?? 0,
-                reviews: pkg.reviewCount?.toString() ?? '0',
-              )).toList(),
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: packages.length > 2 ? 2 : packages.length,
+              itemBuilder: (context, index) {
+                final package = packages[index];
+                return GestureDetector(
+                  onTap: () => _navigateToDetail(package),
+                  child: TopPackageCard(
+                    image: package.image ?? '',
+                    title: package.title,
+                    location: package.destination ?? '',
+                    price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
+                    rating: package.rating ?? 0,
+                    reviews: package.reviewCount?.toString() ?? '0',
+                  ),
+                );
+              },
             );
           },
         ),
