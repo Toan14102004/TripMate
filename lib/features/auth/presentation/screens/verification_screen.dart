@@ -198,7 +198,7 @@ class _VerificationScreenState extends State<VerificationScreen>
             listener: (context, state) {
               if (state is VerificationSuccess) {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: widget.navigatorRouterNext!),
+                  MaterialPageRoute(builder: widget.navigatorRouterNext ?? AppRoutes.routes[AppRoutes.signin]!),
                 );
                 ToastUtil.showSuccessToast("Success", title: state.message);
               } else if (state is VerificationError) {

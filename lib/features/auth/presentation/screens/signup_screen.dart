@@ -415,7 +415,15 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                 : () {
                                                   if (_formKey.currentState!
                                                       .validate()) {
-                                                    cubit.SignUp();
+                                                    cubit.signUp(
+                                                      data: SignUpInitial(
+                                                        isPasswordVisible: state.isPasswordVisible, 
+                                                        isConfirmPasswordVisible: state.isConfirmPasswordVisible, 
+                                                        email: _emailController.text, 
+                                                        password: state.password, 
+                                                        birthDay: state.birthDay, 
+                                                        name: _nameController.text)
+                                                    );
                                                   }
                                                 },
                                         isLoading: state is SignUpLoading,
