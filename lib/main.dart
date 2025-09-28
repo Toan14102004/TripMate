@@ -58,8 +58,12 @@ class MyApp extends StatelessWidget {
             onGenerateRoute: (settings) => AppRoutes.onGenerateRoute(settings),
             title: 'Tralto',
             theme: AppTheme.lightTheme,
+<<<<<<< HEAD
             home: HomeScreen(),
             // home: TravelSplashScreen(),
+=======
+            home: const RootScreen(),
+>>>>>>> ab29dfa0fd4c829fe8e3e5893a1c3ccf8a2b065f
 
           );
         },

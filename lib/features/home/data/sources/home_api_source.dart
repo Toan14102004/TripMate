@@ -1,7 +1,11 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 // TODO: Home 기능의 API 소스를 구현하세요.
 class HomeApiSource {}
 =======
+=======
+
+>>>>>>> ab29dfa0fd4c829fe8e3e5893a1c3ccf8a2b065f
 // // TODO: Home 기능의 API 소스를 구현하세요.
 // import 'package:dio/dio.dart';
 // import 'package:trip_mate/features/home/domain/models/tour_model.dart';
@@ -154,4 +158,8 @@ class HomeApiSource {
   return 'assets/images/avatar.png'; 
 }
 }
+<<<<<<< HEAD
 >>>>>>> feature/home-screen
+=======
+
+>>>>>>> ab29dfa0fd4c829fe8e3e5893a1c3ccf8a2b065f
