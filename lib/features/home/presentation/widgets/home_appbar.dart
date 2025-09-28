@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import '../../data/sources/home_api_source.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 
 class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key});
@@ -76,7 +77,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
         const Spacer(),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.isDarkMode ? Colors.grey.shade700 :Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
           ),
