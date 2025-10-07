@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_riverpod: ^2.3.6    # hoặc latest stable
+  cached_network_image: ^3.2.3
+  google_maps_flutter: ^2.4.2  #
   equatable: ^2.0.5
   uuid: ^4.5.1
   get_it: ^8.0.3
@@ -47,13 +50,8 @@ dependencies:
   flutter_bloc: ^9.1.1
   hydrated_bloc:
   path_provider: ^2.1.5
-<<<<<<< HEAD
-  geolocator: ^14.0.2
-  geocoding: ^4.0.0
-=======
   geolocator: ^10.1.0
   geocoding: ^2.1.0
->>>>>>> feature/home-screen
 
 dev_dependencies:
   flutter_launcher_icons: 0.13.1

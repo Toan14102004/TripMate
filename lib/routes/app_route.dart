@@ -22,6 +22,8 @@ class AppRoutes {
   static const String popularPackages = '/popular-packages';
   static const String topPackages = '/top-packages';
   static const String packageDetail = '/package-detail';
+  static String get profilePage => '/profile';
+  static const String tripDetail = '/trip-detail';
 
   // Route generator
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
