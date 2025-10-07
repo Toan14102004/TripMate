@@ -3,9 +3,12 @@ import 'package:trip_mate/core/configs/usecases/usecase.dart';
 import 'package:trip_mate/features/auth/domain/repositories/auth_repository.dart';
 import 'package:trip_mate/service_locator.dart';
 
-class ResendTokenUsecase implements UseCase<Either, dynamic> {
+class ResendTokenUsecase implements UseCase<Either, String> {
   @override
-  Future<Either> call({params}) async {
-    return await sl<AuthRepository>().resendToken();
+  Future<Either> call({String? params}) async {
+    if(params == null){
+      return const Left("Missing params");
+    }
+    return await sl<AuthRepository>().resendToken(params);
   }
 }

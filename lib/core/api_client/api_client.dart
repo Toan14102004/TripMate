@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:trip_mate/commons/env.dart';
@@ -10,14 +11,16 @@ class ApiService {
 
   // Constructor
   ApiService({
-    String baseUrl = Environment.kDomain, 
+    String baseUrl = Environment.kDomain,
     Duration connectTimeout = const Duration(seconds: 30),
     Duration receiveTimeout = const Duration(seconds: 30),
-  }) : _dio = Dio(BaseOptions(
-          baseUrl: baseUrl,
-          connectTimeout: connectTimeout,
-          receiveTimeout: receiveTimeout,
-        )) {
+  }) : _dio = Dio(
+         BaseOptions(
+           baseUrl: baseUrl,
+           connectTimeout: connectTimeout,
+           receiveTimeout: receiveTimeout,
+         ),
+       ) {
     // Thêm interceptor để log các request/response
     if (kDebugMode) {
       _dio.interceptors.add(
@@ -31,11 +34,15 @@ class ApiService {
             return handler.next(options);
           },
           onResponse: (response, handler) {
-            logDebug('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+            logDebug(
+              'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}',
+            );
             return handler.next(response);
           },
           onError: (DioException e, handler) {
-            logError('ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}');
+            logError(
+              'ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}',
+            );
             ToastUtil.showErrorToast('MESSAGE: ${e.message}');
             return handler.next(e);
           },
@@ -53,7 +60,7 @@ class ApiService {
     try {
       if (!skipAuth) {
         // Lấy token
-        String? token = await AuthRepository.getAuthToken();
+        String? token = await AuthRepository.getAccessToken();
         if (token != null) {
           _dio.options.headers['Authorization'] = 'Bearer $token';
         }
@@ -75,11 +82,34 @@ class ApiService {
         );
       } else {
         // Lỗi kết nối
-        throw Exception('Không có kết nối Internet hoặc timeout. Vui lòng thử lại!');
+        throw Exception(
+          'Không có kết nối Internet hoặc timeout. Vui lòng thử lại!',
+        );
       }
     } catch (e) {
       // Các lỗi khác
       throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  Future<Either> sendRequest(
+    Future<Either> Function() request) async {
+    try {
+      return await request();
+    } on DioException catch (e) {
+      final errorMessage = e.message ?? 'Đã xảy ra lỗi kết nối mạng.';
+      if (e.response?.data is Map<String, dynamic> &&
+          e.response?.data['message'] != null) {
+        return Left(e.response!.data['message']);
+      }
+
+      return Left(errorMessage);
+    } catch (e) {
+      final errorMessage =
+          e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'Đã xảy ra lỗi không xác định.';
+      return Left(errorMessage);
     }
   }
 
@@ -115,10 +145,7 @@ class ApiService {
     dynamic data,
     bool skipAuth = false,
   }) async {
-    return _handleRequest(
-      () => _dio.put(path, data: data),
-      skipAuth: skipAuth,
-    );
+    return _handleRequest(() => _dio.put(path, data: data), skipAuth: skipAuth);
   }
 
   /// DELETE Request

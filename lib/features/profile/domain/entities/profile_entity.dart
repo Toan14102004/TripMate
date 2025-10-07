@@ -6,15 +6,31 @@ class ProfileEntity {
   final String fullname;
   final DateTime dob;
   final String email;
+  final String userName;
+  final String phoneNumber;
+  final String address;
+  final String role;
 
   ProfileEntity({
+    required this.userName, 
+    required this.phoneNumber, 
+    required this.address, 
+    required this.role,
     required this.email,
     required this.dob,
     required this.fullname
   });
 
   ProfileData convertToState(){
-    return ProfileData(email: email, dob: dob, fullname: fullname);
+    return ProfileData(
+      email: email, 
+      dob: dob, 
+      fullname: fullname, 
+      address: address, 
+      phoneNumber: phoneNumber, 
+      role: role, 
+      userName: userName
+    );
   }
 
   ProfileRequest convertToRequest(){

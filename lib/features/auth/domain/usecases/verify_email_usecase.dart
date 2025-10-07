@@ -3,13 +3,13 @@ import 'package:trip_mate/core/configs/usecases/usecase.dart';
 import 'package:trip_mate/features/auth/domain/repositories/auth_repository.dart';
 import 'package:trip_mate/service_locator.dart';
 
-class VerifyUseCase implements UseCase<Either, String> {
+class VerifyEmailUseCase implements UseCase<Either, Map<String, String>> {
   @override
-  Future<Either> call({String? params}) async {
+  Future<Either> call({Map<String, String>? params}) async {
     // handle null if needed
     if (params == null) {
       return const Left("Missing params");
     }
-    return await sl<AuthRepository>().verifyToken(params);
+    return await sl<AuthRepository>().verifyEmailToken(params['token']!, params['email']!);
   }
 }
