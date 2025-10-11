@@ -2,14 +2,11 @@
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trip_mate/commons/endpoint.dart';
-import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/storage_keys/auth.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
-import 'package:trip_mate/core/ultils/generate_random_number.dart';
 import 'package:trip_mate/features/auth/data/dtos/signin_request.dart';
 import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
 import 'package:trip_mate/services/local_storage/auth.dart';

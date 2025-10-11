@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/widgets/error_screen.dart';
 import 'package:trip_mate/commons/widgets/loading_screen.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
@@ -10,6 +14,7 @@ import 'package:trip_mate/features/profile/presentation/providers/profile_state.
 import 'package:trip_mate/features/profile/presentation/widgets/action_buttons.dart';
 import 'package:trip_mate/features/profile/presentation/widgets/success_dialog.dart';
 import 'package:trip_mate/features/profile/presentation/widgets/text_field.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +35,10 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
 
   bool _isEditing = false;
   String _selectedAvatar = '😊';
+  bool _isMapVisible = false;
+  LatLng? _mapCenter;
+  Marker? _addressMarker;
+  final MapController _mapController = MapController();
   final List<String> _avatarOptions = [
     '😊',
     '🤔',
@@ -54,7 +63,61 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
     super.initState();
     _initializeAnimations();
     _startAnimations();
+    _mapCenter = const LatLng(21.028511, 105.804817);
     context.read<ProfileCubit>().initialize();
+  }
+
+  Future<void> _geocodeAndShowMap() async {
+    final address = _addressController.text.trim();
+    if (address.isEmpty) {
+      ToastUtil.showErrorToast('Vui lòng nhập địa chỉ trước!');
+      _shakeAnimation();
+      return;
+    }
+
+    setState(() {
+      _isMapVisible = true;
+      _addressMarker = null;
+    });
+
+    try {
+      List<Location> locations = await locationFromAddress(address);
+
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        final newPosition = LatLng(location.latitude, location.longitude);
+
+        setState(() {
+          _mapCenter = newPosition;
+          _addressMarker = Marker(
+            point: newPosition,
+            width: 80,
+            height: 80,
+            child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
+          );
+        });
+
+        _mapController.move(
+          newPosition,
+          16.0,
+        );
+        ToastUtil.showSuccessToast('Đã tìm thấy vị trí trên bản đồ!');
+      } else {
+        ToastUtil.showErrorToast('Không tìm thấy tọa độ cho địa chỉ này.');
+        setState(() {
+          _isMapVisible = false;
+        });
+      }
+    } catch (e) {
+      ToastUtil.showErrorToast(
+        'Lỗi tìm kiếm: Vui lòng kiểm tra địa chỉ và kết nối mạng.',
+      );
+      // Thay thế logDebug/logError của bạn
+      // logError(e);
+      setState(() {
+        _isMapVisible = false;
+      });
+    }
   }
 
   void _initializeAnimations() {
@@ -194,7 +257,8 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           // Update all controllers with state data
           _nameController.text = state.fullname;
           _emailController.text = state.email;
-          _dobController.text = "${state.dob.year}-${state.dob.month.toString().padLeft(2, '0')}-${state.dob.day.toString().padLeft(2, '0')}";
+          _dobController.text =
+              "${state.dob.year}-${state.dob.month.toString().padLeft(2, '0')}-${state.dob.day.toString().padLeft(2, '0')}";
           _userNameController.text = state.userName;
           _phoneController.text = state.phoneNumber;
           _addressController.text = state.address;
@@ -507,14 +571,14 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-        
+
         // Username
         AdvancedTextField(
           label: 'Username',
           icon: Icons.alternate_email,
           controller: _userNameController,
           delay: 100,
-          isEditing: _isEditing,
+          isEditing: false,
           onToggleEdit: () => setState(() => _isEditing = !_isEditing),
           onSelectDate: _selectDate,
           onTextChange: (value) {
@@ -522,7 +586,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-        
+
         // Email
         AdvancedTextField(
           label: 'Email',
@@ -537,7 +601,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-        
+
         // Phone Number
         AdvancedTextField(
           label: 'Phone Number',
@@ -552,7 +616,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-        
+
         // Date of Birth
         AdvancedTextField(
           label: 'Date of Birth',
@@ -565,7 +629,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           onTextChange: (value) {},
         ),
         const SizedBox(height: 16),
-        
+
         // Address
         AdvancedTextField(
           label: 'Address',
@@ -577,10 +641,138 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           onSelectDate: _selectDate,
           onTextChange: (value) {
             context.read<ProfileCubit>().onChangeProfile(address: value);
+            if (_isMapVisible) {
+              setState(() => _isMapVisible = false);
+            }
           },
         ),
         const SizedBox(height: 16),
-        
+
+        GestureDetector(
+          onTap: () {
+            if (_addressController.text.isEmpty) {
+              ToastUtil.showErrorToast('Please enter an address first!');
+              _shakeAnimation();
+            } else {
+              // Lưu trạng thái trước khi thay đổi để kiểm tra
+              final shouldShowMap = !_isMapVisible;
+
+              setState(() {
+                _isMapVisible = shouldShowMap;
+              });
+
+              ToastUtil.showInfoToast(
+                _isMapVisible
+                    ? 'Searching for: ${_addressController.text}'
+                    : 'Map minimized.',
+              );
+              _shakeAnimation();
+
+              if (_isMapVisible) {
+                _geocodeAndShowMap();
+              }
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: 56,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    _isMapVisible ? Colors.red.shade400 : Colors.blue.shade400,
+                width: 2,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  _isMapVisible
+                      ? 'Hide Map'
+                      : 'Locate "${_addressController.text.isEmpty ? 'Address' : _addressController.text}" on Map 🗺️',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color:
+                        _isMapVisible
+                            ? Colors.red.shade400
+                            : Colors.blue.shade400,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        if (_isMapVisible &&
+            _mapCenter != null &&
+            _addressController.text.isNotEmpty)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            height: 250,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.blue.shade400, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: _mapCenter!,
+                  initialZoom: 16.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
+                  ),
+                ),
+                children: [
+                  // Layer Bản đồ OpenStreetMap (Map Tiles)
+                  TileLayer(
+                    urlTemplate:
+                        context.isDarkMode
+                            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                    userAgentPackageName: 'com.example.trip_mate',
+                  ),
+                  // Layer Marker
+                  MarkerLayer(
+                    markers: [if (_addressMarker != null) _addressMarker!],
+                  ),
+
+                  // --- NEW: Thêm Ghi nhận bản quyền OSM ---
+                  RichAttributionWidget(
+                    attributions: [
+                      TextSourceAttribution(
+                        'OpenStreetMap contributors',
+                        onTap:
+                            () => launchUrl(
+                              Uri.parse('https://openstreetmap.org/copyright'),
+                            ),
+                      ),
+                    ],
+                  ),
+                  // ----------------------------------------
+                ],
+              ),
+            ),
+          ),
+        if (_isMapVisible && _mapCenter != null) const SizedBox(height: 16),
+
         // Role (Read-only with different styling)
         Container(
           padding: const EdgeInsets.all(16),
@@ -593,9 +785,10 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: context.isDarkMode 
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.grey.shade300,
+              color:
+                  context.isDarkMode
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.grey.shade300,
             ),
           ),
           child: Row(
@@ -623,9 +816,10 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       'Role',
                       style: TextStyle(
                         fontSize: 12,
-                        color: context.isDarkMode 
-                            ? Colors.grey[400]
-                            : Colors.grey[600],
+                        color:
+                            context.isDarkMode
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -634,9 +828,8 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       _roleController.text,
                       style: TextStyle(
                         fontSize: 16,
-                        color: context.isDarkMode 
-                            ? Colors.white
-                            : Colors.black87,
+                        color:
+                            context.isDarkMode ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -651,9 +844,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.green.withOpacity(0.5),
-                  ),
+                  border: Border.all(color: Colors.green.withOpacity(0.5)),
                 ),
                 child: const Text(
                   'Verified',
@@ -685,19 +876,28 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                   _addressController.text.isEmpty) {
                 ToastUtil.showErrorToast('Please fill all fields');
               } else {
-                await context.read<ProfileCubit>().updateProfile(
-                  ProfileData(
-                    email: _emailController.text,
-                    dob: DateTime.tryParse(_dobController.text) ?? DateTime.now(),
-                    fullname: _nameController.text,
-                    userName: _userNameController.text,
-                    phoneNumber: _phoneController.text,
-                    address: _addressController.text,
-                    role: _roleController.text,
-                  ),
-                );
-                showSuccessAnimation(context);
-                HapticFeedback.heavyImpact();
+                final currentState = context.read<ProfileCubit>().state;
+                if (currentState is ProfileData) {
+                  logDebug(currentState.userId);
+                  await context.read<ProfileCubit>().updateProfile(
+                    ProfileData(
+                      userId: currentState.userId,
+                      email: _emailController.text,
+                      dob:
+                          DateTime.tryParse(_dobController.text) ??
+                          DateTime.now(),
+                      fullname: _nameController.text,
+                      userName: _userNameController.text,
+                      phoneNumber: _phoneController.text,
+                      address: _addressController.text,
+                      role: _roleController.text,
+                      latitude: _mapCenter!.latitude, 
+                      longitude: _mapCenter!.longitude,
+                    ),
+                  );
+                  showSuccessAnimation(context);
+                  HapticFeedback.heavyImpact();
+                }
               }
             },
             child: AnimatedBuilder(

@@ -15,8 +15,11 @@ class ProfileData extends ProfileState {
   final String phoneNumber;
   final String address;
   final String role;
+  final int userId;
+  final double latitude;
+  final double longitude;
   @override
-  List<Object?> get props => [fullname, dob, email, userName, phoneNumber, address, role];
+  List<Object?> get props => [fullname, dob, email, userName, phoneNumber, address, role, userId, latitude, longitude];
 
   ProfileData({
     required this.email,
@@ -26,6 +29,9 @@ class ProfileData extends ProfileState {
     required this.phoneNumber,
     required this.role,
     required this.userName,
+    required this.userId,
+    required this.latitude,
+    required this.longitude
   });
 
   ProfileEntity convertToEntity() {
@@ -36,7 +42,9 @@ class ProfileData extends ProfileState {
       userName: userName,
       phoneNumber: phoneNumber,
       address: address,
-      role: role,
+      role: role, userId: userId,
+      longitude: longitude,
+      latitude: latitude
     );
   }
 
@@ -48,7 +56,9 @@ class ProfileData extends ProfileState {
     String? userName,
     String? phoneNumber,
     String? address,
-    String? role
+    String? role,
+    double? latitude,
+    double? longitude
   }) {
     return ProfileData(
       email: email ?? this.email,
@@ -57,7 +67,10 @@ class ProfileData extends ProfileState {
       address: address ?? this.address, 
       phoneNumber: phoneNumber ?? this.phoneNumber, 
       role: role ?? this.role, 
-      userName: userName ?? this.userName
+      userName: userName ?? this.userName,
+      userId: userId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude
     );
   }
 }

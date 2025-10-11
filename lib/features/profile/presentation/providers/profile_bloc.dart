@@ -20,7 +20,10 @@ class ProfileCubit extends Cubit<ProfileState> {
           address: '',
           phoneNumber: '',
           role: '',
-          userName: '',
+          userName: '', 
+          userId: 0,
+          latitude: 21.028511, 
+          longitude: 105.804817,
         ),
       );
   Future<void> initialize() async {
@@ -100,7 +103,10 @@ class ProfileCubit extends Cubit<ProfileState> {
             address: '',
             phoneNumber: '',
             role: '',
-            userName: '',
+            userName: '', 
+            userId: 0, 
+            latitude: 21.028511, 
+            longitude: 105.804817,
           ),
         );
       },

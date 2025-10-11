@@ -7,4 +7,5 @@ class AppEndPoints {
   static const String kResetPass = '/auth/reset-password';
   static const String kRequestVerifyRegisterOTP = '/auth/request-verify-user-register-otp';
   static const String kVerifyRegisterOTP = '/auth/verify-user-register-otp';
+  static const String kUpdateUser = '/user/update';
 }

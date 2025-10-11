@@ -10,6 +10,9 @@ class ProfileEntity {
   final String phoneNumber;
   final String address;
   final String role;
+  final int userId;
+  final double latitude;
+  final double longitude;
 
   ProfileEntity({
     required this.userName, 
@@ -18,7 +21,10 @@ class ProfileEntity {
     required this.role,
     required this.email,
     required this.dob,
-    required this.fullname
+    required this.fullname,
+    required this.userId,
+    required this.latitude,
+    required this.longitude
   });
 
   ProfileData convertToState(){
@@ -29,11 +35,25 @@ class ProfileEntity {
       address: address, 
       phoneNumber: phoneNumber, 
       role: role, 
-      userName: userName
+      userName: userName,
+      userId: userId,
+      latitude: latitude,
+      longitude: longitude
     );
   }
 
   ProfileRequest convertToRequest(){
-    return ProfileRequest(email: email, dob: dob, fullname: fullname);
+    return ProfileRequest(
+      email: email, 
+      fullName: fullname, 
+      userId: userId, 
+      birthDay: dob, 
+      userName: userName, 
+      phoneNumber: phoneNumber, 
+      address: address, 
+      role: role,
+      latitude: latitude,
+      longitude: longitude
+    );
   }
 }
