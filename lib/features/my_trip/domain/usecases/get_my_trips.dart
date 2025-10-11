@@ -1,14 +1,12 @@
-
-import 'package:trip_mate/features/my_trip/data/repositories/trip_repository.dart';
-
 import '../entities/trip.dart';
-
+import '../repositories/my_trip_repository.dart';
 
 class GetMyTrips {
-  final TripRepository repository;
+  final MyTripRepository repository;
+
   GetMyTrips(this.repository);
 
   Future<List<Trip>> call() async {
-    return await repository.getTrips();
+    return await repository.getMyTrips();
   }
 }

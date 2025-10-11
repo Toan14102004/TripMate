@@ -17,12 +17,32 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  // void _onItemTapped(int index) {
+  //   setState(() {
+  //     _selectedIndex = index;
+  //     if (index == 3) { // Nếu chọn tab Settings
+  //       Navigator.pushNamed(context, AppRoutes.settings);
+  //       // Reset lại selectedIndex sau khi chuyển hướng
+  //       Future.delayed(Duration.zero, () {
+  //         setState(() {
+  //           _selectedIndex = 0;
+  //         });
+  //       });
+  //     }
+  //   });
+  // }
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      if (index == 3) { // Nếu chọn tab Settings
+      if (index == 1) { // 👉 My Trip tab
+        Navigator.pushNamed(context, AppRoutes.myTrip);
+        Future.delayed(Duration.zero, () {
+          setState(() {
+            _selectedIndex = 0; // reset lại về Home khi quay về
+          });
+        });
+      } else if (index == 3) { // 👉 Settings tab
         Navigator.pushNamed(context, AppRoutes.settings);
-        // Reset lại selectedIndex sau khi chuyển hướng
         Future.delayed(Duration.zero, () {
           setState(() {
             _selectedIndex = 0;
@@ -31,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -8,8 +8,11 @@ import 'package:trip_mate/features/home/presentation/screens/popular_packages_sc
 import 'package:trip_mate/features/home/presentation/screens/top_packages_screen.dart';
 import 'package:trip_mate/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:trip_mate/features/settings/presentation/screens/settings_screen.dart';
-
+import 'package:trip_mate/features/my_trip/presentation/screens/my_trip_screen.dart';
+import 'package:trip_mate/features/my_trip/presentation/screens/trip_detail_screen.dart';
 import '../features/home/domain/models/tour_model.dart';
+import 'package:trip_mate/features/my_trip/domain/entities/trip.dart';
+
 
 class AppRoutes {
   // Route names
@@ -18,6 +21,7 @@ class AppRoutes {
   static const String signup = '/signup';
   static const String verification = '/verification';
   static const String home = '/home';
+  static const myTrip = '/my_trip';
   static const String settings = '/settings';
   static const String popularPackages = '/popular-packages';
   static const String topPackages = '/top-packages';
@@ -38,6 +42,12 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (context) => PackageDetailScreen(package: package),
         );
+      case tripDetail:
+        final trip = settings.arguments as Trip;
+        return MaterialPageRoute(
+          builder: (context) => TripDetailScreen(trip: trip),
+        );
+
       default:
         return null;
     }
@@ -49,6 +59,7 @@ class AppRoutes {
     signin: (context) => const SignInScreen(),
     signup: (context) => const SignUpScreen(),
     home: (context) => const HomeScreen(),
+    myTrip: (context) => const MyTripScreen(),
     settings: (context) => const SettingsScreen(),
     popularPackages: (context) => const PopularPackagesScreen(),
     topPackages: (context) => const TopPackagesScreen(),
