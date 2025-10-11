@@ -123,7 +123,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
       Navigator.of(context).pushNamed(AppRoutes.rootPage);
     }
     else {
-      Navigator.of(context).pushNamed(AppRoutes.onBoarding);
+      Navigator.of(context).pushNamed(AppRoutes.onboarding);
     }
   }
 
