@@ -26,4 +26,22 @@ class AuthRepository {
   static Future<void> clearAuthToken() async {
     await _storage.delete(key: _kAuthTokenKey);
   }
+
+  static const String _kUserInfoKey = 'user_info';
+
+  /// Lưu thông tin user (dạng JSON) vào bộ nhớ bảo mật.
+  static Future<void> setUserInfo(String userInfoJson) async {
+    await _storage.write(key: _kUserInfoKey, value: userInfoJson);
+  }
+
+  /// Lấy thông tin user (dạng JSON) từ bộ nhớ bảo mật.
+  /// Trả về null nếu chưa lưu thông tin user.
+  static Future<String?> getUserInfo() async {
+    return await _storage.read(key: _kUserInfoKey);
+  }
+
+  /// Xóa thông tin user khỏi bộ nhớ bảo mật.
+  static Future<void> clearUserInfo() async {
+    await _storage.delete(key: _kUserInfoKey);
+  }
 }
