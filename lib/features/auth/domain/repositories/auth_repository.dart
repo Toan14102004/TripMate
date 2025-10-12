@@ -6,6 +6,7 @@ import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
 abstract class AuthRepository {
   Future<Either> signInWithEmailAndPassword(SigninUserReq signInUserReq);
   Future<Either> signUpWithEmailAndPassword(CreateUserReq createUserReq);
-  Future<Either> verifyToken(String token);
-  Future<Either> resendToken();
+  Future<Either> verifyPassToken(String token, String email, String newPass);
+  Future<Either> verifyEmailToken(String token, String email);
+  Future<Either> resendToken(String email);
 }

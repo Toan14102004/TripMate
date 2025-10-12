@@ -7,6 +7,7 @@ import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/auth/presentation/providers/sign_in/sign_in_provider.dart';
 import 'package:trip_mate/features/auth/presentation/providers/sign_in/sign_in_state.dart';
 import 'package:trip_mate/features/auth/presentation/widgets/auth_widget.dart';
+import 'package:trip_mate/features/security/presentation/screens/new_password_screen.dart';
 
 import 'package:trip_mate/routes/app_route.dart';
 
@@ -93,17 +94,10 @@ class _SignInScreenState extends State<SignInScreen>
     double newScale;
 
     if (scrollOffset <= 0) {
-      newScale =
-          1.0 + (-scrollOffset / 50.0);
-      newScale = newScale.clamp(
-        1.0,
-        1.5,
-      );
+      newScale = 1.0 + (-scrollOffset / 50.0);
+      newScale = newScale.clamp(1.0, 1.5);
     } else {
-      newScale = (1.0 - (scrollOffset / maxScroll) * 0.5).clamp(
-        0,
-        1.0,
-      );
+      newScale = (1.0 - (scrollOffset / maxScroll) * 0.5).clamp(0, 1.0);
     }
 
     if (_logoScale != newScale) {
@@ -341,7 +335,11 @@ class _SignInScreenState extends State<SignInScreen>
                                           ),
                                           GestureDetector(
                                             onTap: () {
-                                              Navigator.of(context).pushNamed(AppRoutes.resetPassword);
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) => const NewPasswordScreen(),
+                                                ),
+                                              );
                                             },
                                             child: const Text(
                                               'Forgot Password?',
@@ -368,7 +366,7 @@ class _SignInScreenState extends State<SignInScreen>
                                                   }
                                                 },
                                         isLoading: state is SignInLoading,
-                                        title: "Sign In"
+                                        title: "Sign In",
                                       ),
 
                                       const SizedBox(height: 32),

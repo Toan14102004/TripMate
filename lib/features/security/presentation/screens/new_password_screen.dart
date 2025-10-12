@@ -7,8 +7,7 @@ import 'package:trip_mate/features/security/presentation/providers/new_password/
 import 'package:trip_mate/routes/app_route.dart';
 
 class NewPasswordScreen extends StatefulWidget {
-  final String? email;
-  const NewPasswordScreen({super.key, this.email});
+  const NewPasswordScreen({super.key});
 
   @override
   State<NewPasswordScreen> createState() => _NewPasswordScreenState();
@@ -17,6 +16,7 @@ class NewPasswordScreen extends StatefulWidget {
 class _NewPasswordScreenState extends State<NewPasswordScreen>
     with TickerProviderStateMixin {
   final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -115,6 +115,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
   @override
   void dispose() {
     _passwordController.dispose();
+    _emailController.dispose();
     _confirmPasswordController.dispose();
     _slideController.dispose();
     _fadeController.dispose();
@@ -125,134 +126,131 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => NewPasswordCubit()..initialCubit(widget.email ?? ''),
-      child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color.fromARGB(255, 84, 116, 255),
-                Color(0xFF4facfe),
-                Color(0xFF00f2fe),
-              ],
-              stops: [0.0, 0.5, 1.0],
-            ),
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 84, 116, 255),
+              Color(0xFF4facfe),
+              Color(0xFF00f2fe),
+            ],
+            stops: [0.0, 0.5, 1.0],
           ),
-          child: SafeArea(
-            child: BlocListener<NewPasswordCubit, NewPasswordState>(
-              listener: (context, state) {
-                if (state is NewPasswordInitial) {
-                  final currentState = state;
-                  if (currentState.isSuccess) {
-                    setState(() {
-                      _isPasswordUpdated = true;
-                    });
-                    _startCountdown();
-                  }
+        ),
+        child: SafeArea(
+          child: BlocListener<NewPasswordCubit, NewPasswordState>(
+            listener: (context, state) {
+              if (state is NewPasswordInitial) {
+                final currentState = state;
+                if (currentState.isSuccess) {
+                  setState(() {
+                    _isPasswordUpdated = true;
+                  });
+                  _startCountdown();
                 }
-              },
-              child: BlocBuilder<NewPasswordCubit, NewPasswordState>(
-                builder: (context, state) {
-                  final cubit = context.read<NewPasswordCubit>();
-                  return Stack(
-                    children: [
-                      // Floating background elements
-                      _buildFloatingElements(),
-
-                      // Main content
-                      SingleChildScrollView(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 20),
-
-                            // Back button
-                            if (!_isPasswordUpdated)
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: IconButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(),
-                                    icon: const Icon(
-                                      Icons.arrow_back_ios_new,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                            const SizedBox(height: 40),
-
-                            // Animated Logo or Icon
-                            ScaleTransition(
-                              scale: _pulseAnimation,
+              }
+            },
+            child: BlocBuilder<NewPasswordCubit, NewPasswordState>(
+              builder: (context, state) {
+                final cubit = context.read<NewPasswordCubit>();
+                return Stack(
+                  children: [
+                    // Floating background elements
+                    _buildFloatingElements(),
+    
+                    // Main content
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+    
+                          // Back button
+                          if (!_isPasswordUpdated)
+                            Align(
+                              alignment: Alignment.centerLeft,
                               child: Container(
-                                width: 100,
-                                height: 100,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
-                                  shape: BoxShape.circle,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: IconButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(),
+                                  icon: const Icon(
+                                    Icons.arrow_back_ios_new,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+    
+                          const SizedBox(height: 40),
+    
+                          // Animated Logo or Icon
+                          ScaleTransition(
+                            scale: _pulseAnimation,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                _isPasswordUpdated
+                                    ? Icons.check_circle
+                                    : Icons.lock_reset,
+                                color: Colors.white,
+                                size: 50,
+                              ),
+                            ),
+                          ),
+    
+                          const SizedBox(height: 60),
+    
+                          // Main form container
+                          SlideTransition(
+                            position: _slideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: Container(
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.95),
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
                                   border: Border.all(
                                     color: Colors.white.withOpacity(0.3),
-                                    width: 2,
+                                    width: 1,
                                   ),
                                 ),
-                                child: Icon(
-                                  _isPasswordUpdated
-                                      ? Icons.check_circle
-                                      : Icons.lock_reset,
-                                  color: Colors.white,
-                                  size: 50,
-                                ),
+                                child: _buildPasswordForm(cubit, state),
                               ),
                             ),
-
-                            const SizedBox(height: 60),
-
-                            // Main form container
-                            SlideTransition(
-                              position: _slideAnimation,
-                              child: FadeTransition(
-                                opacity: _fadeAnimation,
-                                child: Container(
-                                  padding: const EdgeInsets.all(32),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.95),
-                                    borderRadius: BorderRadius.circular(24),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 20,
-                                        offset: const Offset(0, 10),
-                                      ),
-                                    ],
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: _buildPasswordForm(cubit, state),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-
-                      // Success Modal Overlay
-                      if (_isPasswordUpdated) _buildSuccessModal(),
-                    ],
-                  );
-                },
-              ),
+                    ),
+    
+                    // Success Modal Overlay
+                    if (_isPasswordUpdated) _buildSuccessModal(),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -294,6 +292,71 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Email Field
+              const Text(
+                'Email',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2D3748),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  hintText: 'Enter your email here',
+                  prefixIcon: const Icon(Icons.email, color: AppColors.blue),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF667eea),
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập địa chỉ email.';
+                  }
+
+                  if (value.length < 6) {
+                    return 'Email phải có ít nhất 6 ký tự.';
+                  }
+
+                  final emailRegExp = RegExp(
+                    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                  );
+
+                  if (!emailRegExp.hasMatch(value)) {
+                    return 'Địa chỉ email không hợp lệ.';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  cubit.onChangeEmail(value);
+                },
+              ),
+
+              const SizedBox(height: 24),
               // Password Field
               const Text(
                 'Password',
@@ -517,7 +580,11 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
                       color: Colors.green,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check, color: Colors.white, size: 30),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 30,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -531,9 +598,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
                 ],
               ),
             ),
-        
+
             const SizedBox(height: 32),
-        
+
             // Success Title
             const Text(
               'Password Updated!',
@@ -543,27 +610,27 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
                 color: Color(0xFF2D3748),
               ),
             ),
-        
+
             const SizedBox(height: 16),
-        
+
             // Success Description
             const Text(
               'Your password has been set up successfully',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey, height: 1.5),
             ),
-        
+
             const SizedBox(height: 8),
-        
+
             // Countdown
             Text(
               'Redirecting sign in page in $_countdown sec',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
-        
+
             const SizedBox(height: 32),
-        
+
             // Back to Sign In Button
             SizedBox(
               width: double.infinity,

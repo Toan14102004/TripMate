@@ -5,7 +5,8 @@ import 'package:trip_mate/features/auth/domain/repositories/auth_repository.dart
 import 'package:trip_mate/features/auth/domain/usecases/resend_token_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
-import 'package:trip_mate/features/auth/domain/usecases/verify_usecase.dart';
+import 'package:trip_mate/features/auth/domain/usecases/verify_email_usecase.dart';
+import 'package:trip_mate/features/auth/domain/usecases/verify_pass_usecase.dart';
 import 'package:trip_mate/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:trip_mate/features/profile/data/sources/profile_api_source.dart';
 import 'package:trip_mate/features/profile/domain/repositories/profile_repository.dart';
@@ -36,7 +37,8 @@ Future<void> initializeDependencies() async {
   // Use Cases
   sl.registerSingleton<SignInUseCase>(SignInUseCase());
   sl.registerSingleton<SignUpUseCase>(SignUpUseCase());
-  sl.registerSingleton<VerifyUseCase>(VerifyUseCase());
+  sl.registerSingleton<VerifyPassUseCase>(VerifyPassUseCase());
+  sl.registerSingleton<VerifyEmailUseCase>(VerifyEmailUseCase());
   sl.registerSingleton<ResendTokenUsecase>(ResendTokenUsecase());
   sl.registerSingleton<ResetPassUseCase>(ResetPassUseCase());
   sl.registerSingleton<NewPassUseCase>(NewPassUseCase());
