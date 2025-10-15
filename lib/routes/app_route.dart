@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/features/auth/presentation/screens/signin_screen.dart';
 import 'package:trip_mate/features/auth/presentation/screens/signup_screen.dart';
-import 'package:trip_mate/features/auth/presentation/screens/verification_screen.dart';
+import 'package:trip_mate/features/auth/presentation/screens/verification_email_screen.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/home_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
@@ -32,11 +32,6 @@ class AppRoutes {
   // Route generator
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case verification:
-        final args = settings.arguments as String;
-        return MaterialPageRoute(
-          builder: (context) => VerificationScreen(email: args),
-        );
       case packageDetail:
         final package = settings.arguments as TourModel;
         return MaterialPageRoute(

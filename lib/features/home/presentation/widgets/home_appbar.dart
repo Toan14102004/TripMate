@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:trip_mate/services/location_service.dart';
 import '../../data/sources/home_api_source.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 
@@ -19,6 +20,8 @@ class HomeAppBar extends StatefulWidget {
 class _HomeAppBarState extends State<HomeAppBar> {
   String _location = "Loading...";
   String? _avatarUrl;
+  final LocationService _locationService = LocationService();
+
 
   @override
   void initState() {
@@ -28,25 +31,10 @@ class _HomeAppBarState extends State<HomeAppBar> {
   }
 
   Future<void> _getLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        setState(() {
-          _location = "${place.locality}, ${place.country}";
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _location = "Unknown location";
-      });
-    }
+    String city = await _locationService.getCurrentCityName();
+    setState(() {
+      _location = city;
+    });
   }
 
   Future<void> _getAvatar() async {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/check_sign_in.dart';
 import 'dart:math' as math;
 
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/routes/app_route.dart';
 
 class TravelSplashScreen extends StatefulWidget {
@@ -120,6 +122,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
   Future<void> _initializeServices() async {
     await Future.delayed(const Duration(seconds: 4));
     if(await checkSignIn()){
+      context.read<ProfileCubit>().initialize();
       Navigator.of(context).pushNamed(AppRoutes.rootPage);
     }
     else {
