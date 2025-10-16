@@ -6,7 +6,12 @@ import '../../data/sources/home_api_source.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 
 class HomeAppBar extends StatefulWidget {
-  const HomeAppBar({super.key});
+  final String? title;
+  
+  const HomeAppBar({
+    super.key,
+    this.title,
+  });
 
   @override
   State<HomeAppBar> createState() => _HomeAppBarState();
@@ -54,7 +59,9 @@ class _HomeAppBarState extends State<HomeAppBar> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: [
+              children: widget.title != null ? [
+                Text(widget.title!, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ] : [
                 const Icon(Icons.location_on, color: Colors.orange, size: 18),
                 const SizedBox(width: 4),
                 Text(_location, style: const TextStyle(fontWeight: FontWeight.bold)),

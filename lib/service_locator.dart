@@ -13,6 +13,10 @@ import 'package:trip_mate/features/profile/domain/repositories/profile_repositor
 import 'package:trip_mate/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:trip_mate/features/profile/domain/usecases/logout_profile_usercase.dart';
 import 'package:trip_mate/features/profile/domain/usecases/update_profile_usecase.dart';
+import 'package:trip_mate/features/saved/data/repositories/saved_repository_impl.dart';
+import 'package:trip_mate/features/saved/data/sources/saved_api_source.dart';
+import 'package:trip_mate/features/saved/domain/repositories/saved_repository.dart';
+import 'package:trip_mate/features/saved/domain/usecases/saved_usecase.dart';
 import 'package:trip_mate/features/security/data/repositories/security_repository_impl.dart';
 import 'package:trip_mate/features/security/data/sources/security_api_source.dart';
 import 'package:trip_mate/features/security/domain/repositories/security_repository.dart';
@@ -27,12 +31,14 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<AuthApiSource>(AuthApiSource());
   sl.registerSingleton<SecurityApiSource>(SecurityApiSource());
   sl.registerSingleton<ProfileApiSource>(ProfileApiSource());
+  sl.registerSingleton<SavedApiSource>(SavedApiSource());
   sl.registerSingleton<LocationService>(LocationService());
 
   // Repositories
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
   sl.registerSingleton<SecurityRepository>(SecurityRepositoryImpl());
   sl.registerSingleton<ProfileRepository>(ProfileRepositoryImpl());
+  sl.registerSingleton<SavedRepository>(SavedRepositoryImpl());
 
   // Use Cases
   sl.registerSingleton<SignInUseCase>(SignInUseCase());
@@ -45,4 +51,5 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetProfileUseCase>(GetProfileUseCase());
   sl.registerSingleton<UpdateProfileUseCase>(UpdateProfileUseCase());
   sl.registerSingleton<LogoutProfileUseCase>(LogoutProfileUseCase());
+  sl.registerSingleton<GetSavedToursUseCase>(GetSavedToursUseCase());
 }

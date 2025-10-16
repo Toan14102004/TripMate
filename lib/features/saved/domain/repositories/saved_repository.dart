@@ -1,2 +1,6 @@
-// TODO: Saved 기능에 대한 리포지토리 인터페이스를 정의하세요.
-abstract class SavedRepository {}
+// Saved repository interface
+import 'package:dartz/dartz.dart';
+
+abstract class SavedRepository {
+  Future<Either> getSavedTours();
+}
