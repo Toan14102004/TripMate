@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/check_sign_in.dart';
 import 'dart:math' as math;
-
+//import 'package:trip_mate/commons/widgets/check_sign_in.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/routes/app_route.dart';
@@ -128,6 +128,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     else {
       Navigator.of(context).pushNamed(AppRoutes.onboarding);
     }
+    Navigator.of(context).pushNamed(AppRoutes.onboarding);
   }
 
   void _startAnimations() async {

@@ -7,6 +7,10 @@ import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/verify_email_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/verify_pass_usecase.dart';
+import 'package:trip_mate/features/my_trip/data/repositories/my_trip_repository_impl.dart';
+import 'package:trip_mate/features/my_trip/data/sources/my_trip_api_service.dart';
+import 'package:trip_mate/features/my_trip/domain/repositories/my_trip_repository.dart';
+import 'package:trip_mate/features/my_trip/domain/usecases/get_my_trip_usecase.dart';
 import 'package:trip_mate/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:trip_mate/features/profile/data/sources/profile_api_source.dart';
 import 'package:trip_mate/features/profile/domain/repositories/profile_repository.dart';
@@ -33,15 +37,14 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<ProfileApiSource>(ProfileApiSource());
   sl.registerSingleton<SavedApiSource>(SavedApiSource());
   sl.registerSingleton<LocationService>(LocationService());
+  sl.registerSingleton<MyTripApiService>(MyTripApiService());
 
   // Repositories
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
   sl.registerSingleton<SecurityRepository>(SecurityRepositoryImpl());
   sl.registerSingleton<ProfileRepository>(ProfileRepositoryImpl());
   sl.registerSingleton<SavedRepository>(SavedRepositoryImpl());
-
   // Use Cases
-  sl.registerSingleton<SignInUseCase>(SignInUseCase());
   sl.registerSingleton<SignUpUseCase>(SignUpUseCase());
   sl.registerSingleton<VerifyPassUseCase>(VerifyPassUseCase());
   sl.registerSingleton<VerifyEmailUseCase>(VerifyEmailUseCase());
@@ -52,4 +55,6 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<UpdateProfileUseCase>(UpdateProfileUseCase());
   sl.registerSingleton<LogoutProfileUseCase>(LogoutProfileUseCase());
   sl.registerSingleton<GetSavedToursUseCase>(GetSavedToursUseCase());
+  sl.registerSingleton<GetMyTripToursUseCase>(GetMyTripToursUseCase());
+
 }

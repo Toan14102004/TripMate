@@ -1,4 +1,17 @@
-// TODO: MyTrip 기능의 리포지토리를 구현하세요.
-import 'package:trip_mate/features/my_trip/domain/repositories/my_trip_repository.dart';
+import 'package:dartz/dartz.dart';
+import 'package:trip_mate/service_locator.dart';
+import '../../domain/repositories/my_trip_repository.dart';
+import '../sources/my_trip_api_service.dart';
 
-class MyTripRepositoryImpl implements MyTripRepository {}
+class MyTripRepositoryImpl implements MyTripRepository {
+  @override
+  Future<Either> getMyTrips() async {
+    return await sl<MyTripApiService>().fetchTrips();
+  }
+  
+  @override
+  Future<Either> deleteMyTrips() {
+    // TODO: implement deleteMyTrips
+    throw UnimplementedError();
+  }
+}

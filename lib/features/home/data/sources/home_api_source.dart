@@ -75,6 +75,7 @@ class HomeApiSource {
 
   // Lấy danh sách popular packages
   Future<List<TourModel>> fetchPopularPackages() async {
+
     return [
       TourModel(
         tourId: 3,
@@ -130,7 +131,7 @@ class HomeApiSource {
 
   // Lấy chi tiết một tour/package
   Future<TourModel> fetchPackageDetail(int tourId) async {
-    // Dữ liệu cứng tạm thời cho chi tiết
+
     return TourModel(
       tourId: tourId,
       title: 'The Lind Boracay Resort',
