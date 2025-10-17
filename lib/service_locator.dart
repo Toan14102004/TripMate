@@ -6,6 +6,10 @@ import 'package:trip_mate/features/auth/domain/usecases/resend_token_usecase.dar
 import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/verify_usecase.dart';
+import 'package:trip_mate/features/my_trip/data/repositories/my_trip_repository_impl.dart';
+import 'package:trip_mate/features/my_trip/data/sources/my_trip_api_service.dart';
+import 'package:trip_mate/features/my_trip/domain/repositories/my_trip_repository.dart';
+import 'package:trip_mate/features/my_trip/domain/usecases/get_my_trip_usecase.dart';
 import 'package:trip_mate/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:trip_mate/features/profile/data/sources/profile_api_source.dart';
 import 'package:trip_mate/features/profile/domain/repositories/profile_repository.dart';
@@ -27,11 +31,13 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<SecurityApiSource>(SecurityApiSource());
   sl.registerSingleton<ProfileApiSource>(ProfileApiSource());
   sl.registerSingleton<LocationService>(LocationService());
+  sl.registerSingleton<MyTripApiService>(MyTripApiService());
 
   // Repositories
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
   sl.registerSingleton<SecurityRepository>(SecurityRepositoryImpl());
   sl.registerSingleton<ProfileRepository>(ProfileRepositoryImpl());
+  sl.registerSingleton<MyTripRepository>(MyTripRepositoryImpl());
 
   // Use Cases
   sl.registerSingleton<SignInUseCase>(SignInUseCase());
@@ -43,4 +49,5 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetProfileUseCase>(GetProfileUseCase());
   sl.registerSingleton<UpdateProfileUseCase>(UpdateProfileUseCase());
   sl.registerSingleton<LogoutProfileUseCase>(LogoutProfileUseCase());
+  sl.registerSingleton<GetMyTripToursUseCase>(GetMyTripToursUseCase());
 }

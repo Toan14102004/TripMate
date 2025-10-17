@@ -1,15 +1,17 @@
-import '../../domain/entities/trip.dart';
+import 'package:dartz/dartz.dart';
+import 'package:trip_mate/service_locator.dart';
 import '../../domain/repositories/my_trip_repository.dart';
 import '../sources/my_trip_api_service.dart';
 
 class MyTripRepositoryImpl implements MyTripRepository {
-  final MyTripApiService apiService;
-
-  MyTripRepositoryImpl({required this.apiService});
-
   @override
-  Future<List<Trip>> getMyTrips() async {
-    final dtos = await apiService.fetchTrips();
-    return dtos.map((dto) => dto.toEntity()).toList();
+  Future<Either> getMyTrips() async {
+    return await sl<MyTripApiService>().fetchTrips();
+  }
+  
+  @override
+  Future<Either> deleteMyTrips() {
+    // TODO: implement deleteMyTrips
+    throw UnimplementedError();
   }
 }

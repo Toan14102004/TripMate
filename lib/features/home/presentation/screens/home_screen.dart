@@ -31,37 +31,16 @@ class _HomeScreenState extends State<HomeScreen> {
   //     }
   //   });
   // }
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 1) { // 👉 My Trip tab
-        Navigator.pushNamed(context, AppRoutes.myTrip);
-        Future.delayed(Duration.zero, () {
-          setState(() {
-            _selectedIndex = 0; // reset lại về Home khi quay về
-          });
-        });
-      } else if (index == 3) { // 👉 Settings tab
-        Navigator.pushNamed(context, AppRoutes.settings);
-        Future.delayed(Duration.zero, () {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        });
-      }
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               HomeAppBar(),
               SizedBox(height: 20),
               Text(
@@ -81,19 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.airplane_ticket), label: "My Trip"),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: "Saved"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
-        ],
       ),
     );
   }

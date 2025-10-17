@@ -1,26 +1,47 @@
-// TODO: MyTrip 기능에 대한 Provider를 구현하세요.
-import 'package:flutter/material.dart';
-import '../../domain/entities/trip.dart';
-import '../../domain/usecases/get_my_trips.dart';
+// MyTrip Cubit for managing MyTrip tours state
+import 'package:bloc/bloc.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
+import 'package:trip_mate/features/my_trip/data/dtos/trip_dto.dart';
+import 'package:trip_mate/features/my_trip/domain/usecases/get_my_trip_usecase.dart';
+import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
+import 'package:trip_mate/service_locator.dart';
 
-class MyTripProvider extends ChangeNotifier {
-  final GetMyTrips getMyTripsUseCase;
+class MyTripCubit extends Cubit<MyTripState> {
+  MyTripCubit() : super(MyTripLoading());
 
-  MyTripProvider({required this.getMyTripsUseCase});
+  Future<void> initialize() async {
+    // Emit loading state unless already loading
+    if (state is! MyTripLoading) {
+      emit(MyTripLoading());
+    }
+    
+    final result = await sl<GetMyTripToursUseCase>().call();
 
-  bool _isLoading = false;
-  List<Trip> _trips = [];
+    result.fold(
+      (left) {
+        ToastUtil.showErrorToast(left);
+        emit(MyTripError(message: left));
+      },
+      (right) {
+        List<TripDto> myTrip = right as List<TripDto>;
 
-  bool get isLoading => _isLoading;
-  List<Trip> get trips => _trips;
+        emit(MyTripToursData(tours: myTrip.map((e) => e.toEntity()).toList()));
+      },
+    );
+  }
 
-  Future<void> loadTrips() async {
-    _isLoading = true;
-    notifyListeners();
+  Future<void> removeTour(int tourId) async {
+    if (state is MyTripToursData) {
+      final currentState = state as MyTripToursData;
+      final updatedTours = currentState.tours
+          .where((tour) => tour.id != tourId)
+          .toList();
+      
+      emit(MyTripToursData(tours: updatedTours));
+    }
+  }
 
-    _trips = await getMyTripsUseCase.call();
-
-    _isLoading = false;
-    notifyListeners();
+  Future<void> refreshTours() async {
+    await initialize();
   }
 }
