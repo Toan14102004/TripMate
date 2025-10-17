@@ -5,8 +5,7 @@ import 'package:trip_mate/services/local_storage/auth.dart';
 
 Future<bool> checkSignIn() async {
   SharedPreferences pref = await SharedPreferences.getInstance();
-  if (pref.getString(AuthKeys.kEmail) == null ||
-      await AuthRepository.getAccessToken() == null ||
+  if (await AuthRepository.getAccessToken() == null ||
       await AuthRepository.getRefreshToken() == null ) {
     return false;
   }

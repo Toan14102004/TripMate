@@ -34,8 +34,6 @@ class ProfileResponse {
 
     final result = ProfileResponse(
       fullName: json['fullName'] as String?,
-      email: json['email'] as String,
-      userId: json['userId'] as int,
       birthDay: parsedBirthDay,
       userName: json['userName'] as String?,
       phoneNumber: json['phoneNumber'] as String?,
@@ -43,6 +41,8 @@ class ProfileResponse {
       role: json['role'] as String?,
       latitude: _roundDouble(json['latitude'], 6),
       longitude: _roundDouble(json['longitude'], 6),
+      email: (json['email'] as String?) ?? (throw FormatException('Email is required.')),
+      userId: (json['userId'] as int?) ?? (throw FormatException('User ID is required.')),
     );
     return result;
   }

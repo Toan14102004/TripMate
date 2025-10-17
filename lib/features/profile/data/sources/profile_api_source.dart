@@ -39,13 +39,13 @@ class ProfileApiSource {
           "address": entity.address,
           "birthDay": DateFormat('yyyy-MM-dd').format(entity.birthDay),
           "latitude": entity.latitude,
-          "longitude": entity.longitude
+          "longitude": entity.longitude,
         },
         skipAuth: false,
       );
       logDebug(responseData);
       if (responseData is Map<String, dynamic>) {
-        final profileResponse = ProfileResponse.fromJson(responseData);
+        final profileResponse = ProfileResponse.fromJson(responseData['data']);
         return Right(profileResponse.convertToEntity().convertToState());
       }
       return const Left("Lỗi định dạng dữ liệu profile từ máy chủ.");

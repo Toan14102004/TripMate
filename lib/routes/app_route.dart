@@ -56,5 +56,6 @@ class AppRoutes {
     myTrip: (context) => const MyTripScreen(),
     popularPackages: (context) => const PopularPackagesScreen(),
     topPackages: (context) => const TopPackagesScreen(),
+    profilePage: (context) => const ProfileScreen()
   };
 }

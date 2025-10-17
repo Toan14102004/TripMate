@@ -44,8 +44,10 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<SecurityRepository>(SecurityRepositoryImpl());
   sl.registerSingleton<ProfileRepository>(ProfileRepositoryImpl());
   sl.registerSingleton<SavedRepository>(SavedRepositoryImpl());
+  sl.registerSingleton<MyTripRepository>(MyTripRepositoryImpl());
   // Use Cases
   sl.registerSingleton<SignUpUseCase>(SignUpUseCase());
+  sl.registerSingleton<SignInUseCase>(SignInUseCase());
   sl.registerSingleton<VerifyPassUseCase>(VerifyPassUseCase());
   sl.registerSingleton<VerifyEmailUseCase>(VerifyEmailUseCase());
   sl.registerSingleton<ResendTokenUsecase>(ResendTokenUsecase());

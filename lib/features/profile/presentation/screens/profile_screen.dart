@@ -593,7 +593,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           icon: Icons.email_outlined,
           controller: _emailController,
           delay: 200,
-          isEditing: _isEditing,
+          isEditing: false,
           onToggleEdit: () => setState(() => _isEditing = !_isEditing),
           onSelectDate: _selectDate,
           onTextChange: (value) {

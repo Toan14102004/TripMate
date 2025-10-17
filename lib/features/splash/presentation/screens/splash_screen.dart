@@ -128,7 +128,6 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     else {
       Navigator.of(context).pushNamed(AppRoutes.onboarding);
     }
-    Navigator.of(context).pushNamed(AppRoutes.onboarding);
   }
 
   void _startAnimations() async {
