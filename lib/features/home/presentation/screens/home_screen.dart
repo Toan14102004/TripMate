@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -50,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 16),
               SearchBarWidget(),
-              SizedBox(height: 20),
-              CategoryList(),
+              // SizedBox(height: 20),
+              // CategoryList(),
               SizedBox(height: 24),
               PackageSection(),
               SizedBox(height: 24),

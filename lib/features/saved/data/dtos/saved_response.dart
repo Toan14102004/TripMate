@@ -24,7 +24,7 @@ class SavedResponse {
       title: json['title'] as String?,
       subtitle: json['subtitle'] as String? ?? json['description'] as String?,
       image: json['image'] as String? ?? json['imageUrl'] as String?,
-      rating: (json['rating'] as num?)?.toDouble(),
+      rating: (json['starAvg'] as num?)?.toDouble(),
       isBookmarked: json['isBookmarked'] as bool? ?? true,
     );
   }
@@ -47,14 +47,14 @@ class SavedListResponse {
   SavedListResponse({required this.tours});
 
   factory SavedListResponse.fromJson(Map<String, dynamic> json) {
-    final List<dynamic> toursJson = json['data'] as List<dynamic>? ?? 
-                                     json['tours'] as List<dynamic>? ?? 
-                                     json['savedTours'] as List<dynamic>? ?? 
-                                     [];
+    final List<dynamic> favouritesJson = json['data']['favourites'] as List<dynamic>? ?? [];
     
     return SavedListResponse(
-      tours: toursJson
-          .map((tourJson) => SavedResponse.fromJson(tourJson as Map<String, dynamic>))
+      tours: favouritesJson
+          .map((favouriteJson) {
+            final Map<String, dynamic> tourData = favouriteJson['tour'] as Map<String, dynamic>? ?? {};
+            return SavedResponse.fromJson(tourData);
+          })
           .toList(),
     );
   }

@@ -32,7 +32,7 @@ class _SavedScreenState extends State<SavedScreen> {
           
           // Data state - show content
           if (state is SavedToursData) {
-            return Scaffold(
+            return const Scaffold(
               body: SafeArea(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
@@ -40,8 +40,8 @@ class _SavedScreenState extends State<SavedScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const HomeAppBar(title: "Saved"),
-                      const SizedBox(height: 20),
-                      const CategoryList(),
+                      // const SizedBox(height: 20),
+                      // const CategoryList(),
                       const SizedBox(height: 24),
                       const SavedPackagesSection(),
                     ],

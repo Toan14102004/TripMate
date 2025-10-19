@@ -9,6 +9,7 @@ import 'package:trip_mate/features/profile/domain/usecases/update_profile_usecas
 import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
 import 'package:trip_mate/features/splash/presentation/screens/splash_screen.dart';
 import 'package:trip_mate/service_locator.dart';
+import 'package:trip_mate/services/local_storage/auth.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit()
@@ -91,6 +92,8 @@ class ProfileCubit extends Cubit<ProfileState> {
       },
       (right) {
         ToastUtil.showSuccessToast(right);
+        AuthRepository.clearAccessToken();
+        AuthRepository.clearRefreshToken();
         Navigator.of(AppGlobal.navigatorKey.currentContext!).pop();
         Navigator.of(AppGlobal.navigatorKey.currentContext!).pushReplacement(
           MaterialPageRoute(builder: (context) => const TravelSplashScreen()),

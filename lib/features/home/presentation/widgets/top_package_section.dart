@@ -25,7 +25,7 @@ class _TopPackageSectionState extends State<TopPackageSection> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PackageDetailScreen(package: package),
+        builder: (context) => PackageDetailScreen(tour: package),
       ),
     );
   }

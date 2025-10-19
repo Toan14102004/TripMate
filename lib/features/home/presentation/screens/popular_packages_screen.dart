@@ -44,7 +44,7 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PackageDetailScreen(package: package),
+        builder: (context) => PackageDetailScreen(tour: package),
       ),
     );
   }
