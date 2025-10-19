@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 
 class PopularPackageCard extends StatelessWidget {
   final String image;
@@ -22,7 +23,7 @@ class PopularPackageCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
+          child: Image.network(
             image,
             height: 180,
             width: double.infinity,
@@ -45,7 +46,7 @@ class PopularPackageCard extends StatelessWidget {
                   children: [
                     const Icon(Icons.star, color: Colors.orange, size: 16),
                     const SizedBox(width: 4),
-                    Text(rating.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(rating.toString(), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.black)),
                   ],
                 ),
               ),

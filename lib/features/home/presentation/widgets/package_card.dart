@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
-
-import 'package:flutter/material.dart';
-import 'package:trip_mate/commons/helpers/is_dark_mode.dart'; // Giả sử helper này hoạt động đúng
-
 class PackageCard extends StatelessWidget {
   final String image;
   final String title;
@@ -25,7 +21,7 @@ class PackageCard extends StatelessWidget {
     final bool isDarkMode = context.isDarkMode;
 
     final Color cardBackgroundColor = isDarkMode ? Colors.grey.shade700 : Colors.white;
-    final Color ratingTextColor = isDarkMode ? Colors.black : Colors.black; // Đen trong dark mode
+    const Color ratingTextColor =  Colors.black;
 
     const Color ratingContainerColor = Colors.white;
 
@@ -37,6 +33,7 @@ class PackageCard extends StatelessWidget {
 
     return Container(
       width: 160,
+      height: 160,
       decoration: BoxDecoration(
         color: cardBackgroundColor,
         borderRadius: BorderRadius.circular(16),
@@ -49,9 +46,9 @@ class PackageCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.asset(
+                child: Image.network(
                   image,
-                  height: 100,
+                  height: 120,
                   width: 160,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
@@ -79,7 +76,7 @@ class PackageCard extends StatelessWidget {
                       const SizedBox(width: 2),
                       Text(
                         rating.toString(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: ratingTextColor,
                         ),

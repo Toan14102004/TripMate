@@ -32,110 +32,148 @@
 //     throw UnimplementedError();
 //   }
 // Future<String> fetchUserAvatarUrl() async {
-    // Gọi API lấy thông tin user
-    // final response = await http.get(Uri.parse('https://api.com/user/profile'));
-    // final data = jsonDecode(response.body);
-    // return data['avatarUrl'];
-    // Demo: trả về link avatar mẫu
-  // return 'https://yourapi.com/path/to/avatar.jpg';
+// Gọi API lấy thông tin user
+// final response = await http.get(Uri.parse('https://api.com/user/profile'));
+// final data = jsonDecode(response.body);
+// return data['avatarUrl'];
+// Demo: trả về link avatar mẫu
+// return 'https://yourapi.com/path/to/avatar.jpg';
 // }
 // }
 
-
+import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:trip_mate/commons/endpoint.dart';
+import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/core/api_client/api_client.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
+import 'package:trip_mate/features/home/domain/models/image_model.dart';
+import 'package:trip_mate/features/home/domain/models/time_line_item.dart';
+import 'package:trip_mate/features/home/domain/models/tour_detail_model.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 
 class HomeApiSource {
-  final Dio _dio = Dio();
-
   // Lấy danh sách tất cả tour/packages
   Future<List<TourModel>> fetchAllPackages() async {
-  
-    return [
-      TourModel(
-        tourId: 1,
-        title: 'Apanemo Resort',
-        image: 'assets/images/apanemo.png',
-        destination: 'East Evritania',
-        rating: 4.9,
-        reviewCount: 1200,
-        price: 90,
-      ),
-      TourModel(
-        tourId: 2,
-        title: 'Laguna Resort',
-        image: 'assets/images/laguna.png',
-        destination: 'Santorini',
-        rating: 4.7,
-        reviewCount: 900,
-        price: 90,
-      ),
-    ];
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        AppEndPoints.kFilterPagination,
+        queryParameters: {'orderBy': 'newest', 'status': 'active', 'limit': 4, 'page': 1},
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        if (statusCode == 200) {
+          final List<dynamic> rawTours = responseData['data']['tours'];
+
+          List<TourModel> data =
+              rawTours.map((e) => TourModel.fromJson(e)).toList();
+
+          return Right(data);
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return [];
+      },
+      (r) {
+        return r;
+      },
+    );
   }
 
   // Lấy danh sách popular packages
   Future<List<TourModel>> fetchPopularPackages() async {
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        AppEndPoints.kFilterPagination,
+        queryParameters: {'orderBy': 'booking', 'status': 'active', 'limit': 4, 'page': 1},
+        skipAuth: true,
+      );
 
-    return [
-      TourModel(
-        tourId: 3,
-        title: 'The Blue House',
-        subtitle: '2 days 3 night full package',
-        image: 'assets/images/blue_house.png',
-        rating: 4.8,
-        isBookmarked: false,
-      ),
-      TourModel(
-        tourId: 4,
-        title: 'Apanemo Resort',
-        subtitle: '3 days 2 night full package',
-        image: 'assets/images/apanemo.png',
-        rating: 4.9,
-        isBookmarked: true,
-      ),
-    ];
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        if (statusCode == 200) {
+          final List<dynamic> rawTours = responseData['data']['tours'];
+
+          List<TourModel> data =
+              rawTours.map((e) => TourModel.fromJson(e)).toList();
+
+          return Right(data);
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return [];
+      },
+      (r) {
+        return r;
+      },
+    );
   }
 
   // Lấy danh sách top packages
   Future<List<TourModel>> fetchTopPackages() async {
-    return [
-      TourModel(
-        tourId: 5,
-        title: 'Imperial Luxury Hotel',
-        image: 'assets/images/luxury_hotel.png',
-        destination: 'Queensland',
-        rating: 4.9,
-        reviewCount: 7200,
-        price: 120,
-      ),
-      TourModel(
-        tourId: 6,
-        title: 'Walkabout Beach Hotel',
-        image: 'assets/images/walkabout.png',
-        destination: 'New Zealand',
-        rating: 4.8,
-        reviewCount: 6400,
-        price: 100,
-      ),
-      TourModel(
-        tourId: 7,
-        title: 'Antlers Hilton Resort',
-        image: 'assets/images/hilton.png',
-        destination: 'Singapore',
-        rating: 4.6,
-        reviewCount: 3900,
-        price: 100,
-      ),
-    ];
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        AppEndPoints.kFilterPagination,
+        queryParameters: {'orderBy': 'rating', 'status': 'active', 'limit': 4, 'page': 1},
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        if (statusCode == 200) {
+          final List<dynamic> rawTours = responseData['data']['tours'];
+
+          List<TourModel> data =
+              rawTours.map((e) => TourModel.fromJson(e)).toList();
+
+          return Right(data);
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return [];
+      },
+      (r) {
+        return r;
+      },
+    );
   }
 
   // Lấy chi tiết một tour/package
   Future<TourModel> fetchPackageDetail(int tourId) async {
-
     return TourModel(
       tourId: tourId,
       title: 'The Lind Boracay Resort',
-      description: 'The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.',
+      description:
+          'The Lind Boracay resort has its own train station and can be reached from either lau spezia or levantonipo. From la spezia, take the local train trendo regionale in the direction of sestrin levante and get off at the first stop. From levanto, take the regional train in direction of la spezia centrale.',
       image: 'assets/images/lind_boracay.png',
       destination: 'East Evritania, Singapore',
       rating: 4.8,
@@ -147,7 +185,98 @@ class HomeApiSource {
   }
 
   Future<String> fetchUserAvatarUrl() async {
-  // Trả về ảnh 
-  return 'assets/images/avatar.png'; 
-}
+    // Trả về ảnh
+    return 'assets/images/avatar.png';
+  }
+
+  Future<TourDetailModel> getTourDetail(int tourId) async {
+    final apiService = ApiService();
+    final tourResult = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        '${AppEndPoints.kTourDetail}/$tourId',
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData['statusCode'] == 200 && responseData['data'] != null) {
+          logDebug(responseData['data']);
+          final TourDetailModel tourModel = TourDetailModel.fromTourJson(
+            responseData['data'],
+          );
+          return Right(tourModel);
+        } else {
+          return Left("Lỗi server tour: ${responseData['message']}");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi Tour.");
+    });
+
+    final TourDetailModel tourModel = tourResult.fold((l) {
+      ToastUtil.showErrorToast(l.toString());
+      throw Exception(l);
+    }, (r) => r);
+
+    final timelineResult = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        AppEndPoints.kTimelines,
+        queryParameters: {'tourId': tourId.toString(), 'page': 1, 'limit': 10},
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData['statusCode'] == 200 &&
+            responseData['data']?['timelines'] != null) {
+          final List<dynamic> rawTimelines = responseData['data']['timelines'];
+          final List<TimelineItem> timelines =
+              rawTimelines
+                  .map((e) => TimelineItem.fromJson(e as Map<String, dynamic>))
+                  .toList();
+          return Right(timelines);
+        } else {
+          return const Right(<TimelineItem>[]);
+        }
+      }
+      return const Right(
+        <TimelineItem>[],
+      ); 
+    });
+
+    final List<TimelineItem> timelines = timelineResult.fold((l) {
+      ToastUtil.showWarningToast("Không thể tải timeline: $l");
+      return [];
+    }, (r) => r);
+
+    final imagesResult = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        '${AppEndPoints.kImageFromTour}/$tourId',
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData['statusCode'] == 200 &&
+            responseData['data'] != null) {
+          final List<dynamic> rawImages = responseData['data'];
+          final List<ImageModel> images =
+              rawImages
+                  .map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
+                  .toList();
+          return Right(images);
+        } else {
+          return const Right(<ImageModel>[]);
+        }
+      }
+      return const Right(
+        <ImageModel>[],
+      ); 
+    });
+
+    final List<ImageModel> images = imagesResult.fold((l) {
+      ToastUtil.showWarningToast("Không thể tải timeline: $l");
+      return [];
+    }, (r) => r);
+
+    logDebug(images.map((e) => e.imageURL).toList());
+
+    return tourModel.copyWith(timelines: timelines, images: images);
+  }
 }

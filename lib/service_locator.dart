@@ -7,6 +7,9 @@ import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/verify_email_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/verify_pass_usecase.dart';
+import 'package:trip_mate/features/home/data/repositories/home_repository_impl.dart';
+import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
+import 'package:trip_mate/features/home/domain/repositories/home_repository.dart';
 import 'package:trip_mate/features/my_trip/data/repositories/my_trip_repository_impl.dart';
 import 'package:trip_mate/features/my_trip/data/sources/my_trip_api_service.dart';
 import 'package:trip_mate/features/my_trip/domain/repositories/my_trip_repository.dart';
@@ -38,6 +41,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<SavedApiSource>(SavedApiSource());
   sl.registerSingleton<LocationService>(LocationService());
   sl.registerSingleton<MyTripApiService>(MyTripApiService());
+  sl.registerSingleton<HomeApiSource>(HomeApiSource());
 
   // Repositories
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
@@ -45,6 +49,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<ProfileRepository>(ProfileRepositoryImpl());
   sl.registerSingleton<SavedRepository>(SavedRepositoryImpl());
   sl.registerSingleton<MyTripRepository>(MyTripRepositoryImpl());
+  sl.registerSingleton<HomeRepository>(HomeRepositoryImpl());
   // Use Cases
   sl.registerSingleton<SignUpUseCase>(SignUpUseCase());
   sl.registerSingleton<SignInUseCase>(SignInUseCase());

@@ -13,7 +13,6 @@ import 'package:trip_mate/features/profile/presentation/screens/profile_screen.d
 import 'package:trip_mate/features/root/presentation/screens/root_screen.dart';
 import 'package:trip_mate/features/security/presentation/screens/new_password_screen.dart';
 import 'package:trip_mate/features/security/presentation/screens/reset_password_screen.dart';
-import 'package:trip_mate/features/settings/presentation/screens/settings_screen.dart';
 class AppRoutes {
   // Route names
   static const String onboarding = '/onboarding';
@@ -37,7 +36,7 @@ class AppRoutes {
       case packageDetail:
         final package = settings.arguments as TourModel;
         return MaterialPageRoute(
-          builder: (context) => PackageDetailScreen(package: package),
+          builder: (context) => PackageDetailScreen(tour: package),
         );
       default:
         return null;

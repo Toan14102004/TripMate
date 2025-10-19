@@ -10,6 +10,7 @@ import 'package:trip_mate/core/configs/theme/app_theme.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/presentation/providers/verification/verification_provider.dart';
 import 'package:trip_mate/features/choose_mode/presentation/bloc/theme_cubit.dart';
+import 'package:trip_mate/features/home/presentation/providers/detail_cubit.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/security/presentation/providers/new_password/new_password_bloc.dart';
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<PageCubit>(create: (context) => PageCubit()),
         BlocProvider<SettingsCubit>(create: (context) => SettingsCubit()),
         BlocProvider<ProfileCubit>(create: (context) => ProfileCubit()),
+        BlocProvider<TourDetailCubit>(create: (context) => TourDetailCubit()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, state) {

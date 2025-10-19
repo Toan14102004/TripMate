@@ -4,6 +4,8 @@ import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/commons/widgets/error_screen.dart';
 import 'package:trip_mate/commons/widgets/loading_screen.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/features/home/domain/models/tour_model.dart';
+import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_provider.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
 import 'package:trip_mate/routes/app_route.dart';
@@ -18,18 +20,28 @@ class MyTripScreen extends StatelessWidget {
       create: (context) => MyTripCubit()..initialize(),
       child: BlocBuilder<MyTripCubit, MyTripState>(
         builder: (context, state) {
-          if (state is MyTripLoading) return const TravelLoadingScreen();
+          if (state is MyTripLoading)
+            return const TravelLoadingScreen();
           else if (state is MyTripToursData) {
             return Scaffold(
-              backgroundColor: context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+              backgroundColor:
+                  context.isDarkMode
+                      ? AppColors.black
+                      : AppColors.lightBackground,
               appBar: AppBar(
                 elevation: 0,
-                backgroundColor: context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+                backgroundColor:
+                    context.isDarkMode
+                        ? AppColors.black
+                        : AppColors.lightBackground,
                 centerTitle: true,
                 title: Text(
                   "MyTrip",
                   style: TextStyle(
-                    color: !context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+                    color:
+                        !context.isDarkMode
+                            ? AppColors.black
+                            : AppColors.lightBackground,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -44,7 +56,13 @@ class MyTripScreen extends StatelessWidget {
                 actions: [
                   Padding(
                     padding: EdgeInsets.only(right: 16),
-                    child: Icon(Icons.more_horiz, color: !context.isDarkMode ? AppColors.black : AppColors.lightBackground),
+                    child: Icon(
+                      Icons.more_horiz,
+                      color:
+                          !context.isDarkMode
+                              ? AppColors.black
+                              : AppColors.lightBackground,
+                    ),
                   ),
                 ],
               ),
@@ -85,10 +103,13 @@ class MyTripScreen extends StatelessWidget {
                           final trip = state.tours[index];
                           return GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(
+                              Navigator.push(
                                 context,
-                                AppRoutes.tripDetail,
-                                arguments: trip,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          PackageDetailScreen(tour: TourModel(tourId: int.tryParse(trip.id) ?? 0, title: trip.title)),
+                                ),
                               );
                             },
                             child: Container(
@@ -199,7 +220,9 @@ class MyTripScreen extends StatelessWidget {
               ),
             );
           }
-          return TravelErrorScreen(onRetry: () => context.read<MyTripCubit>().initialize());
+          return TravelErrorScreen(
+            onRetry: () => context.read<MyTripCubit>().initialize(),
+          );
         },
       ),
     );
