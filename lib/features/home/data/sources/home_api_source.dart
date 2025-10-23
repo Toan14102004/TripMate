@@ -54,7 +54,7 @@ import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 
 class HomeApiSource {
   // Lấy danh sách tất cả tour/packages
-  Future<List<TourModel>> fetchAllPackages() async {
+  Future<Map<String, dynamic>> fetchAllPackages() async {
     final apiService = ApiService();
     final result = await apiService.sendRequest(() async {
       final responseData = await apiService.get(
@@ -68,11 +68,12 @@ class HomeApiSource {
         final message = responseData['message'] as String?;
         if (statusCode == 200) {
           final List<dynamic> rawTours = responseData['data']['tours'];
+          final total = responseData['data']['countTour'];
 
           List<TourModel> data =
               rawTours.map((e) => TourModel.fromJson(e)).toList();
 
-          return Right(data);
+          return Right({'tours': data, 'total': total});
         } else {
           return Left("Lỗi server: $message");
         }
@@ -83,7 +84,7 @@ class HomeApiSource {
     return result.fold(
       (l) {
         ToastUtil.showErrorToast(l.toString());
-        return [];
+        return {'tours': <TourModel>[], 'total': 0};
       },
       (r) {
         return r;
