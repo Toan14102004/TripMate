@@ -8,11 +8,43 @@ import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_provider.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
-import 'package:trip_mate/routes/app_route.dart';
-import '../../domain/entities/trip.dart';
 
-class MyTripScreen extends StatelessWidget {
+class MyTripScreen extends StatefulWidget {
   const MyTripScreen({super.key});
+
+  @override
+  State<MyTripScreen> createState() => _MyTripScreenState();
+}
+
+class _MyTripScreenState extends State<MyTripScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<MyTripCubit>().loadMore();
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Trigger load more when 200px from bottom
+    return currentScroll >= (maxScroll - 200);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,28 +52,22 @@ class MyTripScreen extends StatelessWidget {
       create: (context) => MyTripCubit()..initialize(),
       child: BlocBuilder<MyTripCubit, MyTripState>(
         builder: (context, state) {
-          if (state is MyTripLoading)
+          if (state is MyTripLoading) {
             return const TravelLoadingScreen();
-          else if (state is MyTripToursData) {
+          } else if (state is MyTripToursData) {
             return Scaffold(
               backgroundColor:
-                  context.isDarkMode
-                      ? AppColors.black
-                      : AppColors.lightBackground,
+                  context.isDarkMode ? AppColors.black : AppColors.lightBackground,
               appBar: AppBar(
                 elevation: 0,
                 backgroundColor:
-                    context.isDarkMode
-                        ? AppColors.black
-                        : AppColors.lightBackground,
+                    context.isDarkMode ? AppColors.black : AppColors.lightBackground,
                 centerTitle: true,
                 title: Text(
                   "MyTrip",
                   style: TextStyle(
                     color:
-                        !context.isDarkMode
-                            ? AppColors.black
-                            : AppColors.lightBackground,
+                        !context.isDarkMode ? AppColors.black : AppColors.lightBackground,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -55,38 +81,48 @@ class MyTripScreen extends StatelessWidget {
                 ),
                 actions: [
                   Padding(
-                    padding: EdgeInsets.only(right: 16),
+                    padding: const EdgeInsets.only(right: 16),
                     child: Icon(
                       Icons.more_horiz,
                       color:
-                          !context.isDarkMode
-                              ? AppColors.black
-                              : AppColors.lightBackground,
+                          !context.isDarkMode ? AppColors.black : AppColors.lightBackground,
                     ),
                   ),
                 ],
               ),
-
               body: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Danh mục tab: Packages, Flight, Hotel
+                    // Category tabs
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildCategoryTab(
-                          Icons.card_giftcard,
-                          "Packages",
-                          true,
+                          context,
+                          Icons.pending_actions,
+                          "Pending",
+                          "pending",
+                          state.bookingStatus == "pending",
                         ),
-                        _buildCategoryTab(Icons.flight, "Flight", false),
-                        _buildCategoryTab(Icons.hotel, "Hotel", false),
+                        _buildCategoryTab(
+                          context,
+                          Icons.check_circle,
+                          "Confirmed",
+                          "confirmed",
+                          state.bookingStatus == "confirmed",
+                        ),
+                        _buildCategoryTab(
+                          context,
+                          Icons.cancel,
+                          "Cancelled",
+                          "canceled",
+                          state.bookingStatus == "canceled",
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
-
                     Text(
                       "Result found (${state.tours.length})",
                       style: const TextStyle(
@@ -95,20 +131,33 @@ class MyTripScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-
                     Expanded(
                       child: ListView.builder(
-                        itemCount: state.tours.length,
+                        controller: _scrollController,
+                        itemCount: state.tours.length + (state.isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
+                          // Show loading indicator at the end
+                          if (index == state.tours.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+
                           final trip = state.tours[index];
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          PackageDetailScreen(tour: TourModel(tourId: int.tryParse(trip.id) ?? 0, title: trip.title)),
+                                  builder: (context) => PackageDetailScreen(
+                                    tour: TourModel(
+                                      tourId: int.tryParse(trip.id) ?? 0,
+                                      title: trip.title,
+                                    ),
+                                  ),
                                 ),
                               );
                             },
@@ -124,7 +173,7 @@ class MyTripScreen extends StatelessWidget {
                               height: 180,
                               child: Stack(
                                 children: [
-                                  // Lớp mờ
+                                  // Overlay
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(20),
@@ -138,7 +187,7 @@ class MyTripScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  // Nội dung
+                                  // Rating badge
                                   Positioned(
                                     top: 12,
                                     left: 12,
@@ -169,13 +218,13 @@ class MyTripScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  // Tour info
                                   Positioned(
                                     bottom: 16,
                                     left: 16,
                                     right: 16,
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           trip.title,
@@ -228,34 +277,47 @@ class MyTripScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryTab(IconData icon, String title, bool selected) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: selected ? Colors.blue.withOpacity(0.1) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? Colors.blue : Colors.grey.shade300,
-              width: 1.5,
+  Widget _buildCategoryTab(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String statusValue,
+    bool selected,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        if (!selected) {
+          context.read<MyTripCubit>().changeTab(statusValue);
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: selected ? Colors.blue.withOpacity(0.1) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected ? Colors.blue : Colors.grey.shade300,
+                width: 1.5,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: selected ? Colors.blue : Colors.grey,
+              size: 28,
             ),
           ),
-          child: Icon(
-            icon,
-            color: selected ? Colors.blue : Colors.grey,
-            size: 28,
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: selected ? Colors.blue : Colors.grey,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: selected ? Colors.blue : Colors.grey,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

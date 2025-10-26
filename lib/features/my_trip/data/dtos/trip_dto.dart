@@ -19,12 +19,12 @@ class TripDto {
 
   factory TripDto.fromJson(Map<String, dynamic> json) {
     return TripDto(
-      id: json['id'],
-      title: json['title'],
-      location: json['location'],
-      imageUrl: json['imageUrl'],
-      duration: json['duration'],
-      rating: (json['rating'] as num).toDouble(),
+      id: json['id']?.toString() ?? json['tourId']?.toString() ?? json['bookingId']?.toString() ?? '',
+      title: json['title']?.toString() ?? json['name']?.toString() ?? 'Unknown Trip',
+      location: json['location']?.toString() ?? json['destination']?.toString() ?? 'Unknown Location',
+      imageUrl: json['imageUrl']?.toString() ?? json['image']?.toString() ?? json['thumbnail']?.toString() ?? 'https://via.placeholder.com/800x500',
+      duration: json['duration']?.toString() ?? json['subtitle']?.toString() ?? json['description']?.toString() ?? 'N/A',
+      rating: (json['rating'] as num?)?.toDouble() ?? (json['starAvg'] as num?)?.toDouble() ?? (json['rate'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

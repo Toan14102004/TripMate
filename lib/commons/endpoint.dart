@@ -14,4 +14,5 @@ class AppEndPoints {
   static const String kTourDetail = '/tours';
   static const String kTimelines = '/timelines/FilterPagination';
   static const String kImageFromTour = '/images/TourId';
+  static const String kMyTripFilterPagination = '/bookings/FilterPagination';
 }

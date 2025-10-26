@@ -5,4 +5,5 @@ class AuthKeys {
   static const String kEmail = 'email';
   static const String kFullName = 'fullName';
   static const String kDob = 'dob';
+  static const String kUserId = 'userId';
 }
