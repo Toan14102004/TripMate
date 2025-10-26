@@ -20,7 +20,7 @@ class _PackageSectionState extends State<PackageSection> {
   void initState() {
     super.initState();
 
-    final futureData = HomeApiSource().fetchAllPackages();
+    final futureData = HomeApiSource().fetchAllPackages(limit: 4);
     _futurePackages = futureData.then((data) => data['tours'] as List<TourModel>);
     _totalPackages = futureData.then((data) => data['total'] as int);
   }

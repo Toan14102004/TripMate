@@ -42,7 +42,6 @@
 // }
 
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:trip_mate/commons/endpoint.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
@@ -54,12 +53,15 @@ import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 
 class HomeApiSource {
   // Lấy danh sách tất cả tour/packages
-  Future<Map<String, dynamic>> fetchAllPackages() async {
+  Future<Map<String, dynamic>> fetchAllPackages({
+    int page = 1,
+    int limit = 4,
+  }) async {
     final apiService = ApiService();
     final result = await apiService.sendRequest(() async {
       final responseData = await apiService.get(
         AppEndPoints.kFilterPagination,
-        queryParameters: {'orderBy': 'newest', 'status': 'active', 'limit': 4, 'page': 1},
+        queryParameters: {'orderBy': 'newest', 'status': 'active', 'limit': limit, 'page': page},
         skipAuth: true,
       );
 
@@ -93,12 +95,15 @@ class HomeApiSource {
   }
 
   // Lấy danh sách popular packages
-  Future<List<TourModel>> fetchPopularPackages() async {
+  Future<Map<String, dynamic>> fetchPopularPackages({
+    int page = 1,
+    int limit = 6,
+  }) async {
     final apiService = ApiService();
     final result = await apiService.sendRequest(() async {
       final responseData = await apiService.get(
         AppEndPoints.kFilterPagination,
-        queryParameters: {'orderBy': 'booking', 'status': 'active', 'limit': 4, 'page': 1},
+        queryParameters: {'orderBy': 'booking', 'status': 'active', 'limit': limit, 'page': page},
         skipAuth: true,
       );
 
@@ -107,11 +112,12 @@ class HomeApiSource {
         final message = responseData['message'] as String?;
         if (statusCode == 200) {
           final List<dynamic> rawTours = responseData['data']['tours'];
+          final total = responseData['data']['countTour'];
 
           List<TourModel> data =
               rawTours.map((e) => TourModel.fromJson(e)).toList();
 
-          return Right(data);
+          return Right({'tours': data, 'total': total});
         } else {
           return Left("Lỗi server: $message");
         }
@@ -122,7 +128,7 @@ class HomeApiSource {
     return result.fold(
       (l) {
         ToastUtil.showErrorToast(l.toString());
-        return [];
+        return {'tours': <TourModel>[], 'total': 0};
       },
       (r) {
         return r;
@@ -131,12 +137,15 @@ class HomeApiSource {
   }
 
   // Lấy danh sách top packages
-  Future<List<TourModel>> fetchTopPackages() async {
+  Future<Map<String, dynamic>> fetchTopPackages({
+    int page = 1,
+    int limit = 6,
+  }) async {
     final apiService = ApiService();
     final result = await apiService.sendRequest(() async {
       final responseData = await apiService.get(
         AppEndPoints.kFilterPagination,
-        queryParameters: {'orderBy': 'rating', 'status': 'active', 'limit': 4, 'page': 1},
+        queryParameters: {'orderBy': 'rating', 'status': 'active', 'limit': limit, 'page': page},
         skipAuth: true,
       );
 
@@ -145,11 +154,12 @@ class HomeApiSource {
         final message = responseData['message'] as String?;
         if (statusCode == 200) {
           final List<dynamic> rawTours = responseData['data']['tours'];
+          final total = responseData['data']['countTour'];
 
           List<TourModel> data =
               rawTours.map((e) => TourModel.fromJson(e)).toList();
 
-          return Right(data);
+          return Right({'tours': data, 'total': total});
         } else {
           return Left("Lỗi server: $message");
         }
@@ -160,7 +170,7 @@ class HomeApiSource {
     return result.fold(
       (l) {
         ToastUtil.showErrorToast(l.toString());
-        return [];
+        return {'tours': <TourModel>[], 'total': 0};
       },
       (r) {
         return r;
