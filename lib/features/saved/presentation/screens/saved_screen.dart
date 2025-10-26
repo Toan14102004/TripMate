@@ -62,27 +62,57 @@ class _SavedScreenState extends State<SavedScreen> {
           if (state is SavedToursData) {
             return Scaffold(
               body: SafeArea(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const HomeAppBar(title: "Saved"),
-                      // const SizedBox(height: 20),
-                      // const CategoryList(),
-                      const SizedBox(height: 24),
-                      const SavedPackagesSection(),
-                      // Show loading indicator when loading more
-                      if (state.isLoadingMore)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                    ],
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: HomeAppBar(title: "Saved"),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: state.tours.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.bookmark_border,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Data is empty',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SavedPackagesSection(),
+                                  // Show loading indicator when loading more
+                                  if (state.isLoadingMore)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ],
                 ),
               ),
             );

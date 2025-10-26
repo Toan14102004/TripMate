@@ -132,10 +132,32 @@ class _MyTripScreenState extends State<MyTripScreen> {
                     ),
                     const SizedBox(height: 10),
                     Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        itemCount: state.tours.length + (state.isLoadingMore ? 1 : 0),
-                        itemBuilder: (context, index) {
+                      child: state.tours.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.inbox_outlined,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Data is empty',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _scrollController,
+                              itemCount: state.tours.length + (state.isLoadingMore ? 1 : 0),
+                              itemBuilder: (context, index) {
                           // Show loading indicator at the end
                           if (index == state.tours.length) {
                             return const Padding(
