@@ -1,11 +1,12 @@
 // sign_in_cubit.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/enum/verify_enum.dart';
 import 'package:trip_mate/commons/validate.dart';
 import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
-import 'package:trip_mate/features/auth/presentation/screens/verification_screen.dart';
+import 'package:trip_mate/features/auth/presentation/screens/verification_email_screen.dart';
 import 'package:trip_mate/features/security/domain/usecases/reset_password_usecase.dart';
 import 'package:trip_mate/features/security/presentation/providers/reset_password/reset_password_state.dart';
 import 'package:trip_mate/features/security/presentation/screens/new_password_screen.dart';
@@ -41,9 +42,6 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
       emit(ResetPasswordLoading());
 
       try {
-        // Simulate API call
-        await Future.delayed(const Duration(seconds: 2));
-
         final result = await sl<ResetPassUseCase>().call(
           params: currentState.email,
         );
@@ -60,9 +58,9 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
                 builder:
                     (context) => VerificationScreen(
                       email: currentState.email,
+                      styleEnum: VerifyEnum.resetPassword,
                       navigatorRouterNext:
-                          (context) =>
-                              NewPasswordScreen(email: currentState.email),
+                          (context) => const NewPasswordScreen(),
                     ),
               ),
             );

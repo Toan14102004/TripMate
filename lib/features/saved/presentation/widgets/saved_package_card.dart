@@ -57,7 +57,7 @@ class _SavedPackageCardState extends State<SavedPackageCard> {
           // Background image
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.asset(
+            child: Image.network(
               widget.image,
               height: 200,
               width: double.infinity,

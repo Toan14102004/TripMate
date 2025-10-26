@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/enum/verify_enum.dart';
 import 'package:trip_mate/commons/widgets/loading_screen.dart';
 import 'package:trip_mate/commons/widgets/logo.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
@@ -13,11 +14,13 @@ import 'package:trip_mate/routes/app_route.dart';
 class VerificationScreen extends StatefulWidget {
   final String email;
   WidgetBuilder? navigatorRouterNext = AppRoutes.routes[AppRoutes.signin];
+  final VerifyEnum styleEnum;
 
   VerificationScreen({
     super.key,
     required this.email,
     this.navigatorRouterNext,
+    required this.styleEnum,
   });
 
   @override
@@ -27,10 +30,10 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen>
     with TickerProviderStateMixin {
   final List<TextEditingController> _controllers = List.generate(
-    4,
+    6,  // Thay đổi từ 4 thành 6
     (index) => TextEditingController(),
   );
-  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());  // Thay đổi từ 4 thành 6
 
   late AnimationController _slideController;
   late AnimationController _fadeController;
@@ -122,7 +125,7 @@ class _VerificationScreenState extends State<VerificationScreen>
 
   void _onCodeChanged(String value, int index) {
     if (value.isNotEmpty) {
-      if (index < 3) {
+      if (index < 5) {  // Thay đổi từ 3 thành 5
         _focusNodes[index + 1].requestFocus();
       } else {
         _focusNodes[index].unfocus();
@@ -135,9 +138,9 @@ class _VerificationScreenState extends State<VerificationScreen>
 
   void _verifyCode() {
     String code = _controllers.map((controller) => controller.text).join();
-    if (code.length == 4) {
+    if (code.length == 6) {  // Thay đổi từ 4 thành 6
       final cubit = context.read<VerificationCubit>();
-      cubit.verifyCode(code);
+      cubit.verifyCode(code, widget.styleEnum, widget.email);
     }
   }
 
@@ -321,7 +324,7 @@ class _VerificationScreenState extends State<VerificationScreen>
 
                                       const SizedBox(height: 40),
 
-                                      // OTP Input Fields
+                                      // OTP Input Fields - 6 ô
                                       AnimatedBuilder(
                                         animation: _shakeAnimation,
                                         builder: (context, child) {
@@ -330,10 +333,11 @@ class _VerificationScreenState extends State<VerificationScreen>
                                               _shakeAnimation.value * 10,
                                               0,
                                             ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: List.generate(4, (
+                                            child: Wrap(
+                                              spacing: 8,
+                                              runSpacing: 16,
+                                              alignment: WrapAlignment.center,
+                                              children: List.generate(6, (
                                                 index,
                                               ) {
                                                 return _buildOTPField(index);
@@ -366,7 +370,7 @@ class _VerificationScreenState extends State<VerificationScreen>
                                                   _isResendEnabled = false;
                                                 });
                                                 _startCountdown();
-                                                cubit.resendCode();
+                                                cubit.resendCode(widget.email, widget.styleEnum);
                                               },
                                               child: const Text(
                                                 'Resend',
@@ -456,10 +460,10 @@ class _VerificationScreenState extends State<VerificationScreen>
 
   Widget _buildOTPField(int index) {
     return Container(
-      width: 64,
-      height: 64,
+      width: 52,  // Tối ưu kích thước cho 6 ô
+      height: 56,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color:
               _controllers[index].text.isNotEmpty
@@ -483,7 +487,7 @@ class _VerificationScreenState extends State<VerificationScreen>
         textAlign: TextAlign.center,
         maxLength: 1,
         style: const TextStyle(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: Color(0xFF2D3748),
         ),

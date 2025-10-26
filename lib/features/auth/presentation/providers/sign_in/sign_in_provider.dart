@@ -164,7 +164,7 @@ class SignInCubit extends Cubit<SignInState> {
   }
 
   void comeToMainPage(){
-     Navigator.of(AppGlobal.navigatorKey.currentContext!).pushReplacementNamed(AppRoutes.rootPage);
+    Navigator.of(AppGlobal.navigatorKey.currentContext!).pushReplacementNamed(AppRoutes.rootPage);
   }
 
   void resetState() {

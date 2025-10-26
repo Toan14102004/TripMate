@@ -19,6 +19,7 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen>
     with TickerProviderStateMixin {
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
   final _birthDayController = TextEditingController();
   final _confirmpwController = TextEditingController();
@@ -119,6 +120,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   @override
   void dispose() {
     _emailController.dispose();
+    _phoneController.dispose();
     _birthDayController.dispose();
     _passwordController.dispose();
     _slideController.dispose();
@@ -247,6 +249,26 @@ class _SignUpScreenState extends State<SignUpScreen>
                                               },
                                               onChanged: (p0) {
                                                 cubit.onChangedName(p0);
+                                              },
+                                            ),
+
+                                            const SizedBox(height: 24),
+
+                                            buildAnimatedTextField(
+                                              controller: _phoneController,
+                                              label: 'Phone Number',
+                                              hint: 'Type your phone number',
+                                              icon: Icons.phone,
+                                              keyboardType: TextInputType.phone,
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Please enter your full name';
+                                                }
+                                                return null;
+                                              },
+                                              onChanged: (p0) {
+                                                cubit.onChangedPhone(p0);
                                               },
                                             ),
 
@@ -422,7 +444,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                         email: _emailController.text, 
                                                         password: state.password, 
                                                         birthDay: state.birthDay, 
-                                                        name: _nameController.text)
+                                                        name: _nameController.text,
+                                                        phone: _phoneController.text)
                                                     );
                                                   }
                                                 },

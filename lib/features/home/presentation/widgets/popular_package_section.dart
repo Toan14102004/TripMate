@@ -25,7 +25,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PackageDetailScreen(package: package),
+        builder: (context) => PackageDetailScreen(tour: package),
       ),
     );
   }
@@ -67,29 +67,37 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No popular packages'));
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text('Error loading packages: ${snapshot.error}'),
+                );
               }
-              final packages = snapshot.data!;
+              final packages = snapshot.data ?? [];
+
+              if (packages.isEmpty) {
+                return const Center(child: Text('No popular packages found.'));
+              }
+
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: packages.length,
                 itemBuilder: (context, index) {
-                  final package = packages[index]; // package ở đây là một đối tượng TourModel
-                  return GestureDetector(
-                    onTap: () => _navigateToDetail(package),
-                    child: PopularPackageCard(
-                      image: package.image ?? '',
-                      title: package.title,
-
-                      // Sửa 'location' thành 'subtitle' và truyền dữ liệu phù hợp
-                      subtitle: package.destination ?? 'N/A', // Hoặc 'Unknown Location', hoặc bất kỳ giá trị mặc định nếu destination là null
-
-                      // Thêm tham số 'rating' và truyền giá trị từ TourModel
-                      rating: package.rating ?? 0.0, // Nếu package.rating là null, dùng 0.0
-
-                      // Tham số 'isBookmarked' là tùy chọn mặc định là false.
-                      isBookmarked: package.isBookmarked ?? false,
+                  final package = packages[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: SizedBox(
+                      width:
+                          350,
+                      child: GestureDetector(
+                        onTap: () => _navigateToDetail(package),
+                        child: PopularPackageCard(
+                          image: package.image ?? '',
+                          title: package.title,
+                          subtitle: package.destination ?? 'N/A',
+                          rating: package.rating ?? 0.0,
+                          isBookmarked: package.isBookmarked ?? false,
+                        ),
+                      ),
                     ),
                   );
                 },

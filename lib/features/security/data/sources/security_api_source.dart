@@ -1,18 +1,27 @@
 import 'package:dartz/dartz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trip_mate/commons/log.dart';
-import 'package:trip_mate/commons/storage_keys/auth.dart';
-import 'package:trip_mate/core/ultils/generate_random_number.dart';
+import 'package:trip_mate/commons/endpoint.dart';
+import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/features/security/data/dtos/new_pass_request.dart';
 
 class SecurityApiSource {
   Future<Either> resetPassword(String email) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    final prefs = await SharedPreferences.getInstance();
-    int verifyKey = generateRandomNumber(min: 1000, max: 9999);
-    logDebug(verifyKey.toString());
-    await prefs.setString(AuthKeys.kAuthVerifyKey, verifyKey.toString());
-    return Right("We've sent a password reset code to $email");
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kRequestResetPassword,
+        data: {
+          "email": email.trim(),
+        },
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final message = responseData['message'] as String?;
+
+        return Right(message);
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
   }
 
   Future<Either> newPassword(NewPasswordRequest req) async {

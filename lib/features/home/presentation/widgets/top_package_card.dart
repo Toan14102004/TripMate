@@ -45,7 +45,7 @@ class TopPackageCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
+            child: Image.network(
               image,
               width: 56,
               height: 56,
@@ -105,13 +105,13 @@ class TopPackageCard extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            price,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: priceTextColor, // Áp dụng màu chữ giá
-            ),
-          ),
+          // Text(
+          //   price,
+          //   style: TextStyle(
+          //     fontWeight: FontWeight.bold,
+          //     color: priceTextColor, // Áp dụng màu chữ giá
+          //   ),
+          // ),
         ],
       ),
     );

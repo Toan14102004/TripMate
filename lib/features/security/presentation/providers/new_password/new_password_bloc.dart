@@ -1,12 +1,14 @@
 // sign_in_cubit.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/enum/verify_enum.dart';
 import 'package:trip_mate/commons/validate.dart';
 import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
-import 'package:trip_mate/features/auth/presentation/screens/verification_screen.dart';
-import 'package:trip_mate/features/security/data/dtos/new_pass_request.dart';
-import 'package:trip_mate/features/security/domain/usecases/New_password_usecase.dart';
+import 'package:trip_mate/features/auth/presentation/screens/signin_screen.dart';
+import 'package:trip_mate/features/auth/presentation/screens/verification_email_screen.dart';
+import 'package:trip_mate/features/security/domain/usecases/reset_password_usecase.dart';
 import 'package:trip_mate/features/security/presentation/providers/new_password/new_password_state.dart';
 import 'package:trip_mate/service_locator.dart';
 
@@ -14,12 +16,7 @@ class NewPasswordCubit extends Cubit<NewPasswordState> {
   NewPasswordCubit()
     : super(NewPasswordInitial(email: '', confirmPassword: '', password: '', isSuccess: false));
 
-  void initialCubit(String email) {
-    if (state is NewPasswordInitial) {
-      final currentState = state as NewPasswordInitial;
-      emit(currentState.copyWith(email: email));
-    }
-  }
+  String password = '';
 
   void onChangeConfirmPassword(String confirmPassword) {
     if (state is NewPasswordInitial) {
@@ -31,7 +28,15 @@ class NewPasswordCubit extends Cubit<NewPasswordState> {
   void onChangePassword(String password) {
     if (state is NewPasswordInitial) {
       final currentState = state as NewPasswordInitial;
+      this.password = password;
       emit(currentState.copyWith(password: password));
+    }
+  }
+
+  void onChangeEmail(String email) {
+    if (state is NewPasswordInitial) {
+      final currentState = state as NewPasswordInitial;
+      emit(currentState.copyWith(email: email));
     }
   }
 
@@ -62,21 +67,29 @@ class NewPasswordCubit extends Cubit<NewPasswordState> {
       emit(NewPasswordLoading());
 
       try {
-        // Simulate API call
-        await Future.delayed(const Duration(seconds: 2));
-
-        final result = await sl<NewPassUseCase>().call(
-          params: NewPasswordRequest(email: currentState.email, password: currentState.password)
+        final result1 = await sl<ResetPassUseCase>().call(
+          params: currentState.email,
         );
 
-        result.fold(
+        result1.fold(
           (left) {
             ToastUtil.showErrorToast(title: "Error", left);
-            emit(currentState.copyWith(isSuccess: false));
+            emit(currentState);
           },
           (right) {
             ToastUtil.showSuccessToast(title: "Success", right);
-            emit(currentState.copyWith(isSuccess: true));
+            Navigator.of(AppGlobal.navigatorKey.currentContext!).push(
+              MaterialPageRoute(
+                builder:
+                    (context) => VerificationScreen(
+                      email: currentState.email,
+                      styleEnum: VerifyEnum.resetPassword,
+                      navigatorRouterNext:
+                          (context) => const SignInScreen(),
+                    ),
+              ),
+            );
+            emit(currentState);
           },
         );
       } catch (e) {

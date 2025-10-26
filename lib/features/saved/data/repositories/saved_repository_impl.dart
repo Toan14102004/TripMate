@@ -1,4 +1,18 @@
-// TODO: Saved 기능의 리포지토리를 구현하세요.
+// Saved repository implementation
+import 'package:dartz/dartz.dart';
+import 'package:trip_mate/features/saved/data/sources/saved_api_source.dart';
 import 'package:trip_mate/features/saved/domain/repositories/saved_repository.dart';
+import 'package:trip_mate/service_locator.dart';
 
-class SavedRepositoryImpl implements SavedRepository {}
+class SavedRepositoryImpl implements SavedRepository {
+  @override
+  Future<Either> getSavedTours({
+    int page = 1,
+    int limit = 4,
+  }) async {
+    return await sl<SavedApiSource>().getSavedTours(
+      page: page,
+      limit: limit,
+    );
+  }
+}

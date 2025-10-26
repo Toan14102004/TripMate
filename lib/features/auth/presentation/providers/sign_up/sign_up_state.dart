@@ -12,6 +12,7 @@ class SignUpInitial extends SignUpState {
   bool isConfirmPasswordVisible;
   String email;
   String password;
+  String phone;
   DateTime birthDay;
   String name;
   
@@ -21,7 +22,8 @@ class SignUpInitial extends SignUpState {
     required this.email,
     required this.password,
     required this.birthDay,
-    required this.name
+    required this.name,
+    required this.phone
   });  
 
   SignUpInitial copyWith({
@@ -31,6 +33,7 @@ class SignUpInitial extends SignUpState {
     DateTime? birthDay,
     String? password,
     String? name,
+    String? phone
   }){
     return SignUpInitial(
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible, 
@@ -38,7 +41,8 @@ class SignUpInitial extends SignUpState {
       birthDay: birthDay ?? this.birthDay,
       password: password ?? this.password, 
       isConfirmPasswordVisible: isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
-      name: name ?? this.name
+      name: name ?? this.name,
+      phone: phone ?? this.phone
     );
   }
   @override

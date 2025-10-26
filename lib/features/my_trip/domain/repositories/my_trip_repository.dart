@@ -1,2 +1,12 @@
 // TODO: MyTrip 기능에 대한 리포지토리 인터페이스를 정의하세요.
-abstract class MyTripRepository {}
+import 'package:dartz/dartz.dart';
+
+abstract class MyTripRepository {
+  Future<Either> getMyTrips({
+    required String userId,
+    String bookingStatus = 'pending',
+    int page = 1,
+    int limit = 4,
+  });
+  Future<Either> deleteMyTrips();
+}

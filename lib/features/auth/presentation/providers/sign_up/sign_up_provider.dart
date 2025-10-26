@@ -1,14 +1,16 @@
 // sign_in_cubit.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/enum/verify_enum.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/validate.dart';
 import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
+import 'package:trip_mate/features/auth/domain/usecases/resend_token_usecase.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:trip_mate/features/auth/presentation/providers/sign_up/sign_up_state.dart';
-import 'package:trip_mate/features/auth/presentation/screens/verification_screen.dart';
+import 'package:trip_mate/features/auth/presentation/screens/verification_email_screen.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 
@@ -22,6 +24,7 @@ class SignUpCubit extends Cubit<SignUpState> {
           isConfirmPasswordVisible: false,
           name: '',
           birthDay: DateTime.now(),
+          phone: '',
         ),
       );
 
@@ -50,6 +53,13 @@ class SignUpCubit extends Cubit<SignUpState> {
     if (state is SignUpInitial) {
       final currentState = state as SignUpInitial;
       emit(currentState.copyWith(name: name));
+    }
+  }
+
+  void onChangedPhone(String phone) {
+    if (state is SignUpInitial) {
+      final currentState = state as SignUpInitial;
+      emit(currentState.copyWith(phone: phone));
     }
   }
 
@@ -94,21 +104,58 @@ class SignUpCubit extends Cubit<SignUpState> {
             password: data.password,
             dob: data.birthDay,
             fullName: data.name,
+            phone: data.phone,
           ),
         );
 
         result.fold(
           (left) {
-            ToastUtil.showErrorToast(title: "Error", left);
-            emit(currentState);
+            if (left == "Email already exists") {
+              ToastUtil.showErrorToast(title: "Error", left);
+              Navigator.of(AppGlobal.navigatorKey.currentContext!).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) => VerificationScreen(
+                        email: currentState.email,
+                        styleEnum: VerifyEnum.verifyEmail,
+                      ),
+                ),
+              );
+            } else {
+              ToastUtil.showErrorToast(title: "Error", left);
+              emit(currentState);
+            }
           },
-          (right) {
+          (right) async {
             ToastUtil.showSuccessToast(title: "Success", right);
-            Navigator.of(AppGlobal.navigatorKey.currentContext!).push(
-              MaterialPageRoute(
-                builder:
-                    (context) => VerificationScreen(email: currentState.email),
-              ),
+            final sendCode = await sl<ResendTokenUsecase>().call(
+              params: data.email.trim(),
+            );
+            sendCode.fold(
+              (left) {
+                ToastUtil.showErrorToast(title: "Error", left);
+                Navigator.of(AppGlobal.navigatorKey.currentContext!).push(
+                  MaterialPageRoute(
+                    builder:
+                        (context) => VerificationScreen(
+                          email: currentState.email,
+                          styleEnum: VerifyEnum.verifyEmail,
+                        ),
+                  ),
+                );
+              },
+              (right) {
+                ToastUtil.showSuccessToast(title: "Success", right);
+                Navigator.of(AppGlobal.navigatorKey.currentContext!).push(
+                  MaterialPageRoute(
+                    builder:
+                        (context) => VerificationScreen(
+                          email: currentState.email,
+                          styleEnum: VerifyEnum.verifyEmail,
+                        ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -185,6 +232,7 @@ class SignUpCubit extends Cubit<SignUpState> {
         isConfirmPasswordVisible: false,
         name: '',
         birthDay: DateTime.now(),
+        phone: '',
       ),
     );
   }

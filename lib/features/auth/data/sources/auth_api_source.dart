@@ -2,55 +2,149 @@
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/commons/endpoint.dart';
 import 'package:trip_mate/commons/storage_keys/auth.dart';
-import 'package:trip_mate/core/ultils/generate_random_number.dart';
+import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/features/auth/data/dtos/signin_request.dart';
 import 'package:trip_mate/features/auth/data/dtos/signup_request.dart';
+import 'package:trip_mate/services/local_storage/auth.dart';
 
 class AuthApiSource {
   Future<Either> signInWithEmailAndPassword(SigninUserReq signInUserReq) async {
-    if(signInUserReq.email == 'test@example.com' && signInUserReq.password == 'password'){
-      final prefs = await SharedPreferences.getInstance();
-      prefs.setString(AuthKeys.kEmail, signInUserReq.email);
-      return const Right("Đăng nhập thành công!");
-    }
-    else{
-      return const Left("Email hoặc mật khẩu không đúng");
-    }
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kLogin,
+        data: {
+          "email": signInUserReq.email,
+          "password": signInUserReq.password,
+        },
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final accessToken = responseData['access_token'] as String?;
+        final refreshToken = responseData['refresh_token'] as String?;
+
+        if (accessToken != null && refreshToken != null) {
+          final prefs = await SharedPreferences.getInstance();
+          AuthRepository.setAccessToken(accessToken);
+          AuthRepository.setRefreshToken(refreshToken);
+          prefs.setString(AuthKeys.kEmail, signInUserReq.email);
+
+          return const Right("Đăng nhập thành công!");
+        } else {
+          return const Left("Lỗi server: Không nhận được token.");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
   }
 
   Future<Either> signUpWithEmailAndPassword(CreateUserReq createUserReq) async {
-    final prefs = await SharedPreferences.getInstance();
-    int verifyKey = generateRandomNumber(min: 1000, max: 9999);
-    logDebug(createUserReq.fullName);
-    prefs.setString(AuthKeys.kFullName, createUserReq.fullName);
-    prefs.setString(AuthKeys.kDob, createUserReq.dob.toIso8601String());
-    logDebug(verifyKey.toString());
-    await prefs.setString(AuthKeys.kAuthVerifyKey, verifyKey.toString());
-    return const Right("Đăng ký thành công!");
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kRegister,
+        data: {
+          "fullName": createUserReq.fullName.trim(),
+          "email": createUserReq.email.trim(),
+          "passWord": createUserReq.password.trim(),
+          "phoneNumber": createUserReq.phone.trim(),
+          "birthDay": DateFormat('yyyy-MM-dd').format(createUserReq.dob),
+        },
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200) {
+          return Right(message);
+        } else {
+          return Left(message);
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
   }
 
-  Future<Either> verifyToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    logDebug(prefs.getString(AuthKeys.kAuthVerifyKey) as Object);
-    if(token == prefs.getString(AuthKeys.kAuthVerifyKey)){
-      return const Right("Mã xác thực đã đúng");
-    }
-    return const Left("Mã xác thực bị sai");
+  Future<Either> verifyPassToken(
+    String token,
+    String email,
+    String newPass,
+  ) async {
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kResetPass,
+        data: {"email": email, "otp": token, "newPassword": newPass},
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200 || statusCode == 201 || statusCode == null) {
+          return Right(message);
+        } else {
+          return Left(message);
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
   }
 
-  Future<Either> resendToken() async {
-    try{
-      final prefs = await SharedPreferences.getInstance();
-      prefs.remove(AuthKeys.kAuthTokenKey);
-      int verifyKey = generateRandomNumber(min: 1000, max: 9999);
-      logDebug(verifyKey);
-      prefs.setString(AuthKeys.kAuthVerifyKey, verifyKey.toString());
-      return const Right("Thành công");
-    }catch(e){
-      return const Left("Thất bại");
-    }
+  Future<Either> verifyEmailToken(String token, String email) async {
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kVerifyRegisterOTP,
+        data: {
+          "email": email.trim(),
+          "otp": token
+        },
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200 || statusCode == 201 || statusCode == null) {
+          return Right(message);
+        } else {
+          return Left(message);
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+  }
+
+  Future<Either> resendToken(String email) async {
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kRequestVerifyRegisterOTP,
+        data: {"email": email},
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200 || statusCode == 201 || statusCode == null) {
+          return Right(message);
+        } else {
+          return Left(message);
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
   }
 }

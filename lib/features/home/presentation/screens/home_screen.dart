@@ -20,7 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      if (index == 3) { // Nếu chọn tab Settings
+      if (index == 3) {
+        // Nếu chọn tab Settings
         Navigator.pushNamed(context, AppRoutes.settings);
         // Reset lại selectedIndex sau khi chuyển hướng
         Future.delayed(Duration.zero, () {
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -49,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 16),
               SearchBarWidget(),
-              SizedBox(height: 20),
-              CategoryList(),
+              // SizedBox(height: 20),
+              // CategoryList(),
               SizedBox(height: 24),
               PackageSection(),
               SizedBox(height: 24),
@@ -60,19 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.airplane_ticket), label: "My Trip"),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: "Saved"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
-        ],
       ),
     );
   }

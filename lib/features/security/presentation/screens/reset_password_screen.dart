@@ -1,8 +1,6 @@
 // reset_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trip_mate/commons/widgets/loading_screen.dart';
-import 'package:trip_mate/commons/widgets/logo.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/auth/presentation/widgets/auth_widget.dart';
 import 'package:trip_mate/features/security/presentation/providers/reset_password/reset_password_bloc.dart';

@@ -35,7 +35,7 @@ class SavedTourModel {
       subtitle: json['subtitle'] as String,
       image: json['image'] as String,
       rating: (json['rating'] as num).toDouble(),
-      isBookmarked: json['isBookmarked'] as bool? ?? true,
+      isBookmarked: json['isBookmarked'] == true, // Safe null handling
     );
   }
 

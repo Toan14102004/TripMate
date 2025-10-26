@@ -19,12 +19,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
   
   @override
-  Future<Either> verifyToken(String token) async {
-    return await sl<AuthApiSource>().verifyToken(token);
+  Future<Either> verifyPassToken(String token, String email, String newPass) async {
+    return await sl<AuthApiSource>().verifyPassToken(token, email, newPass);
+  }
+
+  @override
+  Future<Either> verifyEmailToken(String token, String email) async {
+    return await sl<AuthApiSource>().verifyEmailToken(token, email);
   }
   
   @override
-  Future<Either> resendToken() async {
-    return await sl<AuthApiSource>().resendToken();
+  Future<Either> resendToken(String email) async {
+    return await sl<AuthApiSource>().resendToken(email);
   }
 }

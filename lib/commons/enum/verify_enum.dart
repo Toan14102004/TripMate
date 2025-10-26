@@ -1,0 +1,4 @@
+enum VerifyEnum {
+  resetPassword,
+  verifyEmail,
+}

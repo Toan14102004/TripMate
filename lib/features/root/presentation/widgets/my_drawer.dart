@@ -16,7 +16,6 @@ import 'dart:math' as math;
 import 'package:trip_mate/features/root/presentation/widgets/special_menu_item.dart';
 import 'package:trip_mate/features/root/presentation/widgets/wave_painter.dart';
 import 'package:trip_mate/routes/app_route.dart';
-import 'package:trip_mate/service_locator.dart';
 import 'package:trip_mate/services/location_service.dart';
 
 class MyDrawer extends StatefulWidget {
