@@ -25,7 +25,7 @@ class SavedResponse {
       subtitle: json['subtitle'] as String? ?? json['description'] as String?,
       image: json['image'] as String? ?? json['imageUrl'] as String?,
       rating: (json['starAvg'] as num?)?.toDouble(),
-      isBookmarked: json['isBookmarked'] as bool? ?? true,
+      isBookmarked: json['isBookmarked'] == true, // Safe null handling
     );
   }
 
