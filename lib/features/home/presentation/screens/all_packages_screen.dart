@@ -3,17 +3,17 @@ import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
-import 'package:trip_mate/features/home/presentation/widgets/popular_package_card.dart';
+import 'package:trip_mate/features/home/presentation/widgets/package_card.dart';
 import 'package:trip_mate/features/home/presentation/widgets/search_bar.dart';
 
-class PopularPackagesScreen extends StatefulWidget {
-  const PopularPackagesScreen({super.key});
+class AllPackagesScreen extends StatefulWidget {
+  const AllPackagesScreen({super.key});
 
   @override
-  State<PopularPackagesScreen> createState() => _PopularPackagesScreenState();
+  State<AllPackagesScreen> createState() => _AllPackagesScreenState();
 }
 
-class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
+class _AllPackagesScreenState extends State<AllPackagesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final HomeApiSource _apiSource = HomeApiSource();
@@ -44,7 +44,7 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
     });
 
     try {
-      final data = await _apiSource.fetchPopularPackages(page: 1, limit: _pageLimit);
+      final data = await _apiSource.fetchAllPackages(page: 1, limit: _pageLimit);
       final tours = data['tours'] as List<TourModel>;
       final total = data['total'] as int;
 
@@ -55,7 +55,7 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
         _isLoading = false;
       });
       
-      logDebug('Loaded initial ${tours.length} popular packages, total: $total');
+      logDebug('Loaded initial ${tours.length} packages, total: $total');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -78,7 +78,7 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
     logDebug('Loading page $nextPage');
 
     try {
-      final data = await _apiSource.fetchPopularPackages(page: nextPage, limit: _pageLimit);
+      final data = await _apiSource.fetchAllPackages(page: nextPage, limit: _pageLimit);
       final newTours = data['tours'] as List<TourModel>;
       
       setState(() {
@@ -147,7 +147,7 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Popular Packages'),
+        title: const Text('All Packages'),
       ),
       body: Column(
         children: [
@@ -156,7 +156,7 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
             child: SearchBarWidget(
               controller: _searchController,
               onChanged: _onSearchChanged,
-              hintText: 'Search popular packages...',
+              hintText: 'Search packages...',
             ),
           ),
           Expanded(
@@ -172,21 +172,21 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
                             sliver: SliverGrid(
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.7,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
+                                childAspectRatio: 0.75,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
                               ),
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
-                                  final package = _filteredPackages[index];
+                                  final pkg = _filteredPackages[index];
                                   return GestureDetector(
-                                    onTap: () => _navigateToDetail(package),
-                                    child: PopularPackageCard(
-                                      image: package.image ?? '',
-                                      title: package.title,
-                                      subtitle: package.destination ?? 'N/A',
-                                      rating: package.rating ?? 0.0,
-                                      isBookmarked: package.isBookmarked ?? false,
+                                    onTap: () => _navigateToDetail(pkg),
+                                    child: PackageCard(
+                                      image: pkg.image ?? '',
+                                      title: pkg.title,
+                                      location: pkg.destination ?? '',
+                                      price: '${pkg.reviewCount?.toStringAsFixed(0) ?? '0'} Reviews',
+                                      rating: pkg.rating ?? 0,
                                     ),
                                   );
                                 },
@@ -212,3 +212,4 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
     );
   }
 }
+
