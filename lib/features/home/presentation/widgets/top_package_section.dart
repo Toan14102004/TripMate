@@ -13,12 +13,12 @@ class TopPackageSection extends StatefulWidget {
 }
 
 class _TopPackageSectionState extends State<TopPackageSection> {
-  late Future<List<TourModel>> _futureTopPackages;
+  late Future<Map<String, dynamic>> _futureTopPackages;
 
   @override
   void initState() {
     super.initState();
-    _futureTopPackages = HomeApiSource().fetchTopPackages();
+    _futureTopPackages = HomeApiSource().fetchTopPackages(limit: 4);
   }
 
   void _navigateToDetail(TourModel package) {
@@ -59,16 +59,16 @@ class _TopPackageSectionState extends State<TopPackageSection> {
           ],
         ),
         const SizedBox(height: 12),
-        FutureBuilder<List<TourModel>>(
+        FutureBuilder<Map<String, dynamic>>(
           future: _futureTopPackages,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            final packages = (snapshot.data?['tours'] as List<TourModel>?) ?? [];
+            if (packages.isEmpty) {
               return const Center(child: Text('No top packages'));
             }
-            final packages = snapshot.data!;
             return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

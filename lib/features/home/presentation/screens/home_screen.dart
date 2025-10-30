@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../routes/app_route.dart';
+import '../../../../core/configs/theme/app_colors.dart';
 import '../widgets/home_appbar.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/category_list.dart';
@@ -21,9 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
       if (index == 3) {
-        // Nếu chọn tab Settings
         Navigator.pushNamed(context, AppRoutes.settings);
-        // Reset lại selectedIndex sau khi chuyển hướng
         Future.delayed(Duration.zero, () {
           setState(() {
             _selectedIndex = 0;
@@ -35,29 +34,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      backgroundColor: AppColors.lightBackground,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              HomeAppBar(),
-              SizedBox(height: 20),
+            children: [
+              const HomeAppBar(),
+              const SizedBox(height: 24),
               Text(
-                "Explore The\nBeautiful World! ✈️",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                "Explore The\nBeautiful World!",
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  color: AppColors.black,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                ) ?? const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 16),
-              SearchBarWidget(),
-              // SizedBox(height: 20),
-              // CategoryList(),
-              SizedBox(height: 24),
-              PackageSection(),
-              SizedBox(height: 24),
-              PopularPackageSection(),
-              SizedBox(height: 24),
-              TopPackageSection(),
+              const SizedBox(height: 16),
+              const SearchBarWidget(),
+              const SizedBox(height: 24),
+              const PackageSection(),
+              const SizedBox(height: 24),
+              const PopularPackageSection(),
+              const SizedBox(height: 24),
+              const TopPackageSection(),
+              const SizedBox(height: 20),
             ],
           ),
         ),

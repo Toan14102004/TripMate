@@ -175,4 +175,3 @@ class _SavedPackageCardState extends State<SavedPackageCard> {
     );
   }
 }
-

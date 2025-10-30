@@ -34,4 +34,3 @@ class SavedError extends SavedState {
   @override
   List<Object?> get props => [message];
 }
-

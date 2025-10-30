@@ -3,17 +3,17 @@ import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/widgets/package_card.dart';
 import 'package:trip_mate/features/home/presentation/widgets/search_bar.dart';
-import 'package:trip_mate/features/home/presentation/widgets/top_package_card.dart';
 
-class TopPackagesScreen extends StatefulWidget {
-  const TopPackagesScreen({super.key});
+class AllPackagesScreen extends StatefulWidget {
+  const AllPackagesScreen({super.key});
 
   @override
-  State<TopPackagesScreen> createState() => _TopPackagesScreenState();
+  State<AllPackagesScreen> createState() => _AllPackagesScreenState();
 }
 
-class _TopPackagesScreenState extends State<TopPackagesScreen> {
+class _AllPackagesScreenState extends State<AllPackagesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final HomeApiSource _apiSource = HomeApiSource();
@@ -26,7 +26,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
   bool _isLoadingMore = false;
   bool _hasMore = true;
   
-  static const int _pageLimit = 10;
+  static const int _pageLimit = 6;
 
   @override
   void initState() {
@@ -44,7 +44,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
     });
 
     try {
-      final data = await _apiSource.fetchTopPackages(page: 1, limit: _pageLimit);
+      final data = await _apiSource.fetchAllPackages(page: 1, limit: _pageLimit);
       final tours = data['tours'] as List<TourModel>;
       final total = data['total'] as int;
 
@@ -55,7 +55,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
         _isLoading = false;
       });
       
-      logDebug('Loaded initial ${tours.length} top packages, total: $total');
+      logDebug('Loaded initial ${tours.length} packages, total: $total');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -78,7 +78,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
     logDebug('Loading page $nextPage');
 
     try {
-      final data = await _apiSource.fetchTopPackages(page: nextPage, limit: _pageLimit);
+      final data = await _apiSource.fetchAllPackages(page: nextPage, limit: _pageLimit);
       final newTours = data['tours'] as List<TourModel>;
       
       setState(() {
@@ -147,7 +147,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Top Packages'),
+        title: const Text('All Packages'),
       ),
       body: Column(
         children: [
@@ -156,7 +156,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
             child: SearchBarWidget(
               controller: _searchController,
               onChanged: _onSearchChanged,
-              hintText: 'Search top packages...',
+              hintText: 'Search packages...',
             ),
           ),
           Expanded(
@@ -167,30 +167,31 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
                     : CustomScrollView(
                         controller: _scrollController,
                         slivers: [
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final package = _filteredPackages[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 16,
-                                    right: 16,
-                                    bottom: 12,
-                                  ),
-                                  child: GestureDetector(
-                                    onTap: () => _navigateToDetail(package),
-                                    child: TopPackageCard(
-                                      image: package.image ?? '',
-                                      title: package.title,
-                                      location: package.destination ?? '',
-                                      price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
-                                      rating: package.rating ?? 0,
-                                      reviews: package.reviewCount?.toString() ?? '0',
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            sliver: SliverGrid(
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.75,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final pkg = _filteredPackages[index];
+                                  return GestureDetector(
+                                    onTap: () => _navigateToDetail(pkg),
+                                    child: PackageCard(
+                                      image: pkg.image ?? '',
+                                      title: pkg.title,
+                                      location: pkg.destination ?? '',
+                                      price: '${pkg.reviewCount?.toStringAsFixed(0) ?? '0'} Reviews',
+                                      rating: pkg.rating ?? 0,
                                     ),
-                                  ),
-                                );
-                              },
-                              childCount: _filteredPackages.length,
+                                  );
+                                },
+                                childCount: _filteredPackages.length,
+                              ),
                             ),
                           ),
                           // Loading indicator for load more
