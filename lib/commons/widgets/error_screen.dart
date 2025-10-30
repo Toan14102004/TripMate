@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 
 class TravelErrorScreen extends StatefulWidget {
   final String? errorMessage;
@@ -128,16 +129,16 @@ class _TravelErrorScreenState extends State<TravelErrorScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFE74C3C), // Red
-              Color(0xFFC0392B), // Darker red
-              Color(0xFF8B0000), // Dark red
+              AppColors.error,
+              AppColors.error.withOpacity(0.8),
+              AppColors.error.withOpacity(0.6),
             ],
-            stops: [0.0, 0.5, 1.0],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: Stack(
@@ -187,7 +188,7 @@ class _TravelErrorScreenState extends State<TravelErrorScreen>
                                           offset: const Offset(0, 10),
                                         ),
                                         BoxShadow(
-                                          color: Colors.red.withOpacity(0.2),
+                                          color: AppColors.error.withOpacity(0.2),
                                           blurRadius: 30,
                                           offset: const Offset(0, 0),
                                         ),

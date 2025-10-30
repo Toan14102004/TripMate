@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 
 class TravelLoadingScreen extends StatefulWidget {
   const TravelLoadingScreen({super.key});
@@ -82,16 +83,16 @@ class _TravelLoadingScreenState extends State<TravelLoadingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF4A90E2),
-              Color(0xFF357ABD),
-              Color(0xFF1E3A8A),
+              AppColors.primary,
+              AppColors.primaryDark,
+              AppColors.primary.withOpacity(0.8),
             ],
-            stops: [0.0, 0.5, 1.0],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: Stack(

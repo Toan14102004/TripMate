@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 
 class BasicAppbar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? title;
@@ -26,6 +27,5 @@ class BasicAppbar extends StatelessWidget implements PreferredSizeWidget {
   }
   
   @override
-  // TODO: implement preferredSize
-  Size get preferredSize => throw UnimplementedError();
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

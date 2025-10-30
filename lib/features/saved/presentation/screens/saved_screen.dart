@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/commons/widgets/error_screen.dart';
 import 'package:trip_mate/commons/widgets/loading_screen.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
@@ -32,7 +33,7 @@ class _SavedScreenState extends State<SavedScreen> {
 
           if (state is SavedToursData) {
             return Scaffold(
-              backgroundColor: AppColors.lightBackground,
+              backgroundColor:context.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
               body: SafeArea(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),

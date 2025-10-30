@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 
 class FloatingMenuItem extends StatefulWidget {
   final String title;
@@ -52,13 +53,15 @@ class _FloatingMenuItemState extends State<FloatingMenuItem>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           onTap: widget.onTap,
           onHover: (hovering) {
             setState(() {
@@ -74,86 +77,69 @@ class _FloatingMenuItemState extends State<FloatingMenuItem>
             animation: _hoverAnimation,
             builder: (context, child) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.white.withOpacity((0.05 + (_hoverAnimation.value * 0.1)).clamp(0.0, 1.0)),
-                      Colors.white.withOpacity((0.02 + (_hoverAnimation.value * 0.08)).clamp(0.0, 1.0)),
-                    ],
-                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  color: _isHovered 
+                      ? widget.color.withOpacity(0.1)
+                      : Colors.transparent,
                   border: Border.all(
                     color: _isHovered 
-                        ? widget.color.withOpacity(0.5)
-                        : Colors.white.withOpacity(0.1),
-                    width: _isHovered ? 2 : 1,
+                        ? widget.color.withOpacity(0.3)
+                        : Colors.transparent,
+                    width: 1.5,
                   ),
                   boxShadow: _isHovered
                       ? [
                           BoxShadow(
-                            color: widget.color.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 2,
+                            color: widget.color.withOpacity(0.15),
+                            blurRadius: 12,
+                            spreadRadius: 1,
                           ),
                         ]
                       : null,
                 ),
                 child: Row(
                   children: [
-                    // Animated icon container
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: _isHovered 
-                            ? widget.color.withOpacity(0.8)
-                            : widget.color.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: _isHovered
-                            ? [
-                                BoxShadow(
-                                  color: widget.color.withOpacity(0.4),
-                                  blurRadius: 15,
-                                  spreadRadius: 2,
-                                ),
-                              ]
-                            : null,
+                        color: widget.color.withOpacity(
+                          _isHovered ? 0.2 : 0.1,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
                         widget.icon,
-                        color: Colors.white,
-                        size: 24,
+                        color: widget.color,
+                        size: 22,
                       ),
                     ),
                     
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 16),
                     
-                    // Animated text
                     Expanded(
                       child: AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 300),
                         style: TextStyle(
-                          color: _isHovered ? widget.color.withOpacity(0.9) : Colors.white,
-                          fontSize: _isHovered ? 17 : 16,
-                          fontWeight: _isHovered ? FontWeight.w600 : FontWeight.w400,
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontSize: _isHovered ? 16 : 15,
+                          fontWeight: _isHovered ? FontWeight.w600 : FontWeight.w500,
                         ),
                         child: Text(widget.title),
                       ),
                     ),
                     
-                    // Animated arrow
                     AnimatedRotation(
                       turns: _hoverAnimation.value * 0.25,
                       duration: const Duration(milliseconds: 300),
-                      child: AnimatedScale(
-                        scale: 1 + (_hoverAnimation.value * 0.3),
-                        duration: const Duration(milliseconds: 300),
-                        child: Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: _isHovered ? widget.color : Colors.white.withOpacity(0.5),
-                          size: 18,
-                        ),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: _isHovered 
+                            ? widget.color 
+                            : (isDark ? Colors.white54 : Colors.grey),
+                        size: 16,
                       ),
                     ),
                   ],

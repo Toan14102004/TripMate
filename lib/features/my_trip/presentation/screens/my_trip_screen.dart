@@ -6,6 +6,7 @@ import 'package:trip_mate/commons/widgets/loading_screen.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/widgets/home_appbar.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_provider.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
 import 'package:trip_mate/routes/app_route.dart';
@@ -20,82 +21,37 @@ class MyTripScreen extends StatelessWidget {
       create: (context) => MyTripCubit()..initialize(),
       child: BlocBuilder<MyTripCubit, MyTripState>(
         builder: (context, state) {
-          if (state is MyTripLoading)
-            return const TravelLoadingScreen();
+          if (state is MyTripLoading) return const TravelLoadingScreen();
           else if (state is MyTripToursData) {
             return Scaffold(
-              backgroundColor:
-                  context.isDarkMode
-                      ? AppColors.black
-                      : AppColors.lightBackground,
-              appBar: AppBar(
-                elevation: 0,
-                backgroundColor:
-                    context.isDarkMode
-                        ? AppColors.black
-                        : AppColors.lightBackground,
-                centerTitle: true,
-                title: Text(
-                  "MyTrip",
-                  style: TextStyle(
-                    color:
-                        !context.isDarkMode
-                            ? AppColors.black
-                            : AppColors.lightBackground,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                leading: const Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=3',
-                    ),
-                  ),
-                ),
-                actions: [
-                  Padding(
-                    padding: EdgeInsets.only(right: 16),
-                    child: Icon(
-                      Icons.more_horiz,
-                      color:
-                          !context.isDarkMode
-                              ? AppColors.black
-                              : AppColors.lightBackground,
-                    ),
-                  ),
-                ],
-              ),
-
-              body: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              backgroundColor:context.isDarkMode
+                      ?  AppColors.darkBackground : AppColors.lightBackground,
+              body: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Danh mục tab: Packages, Flight, Hotel
+                    const Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: const HomeAppBar(title: "My Trips"),
+                    ),
+                    const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildCategoryTab(
-                          Icons.card_giftcard,
-                          "Packages",
-                          true,
-                        ),
-                        _buildCategoryTab(Icons.flight, "Flight", false),
-                        _buildCategoryTab(Icons.hotel, "Hotel", false),
+                        _buildCategoryTab(Icons.card_giftcard, "Packages", true, context),
+                        _buildCategoryTab(Icons.flight, "Flight", false, context),
+                        _buildCategoryTab(Icons.hotel, "Hotel", false, context),
                       ],
                     ),
                     const SizedBox(height: 20),
-
                     Text(
                       "Result found (${state.tours.length})",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.grey600,
                       ),
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 12),
                     Expanded(
                       child: ListView.builder(
                         itemCount: state.tours.length,
@@ -106,63 +62,73 @@ class MyTripScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          PackageDetailScreen(tour: TourModel(tourId: int.tryParse(trip.id) ?? 0, title: trip.title)),
+                                  builder: (context) => PackageDetailScreen(
+                                    tour: TourModel(
+                                      tourId: int.tryParse(trip.id) ?? 0,
+                                      title: trip.title,
+                                    ),
+                                  ),
                                 ),
                               );
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(16),
                                 image: DecorationImage(
                                   image: NetworkImage(trip.imageUrl),
                                   fit: BoxFit.cover,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.shadow,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               height: 180,
                               child: Stack(
                                 children: [
-                                  // Lớp mờ
                                   Container(
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
+                                      borderRadius: BorderRadius.circular(16),
                                       gradient: LinearGradient(
                                         begin: Alignment.topCenter,
                                         end: Alignment.bottomCenter,
                                         colors: [
                                           Colors.transparent,
-                                          Colors.black.withOpacity(0.4),
+                                          Colors.black.withOpacity(0.6),
                                         ],
                                       ),
                                     ),
                                   ),
-                                  // Nội dung
                                   Positioned(
                                     top: 12,
                                     left: 12,
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.8),
+                                        color: AppColors.white.withOpacity(0.95),
                                         borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.shadowLight,
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
                                       ),
                                       child: Row(
                                         children: [
-                                          const Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                            size: 16,
-                                          ),
+                                          const Icon(Icons.star, color: Colors.amber, size: 16),
                                           const SizedBox(width: 4),
                                           Text(
                                             trip.rating.toString(),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.black,
+                                              fontSize: 12,
                                             ),
                                           ),
                                         ],
@@ -174,14 +140,13 @@ class MyTripScreen extends StatelessWidget {
                                     left: 16,
                                     right: 16,
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           trip.title,
                                           style: const TextStyle(
                                             color: Colors.white,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w700,
                                             fontSize: 18,
                                           ),
                                         ),
@@ -196,15 +161,25 @@ class MyTripScreen extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  const Positioned(
+                                  Positioned(
                                     bottom: 16,
                                     right: 16,
-                                    child: CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.white,
-                                      child: Icon(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.shadow,
+                                            blurRadius: 8,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
                                         Icons.bookmark_outline,
-                                        color: Colors.blue,
+                                        color: AppColors.primary,
+                                        size: 20,
                                       ),
                                     ),
                                   ),
@@ -228,31 +203,31 @@ class MyTripScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryTab(IconData icon, String title, bool selected) {
+  Widget _buildCategoryTab(IconData icon, String title, bool selected, BuildContext context) {
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: selected ? Colors.blue.withOpacity(0.1) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            color: selected ? AppColors.primaryLight : AppColors.grey50,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: selected ? Colors.blue : Colors.grey.shade300,
+              color: selected ? AppColors.primary : AppColors.grey200,
               width: 1.5,
             ),
           ),
           child: Icon(
             icon,
-            color: selected ? Colors.blue : Colors.grey,
+            color: selected ? AppColors.primary : AppColors.grey400,
             size: 28,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           title,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: selected ? Colors.blue : Colors.grey,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? AppColors.primary : AppColors.grey500,
           ),
         ),
       ],

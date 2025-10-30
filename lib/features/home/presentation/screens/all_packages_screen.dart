@@ -147,6 +147,7 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text('All Packages'),
       ),
       body: Column(

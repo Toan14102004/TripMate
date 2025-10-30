@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import '../../../../routes/app_route.dart';
 import '../../../../core/configs/theme/app_colors.dart';
 import '../widgets/home_appbar.dart';
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -48,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 "Explore The\nBeautiful World!",
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  color: AppColors.black,
+                  color: context.isDarkMode ? AppColors.white : AppColors.black,
                   fontWeight: FontWeight.w700,
                   height: 1.2,
                 ) ?? const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
