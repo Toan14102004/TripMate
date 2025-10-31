@@ -66,8 +66,8 @@ class _PackageSectionState extends State<PackageSection> {
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 210,
+        AspectRatio(
+          aspectRatio: 18 / 9,
           child: FutureBuilder<List<TourModel>>(
             future: _futurePackages,
             builder: (context, snapshot) {

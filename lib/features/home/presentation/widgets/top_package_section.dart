@@ -75,15 +75,18 @@ class _TopPackageSectionState extends State<TopPackageSection> {
               itemCount: packages.length > 2 ? 2 : packages.length,
               itemBuilder: (context, index) {
                 final package = packages[index];
-                return GestureDetector(
-                  onTap: () => _navigateToDetail(package),
-                  child: TopPackageCard(
-                    image: package.image ?? '',
-                    title: package.title,
-                    location: package.destination ?? '',
-                    price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
-                    rating: package.rating ?? 0,
-                    reviews: package.reviewCount?.toString() ?? '0',
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GestureDetector(
+                    onTap: () => _navigateToDetail(package),
+                    child: TopPackageCard(
+                      image: package.image ?? '',
+                      title: package.title,
+                      location: package.destination ?? '',
+                      price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
+                      rating: package.rating ?? 0,
+                      reviews: package.reviewCount?.toString() ?? '0',
+                    ),
                   ),
                 );
               },

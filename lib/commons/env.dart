@@ -1,3 +1,3 @@
 class Environment {
-  static const String kDomain = 'http://192.85.4.249:3000/';
+  static const String kDomain = 'http://192.168.1.7:3000/';
 }

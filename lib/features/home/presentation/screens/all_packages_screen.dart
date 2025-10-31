@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
 import 'package:trip_mate/features/home/presentation/widgets/package_card.dart';
+import 'package:trip_mate/features/home/presentation/widgets/popular_package_card.dart';
 import 'package:trip_mate/features/home/presentation/widgets/search_bar.dart';
 
 class AllPackagesScreen extends StatefulWidget {
@@ -65,7 +68,6 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
   }
 
   Future<void> _loadMore() async {
-    // Prevent multiple simultaneous load more requests
     if (_isLoadingMore || !_hasMore || _searchController.text.isNotEmpty) {
       return;
     }
@@ -108,7 +110,6 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
     if (!_scrollController.hasClients) return false;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
-    // Trigger load more when 200px from bottom
     return currentScroll >= (maxScroll - 200);
   }
 
@@ -145,11 +146,15 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('All Packages'),
+        centerTitle: true,
       ),
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: Column(
         children: [
           Padding(
@@ -162,32 +167,58 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    ),
+                  )
                 : _filteredPackages.isEmpty
-                    ? const Center(child: Text('No packages found'))
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 64,
+                              color: isDark ? AppColors.grey500 : AppColors.grey400,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No packages found',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: isDark ? AppColors.grey300 : AppColors.grey600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     : CustomScrollView(
                         controller: _scrollController,
                         slivers: [
                           SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             sliver: SliverGrid(
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.75,
+                                childAspectRatio: 0.8,
                                 crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
+                                mainAxisSpacing: 16,
                               ),
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
                                   final pkg = _filteredPackages[index];
                                   return GestureDetector(
                                     onTap: () => _navigateToDetail(pkg),
-                                    child: PackageCard(
-                                      image: pkg.image ?? '',
-                                      title: pkg.title,
-                                      location: pkg.destination ?? '',
-                                      price: '${pkg.reviewCount?.toStringAsFixed(0) ?? '0'} Reviews',
-                                      rating: pkg.rating ?? 0,
+                                    child: Transform.scale(
+                                      scale: 1.0,
+                                      child: PopularPackageCard(
+                                        image: pkg.image ?? '',
+                                        title: pkg.title,
+                                        subtitle: pkg.destination ?? 'N/A',
+                                        rating: pkg.rating ?? 0.0,
+                                        isBookmarked: pkg.isBookmarked ?? false,
+                                      ),
                                     ),
                                   );
                                 },
@@ -195,16 +226,21 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
                               ),
                             ),
                           ),
-                          // Loading indicator for load more
                           if (_isLoadingMore)
                             const SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
+                                padding: EdgeInsets.symmetric(vertical: 24),
                                 child: Center(
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                  ),
                                 ),
                               ),
                             ),
+                          SliverToBoxAdapter(
+                            child: SizedBox(height: _isLoadingMore ? 0 : 24),
+                          ),
                         ],
                       ),
           ),

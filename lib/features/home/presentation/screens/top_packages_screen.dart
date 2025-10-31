@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/widgets/popular_package_card.dart';
 import 'package:trip_mate/features/home/presentation/widgets/search_bar.dart';
 import 'package:trip_mate/features/home/presentation/widgets/top_package_card.dart';
 
@@ -65,7 +68,6 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
   }
 
   Future<void> _loadMore() async {
-    // Prevent multiple simultaneous load more requests
     if (_isLoadingMore || !_hasMore || _searchController.text.isNotEmpty) {
       return;
     }
@@ -108,7 +110,6 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
     if (!_scrollController.hasClients) return false;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
-    // Trigger load more when 200px from bottom
     return currentScroll >= (maxScroll - 200);
   }
 
@@ -145,10 +146,15 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Top Packages'),
+        elevation: 0,
+        title: const Text('Popular Packages'),
+        centerTitle: true,
       ),
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: Column(
         children: [
           Padding(
@@ -156,53 +162,82 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
             child: SearchBarWidget(
               controller: _searchController,
               onChanged: _onSearchChanged,
-              hintText: 'Search top packages...',
+              hintText: 'Search popular packages...',
             ),
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    ),
+                  )
                 : _filteredPackages.isEmpty
-                    ? const Center(child: Text('No packages found'))
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 64,
+                              color: isDark ? AppColors.grey500 : AppColors.grey400,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No popular packages found',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: isDark ? AppColors.grey300 : AppColors.grey600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     : CustomScrollView(
                         controller: _scrollController,
                         slivers: [
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final package = _filteredPackages[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 16,
-                                    right: 16,
-                                    bottom: 12,
-                                  ),
-                                  child: GestureDetector(
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            sliver: SliverGrid(
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.85,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 16,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final package = _filteredPackages[index];
+                                  return GestureDetector(
                                     onTap: () => _navigateToDetail(package),
-                                    child: TopPackageCard(
+                                    child: PopularPackageCard(
                                       image: package.image ?? '',
                                       title: package.title,
-                                      location: package.destination ?? '',
-                                      price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
-                                      rating: package.rating ?? 0,
-                                      reviews: package.reviewCount?.toString() ?? '0',
+                                      subtitle: package.destination ?? 'N/A',
+                                      rating: package.rating ?? 0.0,
+                                      isBookmarked: package.isBookmarked ?? false,
                                     ),
-                                  ),
-                                );
-                              },
-                              childCount: _filteredPackages.length,
+                                  );
+                                },
+                                childCount: _filteredPackages.length,
+                              ),
                             ),
                           ),
-                          // Loading indicator for load more
                           if (_isLoadingMore)
                             const SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
+                                padding: EdgeInsets.symmetric(vertical: 24),
                                 child: Center(
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                  ),
                                 ),
                               ),
                             ),
+                          SliverToBoxAdapter(
+                            child: SizedBox(height: _isLoadingMore ? 0 : 24),
+                          ),
                         ],
                       ),
           ),
