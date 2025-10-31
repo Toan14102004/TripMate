@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 
 class Logo extends StatefulWidget {
   const Logo({super.key});
@@ -60,13 +61,13 @@ class _LogoState extends State<Logo> with TickerProviderStateMixin {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: AppColors.shadow,
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),

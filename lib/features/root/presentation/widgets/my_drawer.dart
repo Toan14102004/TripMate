@@ -27,13 +27,10 @@ class MyDrawer extends StatefulWidget {
 
 class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   late AnimationController _mainController;
-  late AnimationController _floatingController;
-  late AnimationController _particleController;
-  late AnimationController _waveController;
+  late AnimationController _headerController;
 
   late Animation<double> _headerAnimation;
   late Animation<double> _avatarScaleAnimation;
-  late Animation<double> _waveAnimation;
 
   String _currentCity = "Đang tải...";
   final LocationService _locationService = LocationService();
@@ -43,45 +40,31 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     super.initState();
 
     _mainController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    _floatingController = AnimationController(
-      duration: const Duration(seconds: 3),
+    _headerController = AnimationController(
+      duration: const Duration(milliseconds: 600),
       vsync: this,
-    )..repeat(reverse: true);
-
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 8),
-      vsync: this,
-    )..repeat();
-
-    _waveController = AnimationController(
-      duration: const Duration(seconds: 4),
-      vsync: this,
-    )..repeat();
+    );
 
     _headerAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
-        parent: _mainController,
-        curve: const Interval(0.3, 1.0, curve: Curves.bounceOut),
+        parent: _headerController,
+        curve: Curves.easeOut,
       ),
     );
 
     _avatarScaleAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _mainController,
-        curve: const Interval(0.5, 1.0, curve: Curves.elasticOut),
+        curve: Curves.elasticOut,
       ),
     );
 
-    _waveAnimation = Tween<double>(
-      begin: 0,
-      end: 2 * math.pi,
-    ).animate(_waveController);
-
     _mainController.forward();
+    _headerController.forward();
     _fetchCity();
   }
 
@@ -95,445 +78,227 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   @override
   void dispose() {
     _mainController.dispose();
-    _floatingController.dispose();
-    _particleController.dispose();
-    _waveController.dispose();
+    _headerController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double customDrawerWidth = screenWidth * 0.9;
+    final double customDrawerWidth = screenWidth * 0.85;
     final isDark = context.isDarkMode;
+    
     return Drawer(
       width: customDrawerWidth,
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors:
-                isDark
-                    ? [
-                      const Color(0xFF1E3C72),
-                      const Color(0xFF2A5298),
-                      const Color(0xFF3498DB),
-                      const Color(0xFF74B9FF),
-                    ]
-                    : [
-                      const Color(0xFF3498DB),
-                      const Color(0xFF74B9FF),
-                      const Color.fromARGB(255, 151, 189, 255),
-                      const Color.fromARGB(255, 166, 196, 252),
-                    ],
-          ),
+          color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
         ),
-        child: Stack(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            // Animated background particles
-            AnimatedBuilder(
-              animation: _particleController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: ParticlePainter(_particleController.value),
-                  size: Size.infinite,
-                );
-              },
-            ),
+            _buildSimplifiedHeader(),
 
-            // Animated wave background
-            AnimatedBuilder(
-              animation: _waveController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: WavePainter(_waveAnimation.value),
-                  size: Size.infinite,
-                );
-              },
-            ),
+            const SizedBox(height: 20),
 
-            // Main content
-            ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                // Dynamic animated header
-                _buildDynamicHeader(),
-
-                const SizedBox(height: 30),
-
-                // Floating menu items with various effects
-                ...List.generate(_menuItems.length, (index) {
-                  return TweenAnimationBuilder<double>(
-                    duration: Duration(milliseconds: 800 + (index * 100)),
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    curve: Curves.elasticOut,
-                    builder: (context, value, child) {
-                      return Transform.translate(
-                        offset: Offset((1 - value) * 200, 0),
-                        child: Transform.scale(
-                          scale: value,
-                          child: Opacity(
-                            opacity: value.clamp(0.0, 1.0),
-                            child: FloatingMenuItem(
-                              title: _menuItems[index]['title']!,
-                              icon: _menuItems[index]['icon']! as IconData,
-                              color: _menuItems[index]['color']! as Color,
-                              onTap: _menuItems[index]['action']!,
-                              delay: Duration(milliseconds: index * 50),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }),
-
-                const SizedBox(height: 40),
-
-                // Animated divider with sparkle effect
-                Center(
-                  child: AnimatedBuilder(
-                    animation: _floatingController,
-                    builder: (context, child) {
-                      return Container(
-                        width: 150,
-                        height: 2,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              Colors.white.withOpacity(0.8),
-                              Colors.yellow.withOpacity(0.6),
-                              Colors.white.withOpacity(0.8),
-                              Colors.transparent,
-                            ],
-                            stops: [
-                              0.0,
-                              0.4 + (_floatingController.value * 0.2),
-                              0.5,
-                              0.6 + (_floatingController.value * 0.2),
-                              1.0,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.5),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Animated logout button
-                TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 1000),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  curve: Curves.bounceOut,
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: value,
-                      child: SpecialMenuItem(
-                        title: 'Sign Out',
-                        icon: Icons.logout_rounded,
-                        onTap: () => context.read<ProfileCubit>().logout(),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 50),
-              ],
-            ),
-
-            // Floating travel icons
-            ...List.generate(5, (index) {
-              return AnimatedBuilder(
-                animation: _floatingController,
-                builder: (context, child) {
-                  final icons = [
-                    Icons.flight,
-                    Icons.hotel,
-                    Icons.restaurant,
-                    Icons.camera_alt,
-                    Icons.map,
-                  ];
-                  final positions = [
-                    const Offset(50, 300),
-                    const Offset(300, 250),
-                    const Offset(80, 450),
-                    const Offset(250, 400),
-                    const Offset(150, 350),
-                  ];
-
-                  return Positioned(
-                    left:
-                        positions[index].dx +
-                        (math.sin(
-                              _floatingController.value * 2 * math.pi + index,
-                            ) *
-                            10),
-                    top:
-                        positions[index].dy +
-                        (math.cos(
-                              _floatingController.value * 2 * math.pi + index,
-                            ) *
-                            15),
+            ...List.generate(_menuItems.length, (index) {
+              return TweenAnimationBuilder<double>(
+                duration: Duration(milliseconds: 600 + (index * 50)),
+                tween: Tween(begin: 0.0, end: 1.0),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset((1 - value) * 100, 0),
                     child: Opacity(
-                      opacity: 0.1,
-                      child: Icon(icons[index], size: 40, color: Colors.white),
+                      opacity: value,
+                      child: FloatingMenuItem(
+                        title: _menuItems[index]['title']!,
+                        icon: _menuItems[index]['icon']! as IconData,
+                        color: _menuItems[index]['color']! as Color,
+                        onTap: _menuItems[index]['action']!,
+                        delay: Duration(milliseconds: index * 30),
+                      ),
                     ),
                   );
                 },
               );
             }),
+
+            const SizedBox(height: 20),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Divider(
+                color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
+                thickness: 1,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 800),
+              tween: Tween(begin: 0.0, end: 1.0),
+              curve: Curves.easeOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: SpecialMenuItem(
+                    title: 'Sign Out',
+                    icon: Icons.logout_rounded,
+                    onTap: () => context.read<ProfileCubit>().logout(),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDynamicHeader() {
+  Widget _buildSimplifiedHeader() {
     return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (context, state) {
         if (state is ProfileData) {
-          if(state.email.isEmpty && state.fullname.isEmpty){
+          if (state.email.isEmpty && state.fullname.isEmpty) {
             context.read<ProfileCubit>().initialize();
           }
           return AnimatedBuilder(
             animation: _headerAnimation,
             builder: (context, child) {
-              return Transform.scale(
-                scale: _headerAnimation.value,
-                child: Stack(
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primary.withOpacity(0.8),
+                    ],
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Gradient overlay
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.3),
-                            Colors.transparent,
-                          ],
+                    const SizedBox(height: 20),
+                    
+                    Center(
+                      child: ScaleTransition(
+                        scale: _avatarScaleAnimation,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.white,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: AppColors.primary,
+                                size: 35,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
 
-                    // Animated geometric shapes
-                    ...List.generate(3, (index) {
-                      return AnimatedBuilder(
-                        animation: _floatingController,
-                        builder: (context, child) {
-                          return Positioned(
-                            right: 20 + (index * 30),
-                            top:
-                                40 +
-                                (index * 20) +
-                                (math.sin(
-                                      _floatingController.value * 2 * math.pi +
-                                          index,
-                                    ) *
-                                    10),
-                            child: Transform.rotate(
-                              angle: _floatingController.value * 2 * math.pi,
-                              child: Container(
-                                width: 20 + (index * 5),
-                                height: 20 + (index * 5),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(
-                                      (0.3 - (index * 0.1)).clamp(0.0, 1.0),
-                                    ),
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }),
+                    const SizedBox(height: 20),
 
-                    // User content
-                    Padding(
-                      padding: const EdgeInsets.all(25),
+                    Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 60),
-
-                          // Animated avatar with pulse effect
-                          Center(
-                            child: ScaleTransition(
-                              scale: _avatarScaleAnimation,
-                              child: AnimatedBuilder(
-                                animation: _floatingController,
-                                builder: (context, child) {
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.white.withOpacity(0.4),
-                                          blurRadius:
-                                              20 +
-                                              (_floatingController.value * 10),
-                                          spreadRadius:
-                                              5 +
-                                              (_floatingController.value * 3),
-                                        ),
-                                        BoxShadow(
-                                          color: AppColors.blue.withOpacity(
-                                            0.3,
-                                          ),
-                                          blurRadius: 30,
-                                          spreadRadius: 10,
-                                        ),
-                                      ],
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 45,
-                                      backgroundColor: Colors.white,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(
-                                              0.5,
-                                            ),
-                                            width: 3,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.person_rounded,
-                                          color: AppColors.blue,
-                                          size: 40,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                          Text(
+                            state.fullname,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Colors.white,
                             ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
 
-                          const SizedBox(height: 25),
+                          const SizedBox(height: 6),
 
-                          // Animated text with typewriter effect
-                          Center(
-                            child: SingleChildScrollView(
-                              physics: const NeverScrollableScrollPhysics(),
-                              child: Column(
-                                children: [
-                                  TweenAnimationBuilder<int>(
-                                    duration: const Duration(
-                                      milliseconds: 1500,
-                                    ),
-                                    tween: IntTween(
-                                      begin: 0,
-                                      end: state.fullname.length,
-                                    ),
-                                    builder: (context, value, child) {
-                                      return Text(
-                                        state.fullname.substring(0, value),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 24,
-                                          color: Colors.white,
-                                          letterSpacing: 1.2,
-                                        ),
-                                      );
-                                    },
-                                  ),
+                          Text(
+                            state.email,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.85),
+                              fontWeight: FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
 
-                                  const SizedBox(height: 8),
+                          const SizedBox(height: 12),
 
-                                  AnimatedBuilder(
-                                    animation: _floatingController,
-                                    builder: (context, child) {
-                                      return Text(
-                                        state.email,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white.withOpacity(
-                                            (0.8 +
-                                                    (_floatingController.value *
-                                                        0.2))
-                                                .clamp(0.0, 1.0),
-                                          ),
-                                          fontWeight: FontWeight.w300,
-                                        ),
-                                      );
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 15),
-
-                                  // Travel status badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 15,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.orange.withOpacity(0.8),
-                                          Colors.pink.withOpacity(0.8),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.orange.withOpacity(0.3),
-                                          blurRadius: 10,
-                                          spreadRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.location_on,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          "$_currentCity Explorer",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1,
                               ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.location_on_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _currentCity,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 20),
                   ],
                 ),
               );
             },
           );
-        } else if(state is ProfileError){
+        } else if (state is ProfileError) {
           return TravelErrorScreen(
             errorMessage: state.message,
             onRetry: () => context.read<ProfileCubit>().initialize(),
@@ -549,7 +314,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     {
       'title': 'My Profile',
       'icon': Icons.person_outline_rounded,
-      'color': Colors.purple,
+      'color': AppColors.primary,
       'action':
           () => Navigator.of(
             context,
@@ -559,13 +324,13 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     {
       'title': 'Notifications',
       'icon': Icons.notifications_none_rounded,
-      'color': Colors.orange,
+      'color': const Color(0xFFFF9800),
       'action': () {},
     },
     {
       'title': 'My Trips',
       'icon': Icons.map_rounded,
-      'color': Colors.green,
+      'color': const Color(0xFF4CAF50),
       'action':
           () => context.read<PageCubit>().changePage(
             index: PageEnum.myTrip.index,
@@ -574,7 +339,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     {
       'title': 'Saved Places',
       'icon': Icons.location_on_outlined,
-      'color': Colors.red,
+      'color': const Color(0xFFE53935),
       'action':
           () =>
               context.read<PageCubit>().changePage(index: PageEnum.saved.index),
@@ -582,19 +347,19 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     {
       'title': 'My Wallet',
       'icon': Icons.account_balance_wallet_outlined,
-      'color': Colors.blue,
+      'color': AppColors.primary,
       'action': () {},
     },
     {
       'title': 'Invite Friends',
       'icon': Icons.group_outlined,
-      'color': Colors.pink,
+      'color': const Color(0xFFE91E63),
       'action': () {},
     },
     {
       'title': 'Help & Support',
       'icon': Icons.help_outline_rounded,
-      'color': Colors.teal,
+      'color': const Color(0xFF009688),
       'action': () {},
     },
   ];

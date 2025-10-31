@@ -18,20 +18,20 @@ Widget buildAnimatedTextField({
       Text(
         label,
         style: const TextStyle(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF2D3748),
+          color: AppColors.grey700,
         ),
       ),
       const SizedBox(height: 8),
       Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: AppColors.shadowLight,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -40,29 +40,33 @@ Widget buildAnimatedTextField({
           onChanged: onChanged,
           keyboardType: keyboardType,
           obscureText: obscureText,
-          style: const TextStyle(color: AppColors.black),
+          style: const TextStyle(color: AppColors.black, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400),
-            prefixIcon: Icon(icon, color: const Color(0xFF667eea)),
+            hintStyle: const TextStyle(color: AppColors.grey400, fontSize: 14),
+            prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
             suffixIcon: suffixIcon,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.grey200),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error),
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: AppColors.white,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              horizontal: 14,
+              vertical: 14,
             ),
           ),
           validator: validator,
@@ -87,48 +91,48 @@ Widget buildAnimatedDatePicker({
       Text(
         label,
         style: const TextStyle(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF2D3748),
+          color: AppColors.grey700,
         ),
       ),
       const SizedBox(height: 8),
       Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: AppColors.shadowLight,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: TextFormField(
           controller: controller,
-          readOnly: true, // Không cho phép nhập bằng bàn phím
-          style: const TextStyle(color: Colors.black),
+          readOnly: true,
+          style: const TextStyle(color: AppColors.black, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400),
-            prefixIcon: Icon(icon, color: const Color(0xFF667eea)),
+            hintStyle: const TextStyle(color: AppColors.grey400, fontSize: 14),
+            prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.grey200),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: AppColors.white,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              horizontal: 14,
+              vertical: 14,
             ),
           ),
           validator: validator,
@@ -142,10 +146,10 @@ Widget buildAnimatedDatePicker({
                 return Theme(
                   data: ThemeData.light().copyWith(
                     colorScheme: const ColorScheme.light(
-                      primary: Color(0xFF667eea), // Màu chủ đạo của DatePicker
-                      onPrimary: Colors.white,
-                      surface: Colors.white,
-                      onSurface: Colors.black,
+                      primary: AppColors.primary,
+                      onPrimary: AppColors.white,
+                      surface: AppColors.white,
+                      onSurface: AppColors.black,
                     ),
                   ),
                   child: child!,
@@ -174,41 +178,42 @@ Widget buildAnimatedButton({
 }) {
   return Container(
     width: double.infinity,
-    height: 56,
+    height: 52,
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(28),
-      gradient: const LinearGradient(colors: [AppColors.blue, AppColors.cyan]),
+      borderRadius: BorderRadius.circular(14),
       boxShadow: [
         BoxShadow(
-          color: const Color(0xFF667eea).withOpacity(0.3),
-          blurRadius: 20,
-          offset: const Offset(0, 10),
+          color: AppColors.primary.withOpacity(0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
         ),
       ],
     ),
     child: ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
         shadowColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       ),
       child:
           isLoading
               ? const SizedBox(
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: AppColors.white,
                   strokeWidth: 2.5,
                 ),
               )
               : Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: AppColors.white,
                 ),
               ),
     ),
