@@ -9,6 +9,7 @@ import 'package:trip_mate/features/choose_mode/presentation/bloc/theme_cubit.dar
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/root/presentation/screens/root_screen.dart';
+import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/services/location_service.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import '../../data/sources/home_api_source.dart';
@@ -187,7 +188,7 @@ class _HomeAppBarState extends State<HomeAppBar> with TickerProviderStateMixin {
         context.read<PageCubit>().changePage(index: PageEnum.saved.index);
         break;
       case 'My Wallet':
-        logDebug('Navigate to My Wallet');
+        Navigator.of(context).pushNamed(AppRoutes.wallet);
         break;
       case 'My Trips':
         context.read<PageCubit>().changePage(index: PageEnum.myTrip.index);

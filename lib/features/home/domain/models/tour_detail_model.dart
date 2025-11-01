@@ -1,7 +1,8 @@
-// Tour Detail Model
 import 'package:trip_mate/features/home/domain/models/image_model.dart';
 import 'package:trip_mate/features/home/domain/models/time_line_item.dart';
 import 'package:trip_mate/features/home/domain/models/user_model.dart';
+import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
+import 'package:trip_mate/features/home/domain/models/review_model.dart';
 
 class TourDetailModel {
   final int tourId;
@@ -23,6 +24,8 @@ class TourDetailModel {
   final UserModel user;
   final List<TimelineItem> timelines;
   final List<ImageModel> images;
+  final List<HashtagModel> hashtags;
+  final List<ReviewModel> reviewList;
 
   TourDetailModel({
     required this.tourId,
@@ -43,7 +46,9 @@ class TourDetailModel {
     required this.updateDate,
     required this.user,
     required this.timelines,
-    required this.images
+    required this.images,
+    this.hashtags = const [],
+    this.reviewList = const [],
   });
 
   factory TourDetailModel.fromTourJson(Map<String, dynamic> json) {
@@ -54,8 +59,6 @@ class TourDetailModel {
 
     return TourDetailModel(
       tourId: json['tourId'] as int? ?? 0,
-
-      // Áp dụng hàm _safeString cho tất cả các trường String
       title: _safeString(json['title']),
       slug: _safeString(json['slug']),
       description: _safeString(json['description']),
@@ -65,31 +68,26 @@ class TourDetailModel {
       time: _safeString(json['time']),
       reviews: _safeString(json['reviews']),
       domain: _safeString(json['domain']),
-
       quantity: json['quantity'] as int? ?? 0,
       countComplete: json['countComplete'] as int? ?? 0,
       address: _safeString(json['address']),
       status: _safeString(json['status']),
-
-      // Vẫn dùng cú pháp cũ cho DateTime vì nó đã an toàn
-      createDate:
-          DateTime.tryParse(json['createDate'] as String? ?? '') ??
-          DateTime.now(),
-      updateDate:
-          DateTime.tryParse(json['updateDate'] as String? ?? '') ??
-          DateTime.now(),
-
-      // Chắc chắn rằng 'user' là Map hoặc rỗng
+      createDate: DateTime.tryParse(json['createDate'] as String? ?? '') ?? DateTime.now(),
+      updateDate: DateTime.tryParse(json['updateDate'] as String? ?? '') ?? DateTime.now(),
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>? ?? {}),
       timelines: [],
-      images: []
+      images: [],
+      hashtags: [],
+      reviewList: [],
     );
   }
 
   TourDetailModel copyWith({
     List<TimelineItem>? timelines,
-    List<ImageModel>? images
-    }) {
+    List<ImageModel>? images,
+    List<HashtagModel>? hashtags,
+    List<ReviewModel>? reviewList,
+  }) {
     return TourDetailModel(
       tourId: tourId,
       title: title,
@@ -109,7 +107,9 @@ class TourDetailModel {
       updateDate: updateDate,
       user: user,
       timelines: timelines ?? this.timelines,
-      images: images ?? this.images
+      images: images ?? this.images,
+      hashtags: hashtags ?? this.hashtags,
+      reviewList: reviewList ?? this.reviewList,
     );
   }
 }
