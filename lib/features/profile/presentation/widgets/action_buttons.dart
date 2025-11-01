@@ -8,6 +8,7 @@ import 'package:trip_mate/features/choose_mode/presentation/bloc/theme_cubit.dar
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/root/presentation/screens/root_screen.dart';
+import 'package:trip_mate/routes/app_route.dart';
 
 final List<Map<String, dynamic>> _quickActions = [
   {'label': 'Settings', 'icon': Icons.settings_outlined, 'color': Colors.blue},
@@ -315,7 +316,7 @@ void _handleQuickAction(String action, BuildContext context) {
       context.read<PageCubit>().changePage(index: PageEnum.saved.index);
       break;
     case 'My Wallet':
-      logDebug('Navigate to My Wallet');
+      Navigator.of(context).pushNamed(AppRoutes.wallet);
       break;
     case 'My Trips':
       Navigator.of(context).pop();

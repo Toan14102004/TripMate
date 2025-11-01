@@ -14,4 +14,10 @@ class AppEndPoints {
   static const String kTourDetail = '/tours';
   static const String kTimelines = '/timelines/FilterPagination';
   static const String kImageFromTour = '/images/TourId';
+
+  static String kTourHashtags = '/tour-hashtags';
+
+  static String kReviews = '/reviews/FilterPagination';
+
+  static String kSubmitReviews = '/reviews';
 }
