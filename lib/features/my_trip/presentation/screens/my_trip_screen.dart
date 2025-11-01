@@ -21,8 +21,14 @@ class MyTripScreen extends StatelessWidget {
       create: (context) => MyTripCubit()..initialize(),
       child: BlocBuilder<MyTripCubit, MyTripState>(
         builder: (context, state) {
-          if (state is MyTripLoading) return const TravelLoadingScreen();
-          else if (state is MyTripToursData) {
+          if (state is MyTripLoading) {
+            return const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.blue,
+                  strokeWidth: 5,
+                ),
+              );
+          } else if (state is MyTripToursData) {
             return Scaffold(
               backgroundColor:context.isDarkMode
                       ?  AppColors.darkBackground : AppColors.lightBackground,

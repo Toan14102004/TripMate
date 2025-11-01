@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/screens/search_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/top_packages_screen.dart';
 import 'top_package_card.dart';
 
@@ -51,7 +52,7 @@ class _TopPackageSectionState extends State<TopPackageSection> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TopPackagesScreen(),
+                    builder: (context) => AllPackagesScreen(orderBy: 'rating'),
                   ),
                 );
               },

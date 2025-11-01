@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
+import 'package:http/http.dart' as http;
 import 'package:trip_mate/commons/endpoint.dart';
+import 'package:trip_mate/commons/env.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
@@ -304,9 +308,7 @@ class HomeApiSource {
       );
 
       // Giả sử API trả về một Map<String, dynamic> với key 'data' chứa List<ReviewModel>
-      final listData = responseData is Map && responseData.containsKey('data')
-          ? responseData['data']
-          : responseData;
+      final listData = responseData['data']['reviews'];
 
       if (listData is List) {
         return listData
@@ -361,5 +363,70 @@ class HomeApiSource {
       logError('Gửi đánh giá thất bại. Vui lòng thử lại.');
       throw Exception('Failed to submit review: $e');
     }
+  }
+
+    // Thêm method này vào class HomeApiSource
+
+  Future<Map<String, dynamic>> fetchFilteredPackages({
+    required int page,
+    required int limit,
+    String? orderBy,
+    String? domain,
+    String? time,
+    String? destination,
+    String? slug,
+    int? userId,
+    String? status = 'active',
+  }) async {
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      // Build query parameters
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+        'status': status,
+      };
+      
+      if (orderBy != null) queryParams['orderBy'] = orderBy;
+      if (domain != null) queryParams['domain'] = domain;
+      if (time != null) queryParams['time'] = time;
+      if (destination != null) queryParams['destination'] = destination;
+      if (slug != null) queryParams['slug'] = slug;
+      if (userId != null) queryParams['userId'] = userId;
+      
+      final responseData = await apiService.get(
+        AppEndPoints.kFilterPagination,
+        queryParameters: queryParams,
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        
+        if (statusCode == 200) {
+          final List<dynamic> rawTours = responseData['data']['tours'];
+          final total = responseData['data']['countTour'];
+
+          List<TourModel> tours =
+              rawTours.map((e) => TourModel.fromJson(e)).toList();
+
+          return Right({'tours': tours, 'total': total});
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return {'tours': <TourModel>[], 'total': 0};
+      },
+      (r) {
+        return r;
+      },
+    );
   }
 }

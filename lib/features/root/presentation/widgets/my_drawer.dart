@@ -348,14 +348,16 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
       'title': 'My Wallet',
       'icon': Icons.account_balance_wallet_outlined,
       'color': AppColors.primary,
-      'action': () {},
+      'action': () {
+        Navigator.of(context).pushNamed(AppRoutes.wallet);
+      },
     },
-    {
-      'title': 'Invite Friends',
-      'icon': Icons.group_outlined,
-      'color': const Color(0xFFE91E63),
-      'action': () {},
-    },
+    // {
+    //   'title': 'Invite Friends',
+    //   'icon': Icons.group_outlined,
+    //   'color': const Color(0xFFE91E63),
+    //   'action': () {},
+    // },
     {
       'title': 'Help & Support',
       'icon': Icons.help_outline_rounded,
