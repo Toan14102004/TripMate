@@ -27,7 +27,11 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
       MaterialPageRoute(
         builder: (context) => PackageDetailScreen(tour: package),
       ),
-    );
+    ).then((value){
+      setState(() {
+       _futurePopularPackages = HomeApiSource().fetchPopularPackages(limit: 4);
+      });
+    });
   }
 
   @override

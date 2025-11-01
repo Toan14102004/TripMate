@@ -86,17 +86,44 @@ class _PackageCardState extends State<PackageCard> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.star, color: AppColors.warning, size: 14),
-                          const SizedBox(width: 3),
-                          Text(
-                            widget.rating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.black,
-                            ),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: AppColors.warning, size: 14),
+                              const SizedBox(width: 3),
+                              Text(
+                                widget.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.black,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.95),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        // isBookmarked ? Icons.bookmark : 
+                        Icons.bookmark_border,
+                        color: AppColors.primary,
+                        size: 24,
                       ),
                     ),
                   ),

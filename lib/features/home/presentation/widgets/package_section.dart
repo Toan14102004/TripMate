@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/presentation/screens/all_packages_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
@@ -23,6 +24,14 @@ class _PackageSectionState extends State<PackageSection> {
     final futureData = HomeApiSource().fetchAllPackages(limit: 4);
     _futurePackages = futureData.then((data) => data['tours'] as List<TourModel>);
     _totalPackages = futureData.then((data) => data['total'] as int);
+  }
+
+  void reloadingData(){
+    setState(() {
+      final futureData = HomeApiSource().fetchAllPackages(limit: 4);
+      _futurePackages = futureData.then((data) => data['tours'] as List<TourModel>);
+      _totalPackages = futureData.then((data) => data['total'] as int);
+    });
   }
 
   @override
@@ -92,7 +101,9 @@ class _PackageSectionState extends State<PackageSection> {
                           builder:
                               (context) => PackageDetailScreen(tour: pkg),
                         ),
-                      );
+                      ).then((value){
+                        reloadingData();
+                      });
                     },
                     child: PackageCard(
                       image: pkg.image ?? '',

@@ -54,90 +54,117 @@ class _TopPackageCardState extends State<TopPackageCard> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Row(
+          child: Stack(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  widget.image,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: AppColors.grey100,
-                        borderRadius: BorderRadius.circular(12),
+              Positioned(
+                right: 8,
+                bottom: 15,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.95),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 8,
                       ),
-                      child: const Icon(Icons.broken_image, color: AppColors.grey400),
-                    );
-                  },
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    //isBookmarked ? Icons.bookmark :
+                    Icons.bookmark_border,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.grey50 : AppColors.black,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 14,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            widget.location,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark ? AppColors.grey400 : AppColors.grey500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      widget.image,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: AppColors.grey100,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ),
-                      ],
+                          child: const Icon(Icons.broken_image, color: AppColors.grey400),
+                        );
+                      },
                     ),
-                    const SizedBox(height: 6),
-                    Row(
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.star, color: AppColors.warning, size: 14),
-                        const SizedBox(width: 3),
                         Text(
-                          widget.rating.toStringAsFixed(1),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          widget.title,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: isDark ? AppColors.grey50 : AppColors.black,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '(${widget.reviews} Reviews)',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? AppColors.grey400 : AppColors.grey500,
-                            fontSize: 11,
-                          ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                widget.location,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: isDark ? AppColors.grey400 : AppColors.grey500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: AppColors.warning, size: 14),
+                            const SizedBox(width: 3),
+                            Text(
+                              widget.rating.toStringAsFixed(1),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? AppColors.grey50 : AppColors.black,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '(${widget.reviews} Reviews)',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDark ? AppColors.grey400 : AppColors.grey500,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),            ],
               ),
-              const SizedBox(width: 8),            ],
+            ],
           ),
         ),
       ),

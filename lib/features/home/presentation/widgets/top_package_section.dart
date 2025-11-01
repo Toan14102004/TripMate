@@ -27,7 +27,11 @@ class _TopPackageSectionState extends State<TopPackageSection> {
       MaterialPageRoute(
         builder: (context) => PackageDetailScreen(tour: package),
       ),
-    );
+    ).then((value){
+      setState(() {
+         _futureTopPackages = HomeApiSource().fetchTopPackages(limit: 4);
+      });
+    });
   }
 
   @override
