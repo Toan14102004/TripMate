@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
@@ -65,7 +67,6 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
   }
 
   Future<void> _loadMore() async {
-    // Prevent multiple simultaneous load more requests
     if (_isLoadingMore || !_hasMore || _searchController.text.isNotEmpty) {
       return;
     }
@@ -108,7 +109,6 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
     if (!_scrollController.hasClients) return false;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
-    // Trigger load more when 200px from bottom
     return currentScroll >= (maxScroll - 200);
   }
 
@@ -145,10 +145,15 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         title: const Text('Popular Packages'),
+        centerTitle: true,
       ),
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: Column(
         children: [
           Padding(
@@ -161,19 +166,42 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    ),
+                  )
                 : _filteredPackages.isEmpty
-                    ? const Center(child: Text('No packages found'))
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 64,
+                              color: isDark ? AppColors.grey500 : AppColors.grey400,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No popular packages found',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: isDark ? AppColors.grey300 : AppColors.grey600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     : CustomScrollView(
                         controller: _scrollController,
                         slivers: [
                           SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             sliver: SliverGrid(
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.7,
-                                crossAxisSpacing: 16,
+                                childAspectRatio: 0.85,
+                                crossAxisSpacing: 12,
                                 mainAxisSpacing: 16,
                               ),
                               delegate: SliverChildBuilderDelegate(
@@ -194,16 +222,21 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
                               ),
                             ),
                           ),
-                          // Loading indicator for load more
                           if (_isLoadingMore)
                             const SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
+                                padding: EdgeInsets.symmetric(vertical: 24),
                                 child: Center(
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                  ),
                                 ),
                               ),
                             ),
+                          SliverToBoxAdapter(
+                            child: SizedBox(height: _isLoadingMore ? 0 : 24),
+                          ),
                         ],
                       ),
           ),

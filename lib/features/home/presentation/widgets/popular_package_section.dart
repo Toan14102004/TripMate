@@ -3,6 +3,7 @@ import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/popular_packages_screen.dart';
+import 'package:trip_mate/features/home/presentation/screens/search_screen.dart';
 import 'popular_package_card.dart';
 
 class PopularPackageSection extends StatefulWidget {
@@ -27,7 +28,11 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
       MaterialPageRoute(
         builder: (context) => PackageDetailScreen(tour: package),
       ),
-    );
+    ).then((value){
+      setState(() {
+       _futurePopularPackages = HomeApiSource().fetchPopularPackages(limit: 4);
+      });
+    });
   }
 
   @override
@@ -47,7 +52,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PopularPackagesScreen(),
+                    builder: (context) => AllPackagesScreen(orderBy: 'booking'),
                   ),
                 );
               },

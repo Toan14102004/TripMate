@@ -43,4 +43,3 @@ final List<SavedTourModel> savedTours = [
     isBookmarked: true,
   ),
 ];
-

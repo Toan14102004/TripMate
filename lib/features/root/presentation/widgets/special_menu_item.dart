@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 
 class SpecialMenuItem extends StatefulWidget {
   final String title;
@@ -19,63 +21,68 @@ class SpecialMenuItem extends StatefulWidget {
 
 class _SpecialMenuItemState extends State<SpecialMenuItem>
     with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
+  late AnimationController _hoverController;
   bool _isHovered = false;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    _hoverController = AnimationController(
+      duration: const Duration(milliseconds: 300),
       vsync: this,
-    )..repeat(reverse: true);
+    );
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _hoverController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(12),
           onTap: widget.onTap,
           onHover: (hovering) {
             setState(() {
               _isHovered = hovering;
             });
+            if (hovering) {
+              _hoverController.forward();
+            } else {
+              _hoverController.reverse();
+            }
           },
           child: AnimatedBuilder(
-            animation: _pulseController,
+            animation: _hoverController,
             builder: (context, child) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(12),
                   gradient: LinearGradient(
                     colors: [
-                      Colors.red.withOpacity(0.7),
-                      Colors.orange.withOpacity(0.7),
+                      AppColors.error.withOpacity(_isHovered ? 1 : 0.85),
+                      AppColors.error.withOpacity(_isHovered ? 0.9 : 0.75),
                     ],
                   ),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withOpacity((0.3 + (_pulseController.value * 0.2)).clamp(0.0, 1.0)),
-                      blurRadius: 15 + (_pulseController.value * 10),
-                      spreadRadius: 2 + (_pulseController.value * 3),
-                    ),
-                  ],
+                  boxShadow: _isHovered
+                      ? [
+                          BoxShadow(
+                            color: AppColors.error.withOpacity(0.3),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -83,15 +90,15 @@ class _SpecialMenuItemState extends State<SpecialMenuItem>
                     Icon(
                       widget.icon,
                       color: Colors.white,
-                      size: 24,
+                      size: 20,
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Text(
                       widget.title,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

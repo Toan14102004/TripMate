@@ -29,6 +29,11 @@ import 'package:trip_mate/features/security/data/sources/security_api_source.dar
 import 'package:trip_mate/features/security/domain/repositories/security_repository.dart';
 import 'package:trip_mate/features/security/domain/usecases/New_password_usecase.dart';
 import 'package:trip_mate/features/security/domain/usecases/reset_password_usecase.dart';
+import 'package:trip_mate/features/wallet/data/repositories/wallet_repository_impl.dart';
+import 'package:trip_mate/features/wallet/data/sources/wallet_api_source.dart';
+import 'package:trip_mate/features/wallet/domain/repositories/wallet_repository.dart';
+import 'package:trip_mate/features/wallet/domain/usecases/deposit_money_usecase.dart';
+import 'package:trip_mate/features/wallet/domain/usecases/get_wallet_usecase.dart';
 import 'package:trip_mate/services/location_service.dart';
 
 GetIt sl = GetIt.instance;
@@ -42,6 +47,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<LocationService>(LocationService());
   sl.registerSingleton<MyTripApiService>(MyTripApiService());
   sl.registerSingleton<HomeApiSource>(HomeApiSource());
+  sl.registerSingleton<WalletApiSource>(WalletApiSource());
 
   // Repositories
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
@@ -50,6 +56,8 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<SavedRepository>(SavedRepositoryImpl());
   sl.registerSingleton<MyTripRepository>(MyTripRepositoryImpl());
   sl.registerSingleton<HomeRepository>(HomeRepositoryImpl());
+  sl.registerSingleton<WalletRepository>(WalletRepositoryImpl());
+  
   // Use Cases
   sl.registerSingleton<SignUpUseCase>(SignUpUseCase());
   sl.registerSingleton<SignInUseCase>(SignInUseCase());
@@ -63,5 +71,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<LogoutProfileUseCase>(LogoutProfileUseCase());
   sl.registerSingleton<GetSavedToursUseCase>(GetSavedToursUseCase());
   sl.registerSingleton<GetMyTripToursUseCase>(GetMyTripToursUseCase());
+  sl.registerSingleton<GetWalletUseCase>(GetWalletUseCase());
+  sl.registerSingleton<DepositMoneyUseCase>(DepositMoneyUseCase());
 
 }

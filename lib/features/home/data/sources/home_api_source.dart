@@ -1,57 +1,21 @@
-// // TODO: Home 기능의 API 소스를 구현하세요.
-// import 'package:dio/dio.dart';
-// import 'package:trip_mate/features/home/domain/models/tour_model.dart';
-
-// class HomeApiSource {
-//   final Dio _dio = Dio();
-
-//   // Lấy danh sách tất cả tour/packages
-//   Future<List<TourModel>> fetchAllPackages() async {
-//     final response = await _dio.get('https://api-url.com/api/tours');
-//     // Parse response về List<TourModel>
-//     // return List<TourModel>.from(response.data.map((e) => TourModel.fromJson(e)));
-//     // Nếu chưa có API thật, trả về mock data
-//     throw UnimplementedError();
-//   }
-
-//   // Lấy danh sách popular packages
-//   Future<List<TourModel>> fetchPopularPackages() async {
-//     final response = await _dio.get('https://api-url.com/api/tours/popular');
-//     throw UnimplementedError();
-//   }
-
-//   // Lấy danh sách top packages
-//   Future<List<TourModel>> fetchTopPackages() async {
-//     final response = await _dio.get('https://api-url.com/api/tours/top');
-//     throw UnimplementedError();
-//   }
-
-//   // Lấy chi tiết một tour/package
-//   Future<TourModel> fetchPackageDetail(int tourId) async {
-//     final response = await _dio.get('https://api-url.com/api/tours/$tourId');
-//     throw UnimplementedError();
-//   }
-// Future<String> fetchUserAvatarUrl() async {
-// Gọi API lấy thông tin user
-// final response = await http.get(Uri.parse('https://api.com/user/profile'));
-// final data = jsonDecode(response.body);
-// return data['avatarUrl'];
-// Demo: trả về link avatar mẫu
-// return 'https://yourapi.com/path/to/avatar.jpg';
-// }
-// }
+import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:http/http.dart' as http;
 import 'package:trip_mate/commons/endpoint.dart';
+import 'package:trip_mate/commons/env.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
+import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
 import 'package:trip_mate/features/home/domain/models/image_model.dart';
+import 'package:trip_mate/features/home/domain/models/review_model.dart';
 import 'package:trip_mate/features/home/domain/models/time_line_item.dart';
 import 'package:trip_mate/features/home/domain/models/tour_detail_model.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 
 class HomeApiSource {
+  final ApiService _apiService = ApiService();
   // Lấy danh sách tất cả tour/packages
   Future<Map<String, dynamic>> fetchAllPackages({
     int page = 1,
@@ -289,5 +253,180 @@ class HomeApiSource {
     logDebug(images.map((e) => e.imageURL).toList());
 
     return tourModel.copyWith(timelines: timelines, images: images);
+  }
+
+  // =========================================================================
+  // CÁC PHƯƠNG THỨC MỚI CHO TOUR DETAIL
+  // =========================================================================
+
+  /// 1. Lấy danh sách Hashtag của Tour (GET /tour-hashtags?tourId=...)
+  /// Repository gọi: sl<HomeApiSource>().fetchTourHashtags(tourId);
+  Future<List<HashtagModel>> fetchTourHashtags(int tourId) async {
+    try {
+      final responseData = await _apiService.get(
+        AppEndPoints.kTourHashtags, // Endpoint: /tour-hashtags
+        queryParameters: {'tourId': tourId}, // Filter theo tourId
+        skipAuth: true, // Thường không cần Auth cho dữ liệu công khai
+      );
+
+      // Giả sử API trả về List trực tiếp, hoặc trong field 'data'
+      final listData = responseData is Map && responseData.containsKey('data')
+          ? responseData['data']
+          : responseData;
+
+      if (listData is List) {
+        return listData
+            .map((json) => HashtagModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        // Xử lý trường hợp format response không mong muốn
+        logError('Invalid response format for fetchTourHashtags: $responseData');
+        return [];
+      }
+    } catch (e) {
+      logError('Error fetching tour hashtags: $e');
+      throw Exception('Failed to fetch tour hashtags: $e');
+    }
+  }
+
+  /// 2. Lấy danh sách Reviews của Tour (GET /reviews?tourId=...&page=...&limit=...)
+  /// Repository gọi: sl<HomeApiSource>().fetchTourReviews(tourId, page: page, limit: limit);
+  Future<List<ReviewModel>> fetchTourReviews(
+    int tourId, {
+    int page = 1,
+    int limit = 10,
+  }) async {
+    try {
+      final responseData = await _apiService.get(
+        AppEndPoints.kReviews, // Endpoint: /reviews
+        queryParameters: {
+          'tourId': tourId,
+          'page': page,
+          'limit': limit,
+        },
+        skipAuth: true, // Thường không cần Auth cho dữ liệu công khai
+      );
+
+      // Giả sử API trả về một Map<String, dynamic> với key 'data' chứa List<ReviewModel>
+      final listData = responseData['data']['reviews'];
+
+      if (listData is List) {
+        return listData
+            .map((json) => ReviewModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        logError('Invalid response format for fetchTourReviews: $responseData');
+        return [];
+      }
+    } catch (e) {
+      logError('Error fetching tour reviews: $e');
+      throw Exception('Failed to fetch tour reviews: $e');
+    }
+  }
+
+  /// 3. Gửi Review (POST /reviews)
+  /// Repository gọi: sl<HomeApiSource>().submitReview(...);
+  Future<ReviewModel> submitReview({
+    required int tourId,
+    required int userId, // Giả sử userId được truyền vào hoặc lấy từ session trong repo
+    required int rating,
+    String? comment,
+  }) async {
+    try {
+      final data = {
+        'tourId': tourId,
+        'userId': userId,
+        'rating': rating,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+      };
+
+      final responseData = await _apiService.post(
+        AppEndPoints.kSubmitReviews, // Endpoint: /reviews
+        data: data,
+        skipAuth: false, // Yêu cầu xác thực (Bearer Auth)
+      );
+
+      // Giả sử API trả về ReviewModel đã tạo thành công
+      final reviewJson = responseData is Map && responseData.containsKey('data')
+          ? responseData['data']
+          : responseData;
+
+      if (reviewJson is Map<String, dynamic>) {
+        // Show Toast thông báo thành công
+        ToastUtil.showSuccessToast('Gửi đánh giá thành công!');
+        return ReviewModel.fromJson(reviewJson);
+      } else {
+       logError('Invalid response format for submitReview: $responseData');
+        throw Exception('Failed to parse submitted review response');
+      }
+    } catch (e) {
+      logError('Gửi đánh giá thất bại. Vui lòng thử lại.');
+      throw Exception('Failed to submit review: $e');
+    }
+  }
+
+    // Thêm method này vào class HomeApiSource
+
+  Future<Map<String, dynamic>> fetchFilteredPackages({
+    required int page,
+    required int limit,
+    String? orderBy,
+    String? domain,
+    String? time,
+    String? destination,
+    String? slug,
+    int? userId,
+    String? status = 'active',
+  }) async {
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      // Build query parameters
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+        'status': status,
+      };
+      
+      if (orderBy != null) queryParams['orderBy'] = orderBy;
+      if (domain != null) queryParams['domain'] = domain;
+      if (time != null) queryParams['time'] = time;
+      if (destination != null) queryParams['destination'] = destination;
+      if (slug != null) queryParams['slug'] = slug;
+      if (userId != null) queryParams['userId'] = userId;
+      
+      final responseData = await apiService.get(
+        AppEndPoints.kFilterPagination,
+        queryParameters: queryParams,
+        skipAuth: true,
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        
+        if (statusCode == 200) {
+          final List<dynamic> rawTours = responseData['data']['tours'];
+          final total = responseData['data']['countTour'];
+
+          List<TourModel> tours =
+              rawTours.map((e) => TourModel.fromJson(e)).toList();
+
+          return Right({'tours': tours, 'total': total});
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return {'tours': <TourModel>[], 'total': 0};
+      },
+      (r) {
+        return r;
+      },
+    );
   }
 }

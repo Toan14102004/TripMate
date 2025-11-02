@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/screens/search_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/top_packages_screen.dart';
 import 'top_package_card.dart';
 
@@ -27,7 +28,11 @@ class _TopPackageSectionState extends State<TopPackageSection> {
       MaterialPageRoute(
         builder: (context) => PackageDetailScreen(tour: package),
       ),
-    );
+    ).then((value){
+      setState(() {
+         _futureTopPackages = HomeApiSource().fetchTopPackages(limit: 4);
+      });
+    });
   }
 
   @override
@@ -47,7 +52,7 @@ class _TopPackageSectionState extends State<TopPackageSection> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TopPackagesScreen(),
+                    builder: (context) => AllPackagesScreen(orderBy: 'rating'),
                   ),
                 );
               },
@@ -75,15 +80,18 @@ class _TopPackageSectionState extends State<TopPackageSection> {
               itemCount: packages.length > 2 ? 2 : packages.length,
               itemBuilder: (context, index) {
                 final package = packages[index];
-                return GestureDetector(
-                  onTap: () => _navigateToDetail(package),
-                  child: TopPackageCard(
-                    image: package.image ?? '',
-                    title: package.title,
-                    location: package.destination ?? '',
-                    price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
-                    rating: package.rating ?? 0,
-                    reviews: package.reviewCount?.toString() ?? '0',
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GestureDetector(
+                    onTap: () => _navigateToDetail(package),
+                    child: TopPackageCard(
+                      image: package.image ?? '',
+                      title: package.title,
+                      location: package.destination ?? '',
+                      price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
+                      rating: package.rating ?? 0,
+                      reviews: package.reviewCount?.toString() ?? '0',
+                    ),
                   ),
                 );
               },

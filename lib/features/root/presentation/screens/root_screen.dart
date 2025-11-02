@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/core/app_global.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_state.dart';
 import 'package:trip_mate/features/root/presentation/widgets/my_drawer.dart';
+
 final GlobalKey<ScaffoldState> rootScaffoldKey = GlobalKey<ScaffoldState>();
+
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _RootScreenState createState() => _RootScreenState();
 }
 
-class _RootScreenState extends State<RootScreen> 
-    with TickerProviderStateMixin {
+class _RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
@@ -26,7 +28,7 @@ class _RootScreenState extends State<RootScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -34,7 +36,7 @@ class _RootScreenState extends State<RootScreen>
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-    
+
     _slideAnimation = Tween<double>(
       begin: -10.0,
       end: 0.0,
@@ -58,7 +60,7 @@ class _RootScreenState extends State<RootScreen>
           return Scaffold(
             key: rootScaffoldKey,
             drawer: const MyDrawer(),
-            backgroundColor: context.isDarkMode ? Colors.black : Colors.white,
+            backgroundColor: context.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
             body: Stack(
               children: [
                 AnimatedSwitcher(
@@ -86,10 +88,11 @@ class _RootScreenState extends State<RootScreen>
             bottomNavigationBar: _buildAnimatedBottomNav(state),
           );
         } else {
-          return const Scaffold(
-            body: Center(
+          return Scaffold(
+            backgroundColor: context.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
+            body: const Center(
               child: CircularProgressIndicator(
-                color: Colors.blue,
+                color: AppColors.primary,
               ),
             ),
           );
@@ -100,18 +103,18 @@ class _RootScreenState extends State<RootScreen>
 
   Widget _buildAnimatedBottomNav(PageInitial state) {
     return Container(
-      height: 80,
+      height: 76,
       decoration: BoxDecoration(
-        color: context.isDarkMode ? Colors.black : Colors.white,
+        color: context.isDarkMode ? AppColors.black : AppColors.white,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(25),
-          topRight: Radius.circular(25),
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+            color: AppColors.shadow,
+            blurRadius: 16,
+            offset: const Offset(0, -4),
             spreadRadius: 0,
           ),
         ],
@@ -145,9 +148,9 @@ class _RootScreenState extends State<RootScreen>
           ),
           _buildNavItem(
             index: 3,
-            icon: Icons.settings_outlined,
-            activeIcon: Icons.settings,
-            label: 'Settings',
+            icon: Icons.person_outline,
+            activeIcon: Icons.person,
+            label: 'Profile',
             isSelected: state.selectedIndex == 3,
             state: state,
           ),
@@ -170,20 +173,20 @@ class _RootScreenState extends State<RootScreen>
           _animationController.forward().then((_) {
             _animationController.reset();
           });
-          
           context.read<PageCubit>().changePage(index: index);
         }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? (AppGlobal.navigatorKey.currentContext!.isDarkMode ? AppColors.primaryDark : AppColors.primaryLight) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedBuilder(
               animation: _animationController,
@@ -191,28 +194,26 @@ class _RootScreenState extends State<RootScreen>
                 return Transform.scale(
                   scale: isSelected ? _scaleAnimation.value : 1.0,
                   child: Transform.translate(
-                    offset: isSelected 
-                        ? Offset(0, _slideAnimation.value) 
-                        : Offset.zero,
+                    offset: isSelected ? Offset(0, _slideAnimation.value) : Offset.zero,
                     child: Icon(
                       isSelected ? activeIcon : icon,
-                      color: isSelected ? Colors.blue : Colors.grey.shade600,
-                      size: 26,
+                      color: isSelected ? (AppGlobal.navigatorKey.currentContext!.isDarkMode ? AppColors.black : AppColors.primary)  : AppColors.grey400,
+                      size: 24,
                     ),
                   ),
                 );
               },
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
               opacity: isSelected ? 1.0 : 0.7,
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? Colors.blue : Colors.grey.shade600,
+                  color: isSelected ? (AppGlobal.navigatorKey.currentContext!.isDarkMode ? AppColors.black : AppColors.primary) : AppColors.grey500,
                 ),
               ),
             ),
