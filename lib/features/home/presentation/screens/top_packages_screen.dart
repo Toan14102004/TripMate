@@ -215,6 +215,7 @@ class _TopPackagesScreenState extends State<TopPackagesScreen> {
                                       title: package.title,
                                       subtitle: package.destination ?? 'N/A',
                                       rating: package.rating ?? 0.0,
+                                      tourId: package.tourId,
                                       isBookmarked: package.isBookmarked ?? false,
                                     ),
                                   );

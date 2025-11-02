@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
-import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
 
-class PopularPackageCard extends StatelessWidget {
+class PopularPackageCard extends StatefulWidget {
   final String image;
   final String title;
   final String subtitle;
   final double rating;
   final bool isBookmarked;
+  final int tourId;
 
   const PopularPackageCard({
     super.key,
@@ -15,8 +17,52 @@ class PopularPackageCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.rating,
+    required this.tourId,
     this.isBookmarked = false,
   });
+
+  @override
+  State<PopularPackageCard> createState() => _PopularPackageCardState();
+}
+
+class _PopularPackageCardState extends State<PopularPackageCard> {
+  late bool _isBookmarked;
+  final HomeApiSource _apiSource = HomeApiSource();
+
+  @override
+  void initState() {
+    super.initState();
+    _isBookmarked = widget.isBookmarked;
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isBookmarked) return;
+
+    setState(() {
+      _isBookmarked = true;
+    });
+
+    final result = await _apiSource.toggleFavorite(widget.tourId);
+
+    result.fold(
+      (error) {
+        // Error already handled by API source (shows toast)
+        setState(() {
+          _isBookmarked = false;
+        });
+      },
+      (isFavorited) {
+        setState(() {
+          _isBookmarked = isFavorited;
+        });
+        if (isFavorited) {
+          ToastUtil.showSuccessToast('Đã thêm vào danh sách yêu thích');
+        } else {
+          ToastUtil.showSuccessToast('Đã xóa khỏi danh sách yêu thích');
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +82,7 @@ class PopularPackageCard extends StatelessWidget {
         child: Stack(
           children: [
             Image.network(
-              image,
+              widget.image,
               height: double.infinity,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -88,7 +134,7 @@ class PopularPackageCard extends StatelessWidget {
                         const Icon(Icons.star, color: AppColors.warning, size: 14),
                         const SizedBox(width: 3),
                         Text(
-                          rating.toStringAsFixed(1),
+                          widget.rating.toStringAsFixed(1),
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
@@ -100,7 +146,7 @@ class PopularPackageCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    title,
+                    widget.title,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -112,7 +158,7 @@ class PopularPackageCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    subtitle,
+                    widget.subtitle,
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 13,
@@ -127,22 +173,25 @@ class PopularPackageCard extends StatelessWidget {
             Positioned(
               right: 12,
               bottom: 12,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.95),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                  color: AppColors.primary,
-                  size: 24,
+              child: GestureDetector(
+                onTap: _toggleFavorite,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.95),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child:  Icon(
+                          _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
                 ),
               ),
             ),

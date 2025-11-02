@@ -10,6 +10,7 @@ class AppEndPoints {
   static const String kVerifyRegisterOTP = '/auth/verify-user-register-otp';
   static const String kUpdateUser = '/user/update';
   static const String kSavedTours = '/favourites/FilterPagination';
+  static const String kToggleFavorite = '/favourites';
   static const String kFilterPagination = '/tours/FilterPagination';
   static const String kTourDetail = '/tours';
   static const String kTimelines = '/timelines/FilterPagination';

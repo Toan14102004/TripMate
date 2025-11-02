@@ -44,7 +44,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              "Popular Packages",
+              "Popular Packages b",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             GestureDetector(
@@ -100,6 +100,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
                           title: package.title,
                           subtitle: package.destination ?? 'N/A',
                           rating: package.rating ?? 0.0,
+                          tourId: package.tourId,
                           isBookmarked: package.isBookmarked ?? false,
                         ),
                       ),

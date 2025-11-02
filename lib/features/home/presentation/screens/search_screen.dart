@@ -603,6 +603,7 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
                                         title: pkg.title,
                                         subtitle: pkg.destination ?? 'N/A',
                                         rating: pkg.rating ?? 0.0,
+                                        tourId: pkg.tourId,
                                         isBookmarked: pkg.isBookmarked ?? false,
                                       ),
                                     ),
