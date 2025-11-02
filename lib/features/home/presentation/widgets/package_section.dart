@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
-import 'package:trip_mate/features/home/presentation/screens/all_packages_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/search_screen.dart';
 import 'package:trip_mate/features/home/presentation/widgets/package_card.dart';
