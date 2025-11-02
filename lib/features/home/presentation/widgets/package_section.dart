@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:trip_mate/features/home/domain/models/mock_tour_data.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/screens/search_screen.dart';
 import 'package:trip_mate/features/home/presentation/widgets/package_card.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 
@@ -14,11 +15,23 @@ class PackageSection extends StatefulWidget {
 
 class _PackageSectionState extends State<PackageSection> {
   late Future<List<TourModel>> _futurePackages;
+  late Future<int> _totalPackages;
 
   @override
   void initState() {
     super.initState();
-    _futurePackages = HomeApiSource().fetchAllPackages();
+
+    final futureData = HomeApiSource().fetchAllPackages(limit: 4);
+    _futurePackages = futureData.then((data) => data['tours'] as List<TourModel>);
+    _totalPackages = futureData.then((data) => data['total'] as int);
+  }
+
+  void reloadingData(){
+    setState(() {
+      final futureData = HomeApiSource().fetchAllPackages(limit: 4);
+      _futurePackages = futureData.then((data) => data['tours'] as List<TourModel>);
+      _totalPackages = futureData.then((data) => data['total'] as int);
+    });
   }
 
   @override
@@ -28,17 +41,42 @@ class _PackageSectionState extends State<PackageSection> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text(
-              "122 Packages",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          children: [
+            FutureBuilder<int>(
+              future: _totalPackages,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Text(
+                    "${snapshot.data} Packages",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  );
+                }
+                return const Text(
+                  "... Packages",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                );
+              },
             ),
-            Text("See All", style: TextStyle(color: Colors.blue)),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AllPackagesScreen(orderBy: 'newest'),
+                  ),
+                );
+              },
+              child: const Text(
+                "See All",
+                style: TextStyle(color: Colors.blue),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 210,
+        AspectRatio(
+          aspectRatio: 18 / 9,
           child: FutureBuilder<List<TourModel>>(
             future: _futurePackages,
             builder: (context, snapshot) {
@@ -63,7 +101,9 @@ class _PackageSectionState extends State<PackageSection> {
                           builder:
                               (context) => PackageDetailScreen(tour: pkg),
                         ),
-                      );
+                      ).then((value){
+                        reloadingData();
+                      });
                     },
                     child: PackageCard(
                       image: pkg.image ?? '',

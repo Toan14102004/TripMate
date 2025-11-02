@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:trip_mate/features/home/domain/models/tour_detail_model.dart';
+import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
+import 'package:trip_mate/features/home/domain/models/review_model.dart';
 import 'package:trip_mate/features/home/domain/repositories/home_repository.dart';
 import 'package:trip_mate/service_locator.dart';
 
@@ -40,11 +42,13 @@ class TourDetailLoading extends TourDetailState {
 
 class TourDetailSuccess extends TourDetailState {
   final TourDetailModel tourDetail;
+  final List<HashtagModel> hashtags;
+  final List<ReviewModel> reviews;
 
-  const TourDetailSuccess(this.tourDetail);
+  const TourDetailSuccess(this.tourDetail, this.hashtags, this.reviews);
 
   @override
-  List<Object?> get props => [tourDetail];
+  List<Object?> get props => [tourDetail, hashtags, reviews];
 }
 
 class TourDetailError extends TourDetailState {
@@ -56,6 +60,28 @@ class TourDetailError extends TourDetailState {
   List<Object?> get props => [message];
 }
 
+class ReviewSubmitting extends TourDetailState {
+  final TourDetailModel tourDetail;
+  final List<HashtagModel> hashtags;
+  final List<ReviewModel> reviews;
+
+  const ReviewSubmitting(this.tourDetail, this.hashtags, this.reviews);
+
+  @override
+  List<Object?> get props => [tourDetail, hashtags, reviews];
+}
+
+class ReviewSubmitted extends TourDetailState {
+  final TourDetailModel tourDetail;
+  final List<HashtagModel> hashtags;
+  final List<ReviewModel> reviews;
+
+  const ReviewSubmitted(this.tourDetail, this.hashtags, this.reviews);
+
+  @override
+  List<Object?> get props => [tourDetail, hashtags, reviews];
+}
+
 // Cubit
 class TourDetailCubit extends Cubit<TourDetailState> {
   TourDetailCubit() : super(const TourDetailInitial());
@@ -64,9 +90,44 @@ class TourDetailCubit extends Cubit<TourDetailState> {
     emit(const TourDetailLoading());
     try {
       final tourDetail = await sl<HomeRepository>().getTourDetail(tourId);
-      emit(TourDetailSuccess(tourDetail));
+      final hashtags = await sl<HomeRepository>().getTourHashtags(tourId);
+      final reviews = await sl<HomeRepository>().getTourReviews(tourId);
+      
+      emit(TourDetailSuccess(tourDetail, hashtags, reviews));
     } catch (e) {
       emit(TourDetailError(e.toString()));
+    }
+  }
+
+  Future<void> submitReview({
+    required int tourId,
+    required int userId,
+    required int rating,
+    required String comment,
+  }) async {
+    if (state is! TourDetailSuccess) return;
+    
+    final currentState = state as TourDetailSuccess;
+    emit(ReviewSubmitting(currentState.tourDetail, currentState.hashtags, currentState.reviews));
+    
+    try {
+      final newReview = await sl<HomeRepository>().submitReview(
+        tourId: tourId,
+        userId: userId,
+        rating: rating,
+        comment: comment,
+      );
+      
+      final updatedReviews = [newReview, ...currentState.reviews];
+      emit(ReviewSubmitted(currentState.tourDetail, currentState.hashtags, updatedReviews));
+      
+      // Return to success state after a short delay
+      await Future.delayed(const Duration(milliseconds: 500));
+      emit(TourDetailSuccess(currentState.tourDetail, currentState.hashtags, updatedReviews));
+    } catch (e) {
+      emit(TourDetailError(e.toString()));
+      await Future.delayed(const Duration(milliseconds: 500));
+      emit(TourDetailSuccess(currentState.tourDetail, currentState.hashtags, currentState.reviews));
     }
   }
 }

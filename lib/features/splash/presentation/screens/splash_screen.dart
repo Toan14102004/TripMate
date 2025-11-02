@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/check_sign_in.dart';
 import 'dart:math' as math;
-//import 'package:trip_mate/commons/widgets/check_sign_in.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/routes/app_route.dart';
@@ -19,44 +18,36 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
   late AnimationController _fadeController;
   late AnimationController _scaleController;
   late AnimationController _rotateController;
-  late AnimationController _handsController;
-  late AnimationController _auraController;
+  late AnimationController _slideController;
   late AnimationController _pulseController;
   
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotateAnimation;
-  late Animation<double> _handsAnimation;
-  late Animation<double> _auraAnimation;
+  late Animation<Offset> _slideAnimation;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     
-    // Khởi tạo các AnimationController
     _fadeController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: Duration(milliseconds: 1200),
       vsync: this,
     );
     
     _scaleController = AnimationController(
-      duration: Duration(milliseconds: 2500),
+      duration: Duration(milliseconds: 1800),
       vsync: this,
     );
     
     _rotateController = AnimationController(
-      duration: Duration(seconds: 10),
+      duration: Duration(seconds: 8),
       vsync: this,
     );
     
-    _handsController = AnimationController(
-      duration: Duration(milliseconds: 3000),
-      vsync: this,
-    );
-    
-    _auraController = AnimationController(
-      duration: Duration(seconds: 4),
+    _slideController = AnimationController(
+      duration: Duration(milliseconds: 1500),
       vsync: this,
     );
 
@@ -65,7 +56,6 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
       vsync: this,
     );
 
-    // Tạo các animation
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -75,11 +65,11 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     ));
 
     _scaleAnimation = Tween<double>(
-      begin: 0.0,
+      begin: 0.5,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _scaleController,
-      curve: Curves.elasticOut,
+      curve: Curves.easeOutCubic,
     ));
 
     _rotateAnimation = Tween<double>(
@@ -90,31 +80,22 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
       curve: Curves.linear,
     ));
 
-    _handsAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+    _slideAnimation = Tween<Offset>(
+      begin: Offset(0, 0.3),
+      end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _handsController,
-      curve: Curves.easeInOutCubic,
-    ));
-
-    _auraAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _auraController,
-      curve: Curves.easeOut,
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
     ));
 
     _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
+      begin: 0.9,
+      end: 1.1,
     ).animate(CurvedAnimation(
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
 
-    // Bắt đầu animations
     _startAnimations();
     _initializeServices();
   }
@@ -134,13 +115,12 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     await Future.delayed(Duration(milliseconds: 300));
     _fadeController.forward();
     
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(Duration(milliseconds: 400));
     _scaleController.forward();
-    _handsController.forward();
+    _slideController.forward();
     
-    await Future.delayed(Duration(milliseconds: 1000));
+    await Future.delayed(Duration(milliseconds: 800));
     _rotateController.repeat();
-    _auraController.repeat();
     _pulseController.repeat(reverse: true);
   }
 
@@ -149,8 +129,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     _fadeController.dispose();
     _scaleController.dispose();
     _rotateController.dispose();
-    _handsController.dispose();
-    _auraController.dispose();
+    _slideController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -161,110 +140,38 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0F172A), 
-              Color(0xFF1E293B), 
-              Color(0xFF334155), 
-              Color(0xFF475569),
+              AppColors.primary.withOpacity(0.95),
+              AppColors.primaryDark.withOpacity(0.9),
+              AppColors.black,
             ],
           ),
         ),
         child: Stack(
           children: [
-            // Stars background
-            ...List.generate(30, (index) => _buildStar(index)),
+            _buildBackgroundElements(),
             
             // Main content
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Two hands holding Earth with aura
-                  AnimatedBuilder(
-                    animation: Listenable.merge([
-                      _scaleAnimation,
-                      _handsAnimation,
-                    ]),
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _scaleAnimation.value,
-                        child: Transform.translate(
-                          offset: Offset(0, -10 * math.sin(_handsAnimation.value * math.pi)),
-                          child: _buildHandsWithEarthAndAura(),
-                        ),
-                      );
-                    },
-                  ),
+                  // Globe with modern design
+                  _buildModernGlobe(),
+                  
+                  const SizedBox(height: 60),
+                  
+                  // App title and subtitle
+                  _buildTitleSection(),
                   
                   const SizedBox(height: 80),
                   
-                  // App title
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        Text(
-                          'Tralto',
-                          style: TextStyle(
-                            fontSize: 42,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.white,
-                            letterSpacing: 3,
-                            shadows: [
-                              Shadow(
-                                offset: const Offset(0, 4),
-                                blurRadius: 15,
-                                color: const Color(0xFF3B82F6).withOpacity(0.6),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        const Text(
-                          'Thế giới trong vòng tay bạn',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white70,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 100),
-                  
                   // Loading indicator
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
-                            strokeWidth: 3,
-                            backgroundColor: AppColors.white.withOpacity(0.1),
-                          ),
-                        ),
-                        const SizedBox(height: 25),
-                        const Text(
-                          'Đang khởi tạo hành trình...',
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 16,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildLoadingSection(),
                 ],
               ),
             ),
@@ -274,268 +181,149 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     );
   }
 
-  Widget _buildHandsWithEarthAndAura() {
-    return SizedBox(
-      width: 300,
-      height: 280,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Aura effects - outer rings
-          ...List.generate(4, (index) => _buildAuraRing(index)),
-          
-          // Left hand
-          AnimatedBuilder(
-            animation: _handsAnimation,
+  Widget _buildBackgroundElements() {
+    return Stack(
+      children: [
+        // Animated circles in background
+        Positioned(
+          top: -100,
+          right: -100,
+          child: AnimatedBuilder(
+            animation: _pulseAnimation,
             builder: (context, child) {
-              return Positioned(
-                left: 20 + (10 * _handsAnimation.value),
-                bottom: 40,
-                child: Transform.rotate(
-                  angle: -0.3 + (0.1 * math.sin(_handsAnimation.value * math.pi)),
-                  child: Icon(
-                    Icons.back_hand,
-                    size: 90,
-                    color: AppColors.white.withOpacity((0.4 + 0.3 * _handsAnimation.value).clamp(0.0, 1.0)),
-                  ),
+              return Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withOpacity(0.1 * _pulseAnimation.value),
                 ),
               );
             },
           ),
-          
-          // Right hand
-          AnimatedBuilder(
-            animation: _handsAnimation,
+        ),
+        Positioned(
+          bottom: -80,
+          left: -80,
+          child: AnimatedBuilder(
+            animation: _pulseAnimation,
             builder: (context, child) {
-              return Positioned(
-                right: 20 + (10 * _handsAnimation.value),
-                bottom: 40,
-                child: Transform.rotate(
-                  angle: 0.3 + (0.1 * math.sin(_handsAnimation.value * math.pi)),
-                  child: Transform.scale(
-                    scaleX: -1,
-                    child: Icon(
-                      Icons.back_hand,
-                      size: 90,
-                      color: AppColors.white.withOpacity((0.4 + 0.3 * _handsAnimation.value).clamp(0.0, 1.0)),
-                    ),
-                  ),
+              return Container(
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.secondary.withOpacity(0.08 * _pulseAnimation.value),
                 ),
               );
             },
           ),
-          
-          // Earth with rotation and pulse
-          AnimatedBuilder(
-            animation: Listenable.merge([_rotateAnimation, _pulseAnimation]),
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _pulseAnimation.value,
-                child: Transform.rotate(
-                  angle: _rotateAnimation.value,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const RadialGradient(
-                        colors: [
-                          Color(0xFF10B981), // Emerald
-                          Color(0xFF059669), // Dark emerald
-                          Color(0xFF3B82F6), // Blue
-                          Color(0xFF1E40AF), // Dark blue
-                        ],
-                        stops: [0.0, 0.3, 0.7, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0xFF3B82F6).withOpacity(0.6),
-                          blurRadius: 30,
-                          spreadRadius: 5,
-                        ),
-                        BoxShadow(
-                          color: Color(0xFF10B981).withOpacity(0.4),
-                          blurRadius: 50,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        // Continents with more detail
-                        Positioned(
-                          top: 18,
-                          left: 15,
-                          child: Container(
-                            width: 25,
-                            height: 18,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF065F46),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 12,
-                          right: 20,
-                          child: Container(
-                            width: 15,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF065F46),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 45,
-                          right: 12,
-                          child: Container(
-                            width: 20,
-                            height: 15,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF065F46),
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          left: 25,
-                          child: Container(
-                            width: 22,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF065F46),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 25,
-                          right: 30,
-                          child: Container(
-                            width: 12,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF065F46),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                        ),
-                        // Cloud effects
-                        Positioned(
-                          top: 30,
-                          left: 10,
-                          child: Container(
-                            width: 30,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: AppColors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          
-          // Energy particles around earth
-          ...List.generate(8, (index) => _buildEnergyParticle(index)),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildAuraRing(int index) {
+  Widget _buildModernGlobe() {
     return AnimatedBuilder(
-      animation: _auraAnimation,
+      animation: Listenable.merge([
+        _scaleAnimation,
+        _rotateAnimation,
+        _pulseAnimation,
+      ]),
       builder: (context, child) {
-        double baseSize = 120.0 + (index * 40);
-        double animatedSize = baseSize + (20 * math.sin((_auraAnimation.value + index * 0.25) * 2 * math.pi));
-        double opacity = ((0.8 - index * 0.15) * (0.5 + 0.5 * math.sin(_auraAnimation.value * 2 * math.pi))).clamp(0.0, 1.0);
-        
-        return Container(
-          width: animatedSize,
-          height: animatedSize,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Color(0xFF3B82F6).withOpacity(opacity * 0.6),
-              width: 2,
-            ),
-            gradient: RadialGradient(
-              colors: [
-                Colors.transparent,
-                Color(0xFF3B82F6).withOpacity(opacity * 0.1),
-                Color(0xFF10B981).withOpacity(opacity * 0.2),
-                Colors.transparent,
-              ],
-              stops: [0.0, 0.7, 0.9, 1.0],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEnergyParticle(int index) {
-    return AnimatedBuilder(
-      animation: _auraAnimation,
-      builder: (context, child) {
-        double angle = (index * 45.0) * (math.pi / 180);
-        double radius = 80 + (15 * math.sin(_auraAnimation.value * 2 * math.pi + index));
-        double x = radius * math.cos(angle + _auraAnimation.value * math.pi);
-        double y = radius * math.sin(angle + _auraAnimation.value * math.pi);
-        
-        return Transform.translate(
-          offset: Offset(x, y),
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: index % 2 == 0 ? Color(0xFF3B82F6) : Color(0xFF10B981),
-              boxShadow: [
-                BoxShadow(
-                  color: (index % 2 == 0 ? Color(0xFF3B82F6) : Color(0xFF10B981)).withOpacity(0.8),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStar(int index) {
-    return AnimatedBuilder(
-      animation: _auraAnimation,
-      builder: (context, child) {
-        double opacity = (0.5 + 0.4 * math.sin((_auraAnimation.value + index * 0.1) * 2 * math.pi)).clamp(0.0, 1.0);
-        
-        return Positioned(
-          left: (index * 37) % MediaQuery.of(context).size.width.toInt().toDouble(),
-          top: (index * 41) % MediaQuery.of(context).size.height.toInt().toDouble(),
-          child: Opacity(
-            opacity: opacity,
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Transform.rotate(
+            angle: _rotateAnimation.value,
             child: Container(
-              width: 2 + (index % 3),
-              height: 2 + (index % 3),
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.white,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withOpacity(0.8),
+                    AppColors.primaryDark,
+                    AppColors.success.withOpacity(0.6),
+                  ],
+                  stops: [0.0, 0.6, 1.0],
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.white.withOpacity(0.5),
-                    blurRadius: 4,
-                    spreadRadius: 1,
+                    color: AppColors.primary.withOpacity(0.6),
+                    blurRadius: 40,
+                    spreadRadius: 10,
+                  ),
+                  BoxShadow(
+                    color: AppColors.secondary.withOpacity(0.3),
+                    blurRadius: 60,
+                    spreadRadius: 15,
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Continents
+                  Positioned(
+                    top: 20,
+                    left: 18,
+                    child: Container(
+                      width: 28,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 15,
+                    right: 22,
+                    child: Container(
+                      width: 18,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 22,
+                    left: 28,
+                    child: Container(
+                      width: 25,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 28,
+                    right: 32,
+                    child: Container(
+                      width: 14,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  // Glow effect
+                  Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.white.withOpacity(0.2),
+                        width: 2,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -543,6 +331,83 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTitleSection() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Column(
+          children: [
+            Text(
+              'TripMate',
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w800,
+                color: AppColors.white,
+                letterSpacing: 2,
+                shadows: [
+                  Shadow(
+                    offset: const Offset(0, 4),
+                    blurRadius: 20,
+                    color: AppColors.primary.withOpacity(0.5),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Khám phá thế giới',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.white.withOpacity(0.85),
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 60,
+              height: 3,
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingSection() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        children: [
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+              strokeWidth: 3.5,
+              backgroundColor: AppColors.white.withOpacity(0.15),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Đang chuẩn bị hành trình...',
+            style: TextStyle(
+              color: AppColors.white.withOpacity(0.8),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

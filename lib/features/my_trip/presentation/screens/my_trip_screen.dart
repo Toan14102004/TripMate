@@ -6,6 +6,7 @@ import 'package:trip_mate/commons/widgets/loading_screen.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
+import 'package:trip_mate/features/home/presentation/widgets/home_appbar.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_provider.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
 
@@ -125,12 +126,12 @@ class _MyTripScreenState extends State<MyTripScreen> {
                     const SizedBox(height: 20),
                     Text(
                       "Result found (${state.tours.length})",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.grey600,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Expanded(
                       child: state.tours.isEmpty
                           ? const Center(
@@ -186,54 +187,61 @@ class _MyTripScreenState extends State<MyTripScreen> {
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(16),
                                 image: DecorationImage(
                                   image: NetworkImage(trip.imageUrl),
                                   fit: BoxFit.cover,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.shadow,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               height: 180,
                               child: Stack(
                                 children: [
-                                  // Overlay
                                   Container(
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
+                                      borderRadius: BorderRadius.circular(16),
                                       gradient: LinearGradient(
                                         begin: Alignment.topCenter,
                                         end: Alignment.bottomCenter,
                                         colors: [
                                           Colors.transparent,
-                                          Colors.black.withOpacity(0.4),
+                                          Colors.black.withOpacity(0.6),
                                         ],
                                       ),
                                     ),
                                   ),
-                                  // Rating badge
                                   Positioned(
                                     top: 12,
                                     left: 12,
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.8),
+                                        color: AppColors.white.withOpacity(0.95),
                                         borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.shadowLight,
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
                                       ),
                                       child: Row(
                                         children: [
-                                          const Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                            size: 16,
-                                          ),
+                                          const Icon(Icons.star, color: Colors.amber, size: 16),
                                           const SizedBox(width: 4),
                                           Text(
                                             trip.rating.toString(),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.black,
+                                              fontSize: 12,
                                             ),
                                           ),
                                         ],
@@ -252,7 +260,7 @@ class _MyTripScreenState extends State<MyTripScreen> {
                                           trip.title,
                                           style: const TextStyle(
                                             color: Colors.white,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w700,
                                             fontSize: 18,
                                           ),
                                         ),
@@ -267,15 +275,25 @@ class _MyTripScreenState extends State<MyTripScreen> {
                                       ],
                                     ),
                                   ),
-                                  const Positioned(
+                                  Positioned(
                                     bottom: 16,
                                     right: 16,
-                                    child: CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.white,
-                                      child: Icon(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.shadow,
+                                            blurRadius: 8,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
                                         Icons.bookmark_outline,
-                                        color: Colors.blue,
+                                        color: AppColors.primary,
+                                        size: 20,
                                       ),
                                     ),
                                   ),

@@ -3,6 +3,7 @@ import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
 import 'package:trip_mate/features/home/presentation/screens/package_detail_screen.dart';
 import 'package:trip_mate/features/home/presentation/screens/popular_packages_screen.dart';
+import 'package:trip_mate/features/home/presentation/screens/search_screen.dart';
 import 'popular_package_card.dart';
 
 class PopularPackageSection extends StatefulWidget {
@@ -13,12 +14,12 @@ class PopularPackageSection extends StatefulWidget {
 }
 
 class _PopularPackageSectionState extends State<PopularPackageSection> {
-  late Future<List<TourModel>> _futurePopularPackages;
+  late Future<Map<String, dynamic>> _futurePopularPackages;
 
   @override
   void initState() {
     super.initState();
-    _futurePopularPackages = HomeApiSource().fetchPopularPackages();
+    _futurePopularPackages = HomeApiSource().fetchPopularPackages(limit: 4);
   }
 
   void _navigateToDetail(TourModel package) {
@@ -27,7 +28,11 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
       MaterialPageRoute(
         builder: (context) => PackageDetailScreen(tour: package),
       ),
-    );
+    ).then((value){
+      setState(() {
+       _futurePopularPackages = HomeApiSource().fetchPopularPackages(limit: 4);
+      });
+    });
   }
 
   @override
@@ -47,7 +52,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PopularPackagesScreen(),
+                    builder: (context) => AllPackagesScreen(orderBy: 'booking'),
                   ),
                 );
               },
@@ -61,7 +66,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
         const SizedBox(height: 12),
         SizedBox(
           height: 180,
-          child: FutureBuilder<List<TourModel>>(
+          child: FutureBuilder<Map<String, dynamic>>(
             future: _futurePopularPackages,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -72,7 +77,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
                   child: Text('Error loading packages: ${snapshot.error}'),
                 );
               }
-              final packages = snapshot.data ?? [];
+              final packages = (snapshot.data?['tours'] as List<TourModel>?) ?? [];
 
               if (packages.isEmpty) {
                 return const Center(child: Text('No popular packages found.'));

@@ -8,6 +8,7 @@ import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/widgets/error_screen.dart';
 import 'package:trip_mate/commons/widgets/loading_screen.dart';
+import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
@@ -93,14 +94,11 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
             point: newPosition,
             width: 80,
             height: 80,
-            child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
+            child: const Icon(Icons.location_pin, color: AppColors.error, size: 40),
           );
         });
 
-        _mapController.move(
-          newPosition,
-          16.0,
-        );
+        _mapController.move(newPosition, 16.0);
         ToastUtil.showSuccessToast('Đã tìm thấy vị trí trên bản đồ!');
       } else {
         ToastUtil.showErrorToast('Không tìm thấy tọa độ cho địa chỉ này.');
@@ -112,8 +110,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
       ToastUtil.showErrorToast(
         'Lỗi tìm kiếm: Vui lòng kiểm tra địa chỉ và kết nối mạng.',
       );
-      // Thay thế logDebug/logError của bạn
-      // logError(e);
       setState(() {
         _isMapVisible = false;
       });
@@ -182,34 +178,33 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
-          data:
-              context.isDarkMode
+          data:context.isDarkMode
                   ? ThemeData.dark().copyWith(
-                    colorScheme: ColorScheme.dark(
-                      primary: Colors.orange.shade600,
-                      onPrimary: Colors.white,
-                      surface: const Color(0xFF1B1B1B),
-                      onSurface: Colors.white,
+                    colorScheme: const ColorScheme.dark(
+                      primary: AppColors.primaryDark,
+                      onPrimary: AppColors.black,
+                      surface: AppColors.black,
+                      onSurface: AppColors.white,
                     ),
                     textButtonTheme: TextButtonThemeData(
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.orange.shade600,
+                        foregroundColor: AppColors.primaryDark,
                       ),
                     ),
                   )
-                  : ThemeData.light().copyWith(
-                    colorScheme: ColorScheme.light(
-                      primary: Colors.blue.shade600,
-                      onPrimary: Colors.white,
-                      surface: Colors.white,
-                      onSurface: Colors.black87,
-                    ),
-                    textButtonTheme: TextButtonThemeData(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.blue.shade600,
-                      ),
-                    ),
-                  ),
+                  :  ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
+              surface: AppColors.white,
+              onSurface: AppColors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
+            ),
+          ),
           child: child!,
         );
       },
@@ -254,7 +249,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
             onRetry: () => context.read<ProfileCubit>().initialize(),
           );
         } else if (state is ProfileData) {
-          // Update all controllers with state data
           _nameController.text = state.fullname;
           _emailController.text = state.email;
           _dobController.text =
@@ -287,13 +281,13 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                         child: FadeTransition(
                           opacity: _fadeController,
                           child: Padding(
-                            padding: const EdgeInsets.all(24.0),
+                            padding: const EdgeInsets.all(20.0),
                             child: Column(
                               children: [
-                                _buildInteractiveAvatarSection(),
-                                const SizedBox(height: 30),
-                                _buildAdvancedFormFields(),
-                                const SizedBox(height: 40),
+                                _buildAvatarSection(),
+                                const SizedBox(height: 28),
+                                _buildFormFields(),
+                                const SizedBox(height: 32),
                                 _buildActionButtons(),
                               ],
                             ),
@@ -311,8 +305,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
       },
     );
   }
-
-  Widget _buildAdvancedHeader() {
+   Widget _buildAdvancedHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -354,8 +347,8 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       decoration: BoxDecoration(
                         color:
                             context.isDarkMode
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.white,
+                                ? AppColors.white.withOpacity(0.1)
+                                : AppColors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -368,7 +361,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       child: Icon(
                         Icons.arrow_back_ios,
                         color:
-                            context.isDarkMode ? Colors.white : Colors.black87,
+                            context.isDarkMode ? AppColors.white : AppColors.black,
                         size: 20,
                       ),
                     ),
@@ -442,122 +435,81 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildInteractiveAvatarSection() {
+  Widget _buildAvatarSection() {
     return Column(
       children: [
         GestureDetector(
           onTap: () => _showAvatarPicker(),
           child: Stack(
             children: [
-              AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  return Container(
-                    width: 130 + (_pulseController.value * 10),
-                    height: 130 + (_pulseController.value * 10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.orange.withOpacity(0.3),
-                          Colors.blue.withOpacity(0.1),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
               Container(
-                width: 120,
-                height: 120,
+                width: 110,
+                height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Colors.orange.shade400, Colors.blue.shade400],
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.orange.withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
                 child: Center(
                   child: Text(
                     _selectedAvatar,
-                    style: const TextStyle(fontSize: 50),
+                    style: const TextStyle(fontSize: 48),
                   ),
                 ),
               ),
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: GestureDetector(
-                  onTap: () => _showAvatarPicker(),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade400, Colors.orange.shade400],
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.secondary.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    color: AppColors.white,
+                    size: 16,
                   ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        AnimatedBuilder(
-          animation: _waveController,
-          builder: (context, child) {
-            return Text(
-              'Tap to customize!',
-              style: TextStyle(
-                fontSize: 14,
-                color: (context.isDarkMode ? Colors.white : Colors.grey[600])
-                    ?.withOpacity(
-                      (0.7 +
-                              0.3 *
-                                  (0.5 +
-                                      0.5 *
-                                          Curves.easeInOut.transform(
-                                            ((_waveController.value * 2) % 1.0),
-                                          )))
-                          .clamp(0.0, 1.0),
-                    ),
-                fontStyle: FontStyle.italic,
-              ),
-            );
-          },
+        const SizedBox(height: 12),
+        Text(
+          'Tap to customize',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppColors.grey500,
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildAdvancedFormFields() {
+  Widget _buildFormFields() {
     return Column(
       children: [
-        // Full Name
         AdvancedTextField(
           label: 'Full Name',
           icon: Icons.person_outline,
@@ -571,8 +523,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-
-        // Username
         AdvancedTextField(
           label: 'Username',
           icon: Icons.alternate_email,
@@ -586,8 +536,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-
-        // Email
         AdvancedTextField(
           label: 'Email',
           icon: Icons.email_outlined,
@@ -601,8 +549,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-
-        // Phone Number
         AdvancedTextField(
           label: 'Phone Number',
           icon: Icons.phone_outlined,
@@ -616,8 +562,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-
-        // Date of Birth
         AdvancedTextField(
           label: 'Date of Birth',
           icon: Icons.calendar_today_outlined,
@@ -629,8 +573,6 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           onTextChange: (value) {},
         ),
         const SizedBox(height: 16),
-
-        // Address
         AdvancedTextField(
           label: 'Address',
           icon: Icons.location_on_outlined,
@@ -647,27 +589,14 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
         ),
         const SizedBox(height: 16),
-
         GestureDetector(
           onTap: () {
             if (_addressController.text.isEmpty) {
               ToastUtil.showErrorToast('Please enter an address first!');
-              _shakeAnimation();
             } else {
-              // Lưu trạng thái trước khi thay đổi để kiểm tra
-              final shouldShowMap = !_isMapVisible;
-
               setState(() {
-                _isMapVisible = shouldShowMap;
+                _isMapVisible = !_isMapVisible;
               });
-
-              ToastUtil.showInfoToast(
-                _isMapVisible
-                    ? 'Searching for: ${_addressController.text}'
-                    : 'Map minimized.',
-              );
-              _shakeAnimation();
-
               if (_isMapVisible) {
                 _geocodeAndShowMap();
               }
@@ -675,61 +604,54 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            height: 56,
+            height: 52,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              color: context.isDarkMode ? AppColors.black : AppColors.white,
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color:
-                    _isMapVisible ? Colors.red.shade400 : Colors.blue.shade400,
-                width: 2,
+                color: _isMapVisible ? AppColors.error : AppColors.primary,
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: (_isMapVisible ? AppColors.error : AppColors.primary).withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text(
-                  _isMapVisible
-                      ? 'Hide Map'
-                      : 'Locate "${_addressController.text.isEmpty ? 'Address' : _addressController.text}" on Map 🗺️',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color:
-                        _isMapVisible
-                            ? Colors.red.shade400
-                            : Colors.blue.shade400,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+            child: Center(
+              child: Text(
+                _isMapVisible ? 'Hide Map' : 'Show on Map',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: _isMapVisible ? AppColors.error : AppColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 16),
-
-        if (_isMapVisible &&
-            _mapCenter != null &&
-            _addressController.text.isNotEmpty)
+        if (_isMapVisible && _mapCenter != null && _addressController.text.isNotEmpty)
           AnimatedContainer(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOut,
             height: 250,
             width: double.infinity,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.blue.shade400, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
+                  color: AppColors.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               child: FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
@@ -740,21 +662,15 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                   ),
                 ),
                 children: [
-                  // Layer Bản đồ OpenStreetMap (Map Tiles)
                   TileLayer(
                     urlTemplate:
-                        context.isDarkMode
-                            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                     subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: 'com.example.trip_mate',
                   ),
-                  // Layer Marker
                   MarkerLayer(
                     markers: [if (_addressMarker != null) _addressMarker!],
                   ),
-
-                  // --- NEW: Thêm Ghi nhận bản quyền OSM ---
                   RichAttributionWidget(
                     attributions: [
                       TextSourceAttribution(
@@ -766,45 +682,30 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       ),
                     ],
                   ),
-                  // ----------------------------------------
                 ],
               ),
             ),
           ),
         if (_isMapVisible && _mapCenter != null) const SizedBox(height: 16),
-
-        // Role (Read-only with different styling)
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.orange.shade50.withOpacity(0.3),
-                Colors.blue.shade50.withOpacity(0.3),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color:
-                  context.isDarkMode
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.grey.shade300,
-            ),
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primary, width: 1),
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.orange.shade400, Colors.blue.shade400],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.badge_outlined,
-                  color: Colors.white,
-                  size: 20,
+                  color: AppColors.white,
+                  size: 18,
                 ),
               ),
               const SizedBox(width: 12),
@@ -814,22 +715,16 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                   children: [
                     Text(
                       'Role',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color:
-                            context.isDarkMode
-                                ? Colors.grey[400]
-                                : Colors.grey[600],
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.grey600,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       _roleController.text,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color:
-                            context.isDarkMode ? Colors.white : Colors.black87,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.black,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -837,20 +732,16 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.withOpacity(0.5)),
+                  color: AppColors.success.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.success, width: 0.5),
                 ),
-                child: const Text(
+                child: Text(
                   'Verified',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 12,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.success,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -863,84 +754,55 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Flexible(
-          child: GestureDetector(
-            onTap: () async {
-              if (_emailController.text.isEmpty ||
-                  _dobController.text.isEmpty ||
-                  _nameController.text.isEmpty ||
-                  _userNameController.text.isEmpty ||
-                  _phoneController.text.isEmpty ||
-                  _addressController.text.isEmpty) {
-                ToastUtil.showErrorToast('Please fill all fields');
-              } else {
-                final currentState = context.read<ProfileCubit>().state;
-                if (currentState is ProfileData) {
-                  logDebug(currentState.userId);
-                  await context.read<ProfileCubit>().updateProfile(
-                    ProfileData(
-                      userId: currentState.userId,
-                      email: _emailController.text,
-                      dob:
-                          DateTime.tryParse(_dobController.text) ??
-                          DateTime.now(),
-                      fullname: _nameController.text,
-                      userName: _userNameController.text,
-                      phoneNumber: _phoneController.text,
-                      address: _addressController.text,
-                      role: _roleController.text,
-                      latitude: _mapCenter!.latitude, 
-                      longitude: _mapCenter!.longitude,
-                    ),
-                  );
-                  showSuccessAnimation(context);
-                  HapticFeedback.heavyImpact();
-                }
-              }
-            },
-            child: AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.orange.shade400, Colors.blue.shade400],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.withOpacity(
-                          (0.4 + 0.2 * _pulseController.value).clamp(0.0, 1.0),
-                        ),
-                        blurRadius: 20 + 10 * _pulseController.value,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Center(
-                      child: Text(
-                        'Update Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: () async {
+          if (_emailController.text.isEmpty ||
+              _dobController.text.isEmpty ||
+              _nameController.text.isEmpty ||
+              _userNameController.text.isEmpty ||
+              _phoneController.text.isEmpty ||
+              _addressController.text.isEmpty) {
+            ToastUtil.showErrorToast('Please fill all fields');
+          } else {
+            final currentState = context.read<ProfileCubit>().state;
+            if (currentState is ProfileData) {
+              logDebug(currentState.userId);
+              await context.read<ProfileCubit>().updateProfile(
+                ProfileData(
+                  userId: currentState.userId,
+                  email: _emailController.text,
+                  dob: DateTime.tryParse(_dobController.text) ?? DateTime.now(),
+                  fullname: _nameController.text,
+                  userName: _userNameController.text,
+                  phoneNumber: _phoneController.text,
+                  address: _addressController.text,
+                  role: _roleController.text,
+                  latitude: _mapCenter!.latitude,
+                  longitude: _mapCenter!.longitude,
+                ),
+              );
+              showSuccessAnimation(context);
+              HapticFeedback.heavyImpact();
+            }
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 4,
+        ),
+        child: Text(
+          'Update Profile',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -948,73 +810,64 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color:
-                  context.isDarkMode ? const Color(0xFF1B1B1B) : Colors.white,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: context.isDarkMode ? AppColors.black : AppColors.white,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Choose Your Avatar',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppColors.black,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Choose Your Avatar',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: context.isDarkMode ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                  ),
-                  itemCount: _avatarOptions.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedAvatar = _avatarOptions[index]);
-                        Navigator.pop(context);
-                        _shakeAnimation();
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient:
-                              _selectedAvatar == _avatarOptions[index]
-                                  ? LinearGradient(
-                                    colors: [
-                                      Colors.orange.shade300,
-                                      Colors.blue.shade300,
-                                    ],
-                                  )
-                                  : null,
-                          color:
-                              _selectedAvatar == _avatarOptions[index]
-                                  ? null
-                                  : Colors.grey.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _avatarOptions[index],
-                            style: const TextStyle(fontSize: 30),
-                          ),
-                        ),
-                      ),
-                    );
+            const SizedBox(height: 20),
+            GridView.builder(
+              shrinkWrap: true,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+              ),
+              itemCount: _avatarOptions.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedAvatar = _avatarOptions[index]);
+                    Navigator.pop(context);
                   },
-                ),
-              ],
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: _selectedAvatar == _avatarOptions[index]
+                          ? LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
+                          )
+                          : null,
+                      color: _selectedAvatar == _avatarOptions[index]
+                          ? null
+                          : AppColors.grey100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _avatarOptions[index],
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
 }
