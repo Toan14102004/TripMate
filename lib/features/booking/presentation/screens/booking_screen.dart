@@ -10,6 +10,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trip_mate/features/booking/data/sources/booking_api_source.dart';
 import 'package:trip_mate/features/booking/domain/entities/start_end_date_model.dart';
+import 'package:trip_mate/services/location_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BookingTourScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
   int _numAdults = 1;
   int _numChildren = 0;
   bool _receiveEmail = true;
-
+  bool _findingLocation = false;
   // Start-End dates
   List<StartEndDate> _dates = [];
   int _currentPage = 1;
@@ -325,14 +326,14 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     if (_selectedDateId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn ngày khởi hành')),
       );
       return;
     }
-    
+
     // TODO: Call API to create booking
     // final bookingData = {
     //   'tourId': widget.tourId,
@@ -348,33 +349,34 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
     //   'bookingStatus': 'pending',
     //   'receiveEmail': _receiveEmail,
     // };
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (mounted) {
       Navigator.pop(context); // Close loading
-      
+
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Đặt tour thành công!'),
-          content: const Text('Chúng tôi sẽ liên hệ với bạn sớm nhất.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Back to previous screen
-              },
-              child: const Text('OK'),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Đặt tour thành công!'),
+              content: const Text('Chúng tôi sẽ liên hệ với bạn sớm nhất.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context); // Back to previous screen
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
   }
@@ -631,13 +633,110 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
 
               const SizedBox(height: 16),
 
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Địa chỉ',
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-                maxLines: 2,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: TextFormField(
+                      onChanged: (value) {
+                        setState(() {
+                          _isMapVisible = false;
+                        });
+                      },
+                      controller: _addressController,
+                      decoration: const InputDecoration(
+                        labelText: 'Địa chỉ',
+                        prefixIcon: Icon(Icons.location_on),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 12,
+                        ),
+                      ),
+                      maxLines: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () async {
+                          if (!_findingLocation) {
+                            setState(() {
+                              _isMapVisible = false;
+                              _findingLocation = true;
+                            });
+                            final _locationService = LocationService();
+                            String city =
+                                await _locationService
+                                    .getCurrentDetailLocation();
+                            setState(() {
+                              _addressController.text = city;
+                              _findingLocation = false;
+                            });
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primary.withOpacity(0.8),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: !_findingLocation ? AppColors.primary.withOpacity(0.3) : AppColors.greyDark,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.my_location,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    !_findingLocation ? 'Vị trí của tôi' : 'Finding...',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 16),
@@ -752,9 +851,6 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                 ),
               if (_isMapVisible && _mapCenter != null)
                 const SizedBox(height: 16),
-
-              const SizedBox(height: 16),
-
               // Receive email checkbox
               Container(
                 padding: const EdgeInsets.all(12),
@@ -783,7 +879,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Total price
               if (_selectedDate != null)

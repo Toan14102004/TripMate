@@ -52,6 +52,7 @@ class LocationService {
 
       if (placemarks.isNotEmpty) {
         Placemark placemark = placemarks.first;
+        logDebug(placemark);
         logDebug("== Dữ liệu Placemark nhận được ==");
         logDebug("locality: ${placemark.locality}");
         logDebug("administrativeArea: ${placemark.administrativeArea}");
@@ -60,6 +61,50 @@ class LocationService {
         String? cityName = '${placemark.administrativeArea}, ${placemark.subAdministrativeArea}';
         logDebug(cityName.trim());
         return cityName.trim();
+      } else {
+        logError("Không tìm thấy địa chỉ từ tọa độ.");
+        return "Không tìm thấy địa chỉ từ tọa độ.";
+      }
+    } catch (e) {
+      logError("Lỗi khi lấy vị trí: $e");
+      return "Lỗi: ${e.toString()}";
+    }
+  }
+
+  Future<String> getCurrentDetailLocation() async {
+    try {
+      if (!(await _handleLocationPermission())) {
+        logError("Không thể xác định vị trí: Thiếu quyền.");
+        return "Không thể xác định vị trí: Thiếu quyền.";
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      logDebug("Tọa độ: LAT=${position.latitude}, LNG=${position.longitude}");
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark placemark = placemarks.first;
+        logDebug(placemark);
+        logDebug("== Dữ liệu Placemark nhận được ==");
+        logDebug("street: ${placemark.street}");
+        logDebug("thoroughfare: ${placemark.thoroughfare}");
+        logDebug("subThoroughfare: ${placemark.subThoroughfare}");
+        logDebug("administrativeArea: ${placemark.administrativeArea}");
+        logDebug("subAdministrativeArea: ${placemark.subAdministrativeArea}");
+        logDebug("=======================");
+
+        String street = placemark.street ?? placemark.thoroughfare ?? 'Địa chỉ đường phố không rõ';
+        String fullAddress = '${street}, ${placemark.subAdministrativeArea}, ${placemark.administrativeArea}';
+
+        String finalResult = fullAddress.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty && s != 'null').join(', ');
+        
+        logDebug("Địa chỉ chi tiết mới: $finalResult");
+        return finalResult;
+        // ------------------------------
       } else {
         logError("Không tìm thấy địa chỉ từ tọa độ.");
         return "Không tìm thấy địa chỉ từ tọa độ.";
