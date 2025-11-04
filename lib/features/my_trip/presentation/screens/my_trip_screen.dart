@@ -54,48 +54,25 @@ class _MyTripScreenState extends State<MyTripScreen> {
       child: BlocBuilder<MyTripCubit, MyTripState>(
         builder: (context, state) {
           if (state is MyTripLoading) {
-            return const TravelLoadingScreen();
+            return const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.blue,
+                  strokeWidth: 5,
+                ),
+              );
           } else if (state is MyTripToursData) {
             return Scaffold(
               backgroundColor:
                   context.isDarkMode ? AppColors.black : AppColors.lightBackground,
-              appBar: AppBar(
-                elevation: 0,
-                backgroundColor:
-                    context.isDarkMode ? AppColors.black : AppColors.lightBackground,
-                centerTitle: true,
-                title: Text(
-                  "MyTrip",
-                  style: TextStyle(
-                    color:
-                        !context.isDarkMode ? AppColors.black : AppColors.lightBackground,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                leading: const Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=3',
-                    ),
-                  ),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Icon(
-                      Icons.more_horiz,
-                      color:
-                          !context.isDarkMode ? AppColors.black : AppColors.lightBackground,
-                    ),
-                  ),
-                ],
-              ),
-              body: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              body: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const HomeAppBar(title: "My Trips"),
+                      ),
+                      const SizedBox(height: 24),
                     // Category tabs
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -168,7 +145,7 @@ class _MyTripScreenState extends State<MyTripScreen> {
                               ),
                             );
                           }
-
+                
                           final trip = state.tours[index];
                           return GestureDetector(
                             onTap: () {
