@@ -195,48 +195,48 @@ class _PopularPackagesScreenState extends State<PopularPackagesScreen> {
                     : CustomScrollView(
                         controller: _scrollController,
                         slivers: [
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            sliver: SliverGrid(
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.85,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 16,
-                              ),
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                                  final package = _filteredPackages[index];
-                                  return GestureDetector(
-                                    onTap: () => _navigateToDetail(package),
-                                    child: PopularPackageCard(
-                                      image: package.image ?? '',
-                                      title: package.title,
-                                      subtitle: package.destination ?? 'N/A',
-                                      rating: package.rating ?? 0.0,
-                                      isBookmarked: package.isBookmarked ?? false,
-                                    ),
-                                  );
-                                },
-                                childCount: _filteredPackages.length,
-                              ),
-                            ),
-                          ),
-                          if (_isLoadingMore)
-                            const SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 24),
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          SliverToBoxAdapter(
-                            child: SizedBox(height: _isLoadingMore ? 0 : 24),
-                          ),
+                          // SliverPadding(
+                          //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          //   sliver: SliverGrid(
+                          //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          //       crossAxisCount: 2,
+                          //       childAspectRatio: 0.85,
+                          //       crossAxisSpacing: 12,
+                          //       mainAxisSpacing: 16,
+                          //     ),
+                          //     delegate: SliverChildBuilderDelegate(
+                          //       (context, index) {
+                          //         final package = _filteredPackages[index];
+                          //         return GestureDetector(
+                          //           onTap: () => _navigateToDetail(package),
+                          //           child: PopularPackageCard(
+                          //             image: package.image ?? '',
+                          //             title: package.title,
+                          //             subtitle: package.destination ?? 'N/A',
+                          //             rating: package.rating ?? 0.0,
+                          //             isBookmarked: package.isBookmarked ?? false,
+                          //           ),
+                          //         );
+                          //       },
+                          //       childCount: _filteredPackages.length,
+                          //     ),
+                          //   ),
+                          // // ),
+                          // if (_isLoadingMore)
+                          //   const SliverToBoxAdapter(
+                          //     child: Padding(
+                          //       padding: EdgeInsets.symmetric(vertical: 24),
+                          //       child: Center(
+                          //         child: CircularProgressIndicator(
+                          //           strokeWidth: 3,
+                          //           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // SliverToBoxAdapter(
+                          //   child: SizedBox(height: _isLoadingMore ? 0 : 24),
+                          // ),
                         ],
                       ),
           ),

@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html/flutter_html.dart' hide Marker;
 import 'package:equatable/equatable.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
+import 'package:trip_mate/features/booking/presentation/screens/booking_screen.dart';
 import 'package:trip_mate/features/home/domain/models/time_line_item.dart';
 import 'package:trip_mate/features/home/domain/models/tour_detail_model.dart';
 import 'package:trip_mate/features/home/domain/models/tour_model.dart';
+import 'package:trip_mate/features/home/presentation/extentions/image_extention.dart';
 import 'package:trip_mate/features/home/presentation/providers/detail_cubit.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
 import 'package:trip_mate/features/home/domain/models/review_model.dart';
+import 'package:trip_mate/features/home/presentation/widgets/detail_component.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
+import 'package:flutter_html/src/extension/html_extension.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PackageDetailScreen extends StatefulWidget {
   final TourModel tour;
 
-  const PackageDetailScreen({
-    super.key,
-    required this.tour,
-  });
+  const PackageDetailScreen({super.key, required this.tour});
 
   @override
   State<PackageDetailScreen> createState() => _PackageDetailScreenState();
@@ -30,12 +38,15 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
   late TextEditingController _commentController;
   int _selectedRating = 0;
   bool _isDescriptionExpanded = false;
+  LatLng? _mapCenter;
+  Marker? _addressMarker;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
     super.initState();
     context.read<TourDetailCubit>().fetchTourDetail(widget.tour.tourId);
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -56,8 +67,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       ),
     );
     _animationController.forward();
-    
+
     _commentController = TextEditingController();
+
+    _mapCenter = const LatLng(21.028511, 105.804817);
   }
 
   @override
@@ -67,108 +80,158 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     super.dispose();
   }
 
+  Future<void> _geocodeAndShowMap(String location) async {
+    final address = location.trim();
+    if (address.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _addressMarker = null;
+    });
+
+    try {
+      List<Location> locations = await locationFromAddress(address);
+
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        final newPosition = LatLng(location.latitude, location.longitude);
+
+        setState(() {
+          _mapCenter = newPosition;
+          _addressMarker = Marker(
+            point: newPosition,
+            width: 80,
+            height: 80,
+            child: const Icon(
+              Icons.location_pin,
+              color: AppColors.error,
+              size: 40,
+            ),
+          );
+        });
+
+        _mapController.move(newPosition, 9);
+        ToastUtil.showSuccessToast('Đã tìm thấy vị trí trên bản đồ!');
+      } else {
+        ToastUtil.showErrorToast('Không tìm thấy tọa độ cho địa chỉ này.');
+      }
+    } catch (e) {
+      ToastUtil.showErrorToast(
+        'Lỗi tìm kiếm: Vui lòng kiểm tra địa chỉ và kết nối mạng.',
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.grey50,
-      body: BlocBuilder<TourDetailCubit, TourDetailState>(
-        builder: (context, state) {
-          if (state is TourDetailLoading) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(
-                    color: AppColors.primary,
-                    strokeWidth: 3,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Loading tour details...',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.grey500,
-                    ),
-                  ),
-                ],
-              ),
-            );
+      body: BlocListener<TourDetailCubit, TourDetailState>(
+        listener: (context, state) {
+          if(state is TourDetailSuccess){
+             _geocodeAndShowMap(state.tourDetail.address);
           }
-
-          if (state is TourDetailError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
+        },
+        child: BlocBuilder<TourDetailCubit, TourDetailState>(
+          builder: (context, state) {
+            if (state is TourDetailLoading) {
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.error_outline_rounded,
-                        size: 64,
-                        color: AppColors.error,
-                      ),
+                    const CircularProgressIndicator(
+                      color: AppColors.primary,
+                      strokeWidth: 3,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     Text(
-                      'Oops! Something went wrong',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      state.message,
+                      'Loading tour details...',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.grey600,
+                        color: AppColors.grey500,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        context
-                            .read<TourDetailCubit>()
-                            .fetchTourDetail(widget.tour.tourId);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Try Again'),
                     ),
                   ],
                 ),
-              ),
-            );
-          }
+              );
+            }
 
-          if (state is TourDetailSuccess) {
-            return _buildDetailContent(
-              context,
-              state.tourDetail,
-              state.hashtags,
-              state.reviews,
-              isDark,
-            );
-          }
+            if (state is TourDetailError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.error_outline_rounded,
+                          size: 64,
+                          color: AppColors.error,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Oops! Something went wrong',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        state.message,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.grey600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          context.read<TourDetailCubit>().fetchTourDetail(
+                            widget.tour.tourId,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: const Text('Try Again'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
-          return const SizedBox.shrink();
-        },
+            if (state is TourDetailSuccess) {
+              return _buildDetailContent(
+                context,
+                state.tourDetail,
+                state.hashtags,
+                state.reviews,
+                isDark,
+              );
+            }
+
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
@@ -297,7 +360,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                       children: [
                         Text(
                           tourDetail.title,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                             height: 1.2,
                           ),
@@ -340,7 +405,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   const SizedBox(height: 24),
 
                   // Tags Section
-                  if (hashtags.isNotEmpty) _buildTagsSection(context, hashtags, isDark),
+                  if (hashtags.isNotEmpty)
+                    _buildTagsSection(context, hashtags, isDark),
 
                   // Description Section with HTML support
                   _buildDescriptionSection(context, tourDetail, isDark),
@@ -364,7 +430,89 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   // Review Form
                   _buildReviewForm(context, tourDetail, isDark),
 
-                  const SizedBox(height: 120),
+                  BlocBuilder<ProfileCubit, ProfileState>(
+                    builder: (context, state) {
+                      if (state is ProfileLoading) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 24,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: AppColors.grey300,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [CircularProgressIndicator()],
+                              ),
+                            ),
+                          ),
+                        );
+                      } else if (state is ProfileData) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 24,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => BookingTourScreen(
+                                          tourId: tourDetail.tourId,
+                                          userId: state.userId,
+                                          tourTitle: tourDetail.title,
+                                        ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: AppColors.grey300,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.send_rounded, size: 20),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Book Tour',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -374,7 +522,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildInfoChips(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  Widget _buildInfoChips(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -409,10 +561,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
       decoration: BoxDecoration(
         color: color.withOpacity(isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -451,10 +600,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
       ),
       child: Column(
         children: [
@@ -481,7 +627,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildTagsSection(BuildContext context, List<HashtagModel> hashtags, bool isDark) {
+  Widget _buildTagsSection(
+    BuildContext context,
+    List<HashtagModel> hashtags,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
       child: Column(
@@ -504,9 +654,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Text(
                 'Popular Tags',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -514,33 +664,41 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
           Wrap(
             spacing: 10,
             runSpacing: 10,
-            children: hashtags.map((hashtag) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.12),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppColors.primary.withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: Text(
-                  '#${hashtag.name}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              );
-            }).toList(),
+            children:
+                hashtags.map((hashtag) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.12),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      '#${hashtag.name}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  );
+                }).toList(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDescriptionSection(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  Widget _buildDescriptionSection(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
       child: Column(
@@ -563,9 +721,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Text(
                 'About This Tour',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -596,22 +754,24 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     ),
                     padding: const EdgeInsets.all(20),
                     child: SingleChildScrollView(
-                      physics: _isDescriptionExpanded 
-                          ? const AlwaysScrollableScrollPhysics()
-                          : const NeverScrollableScrollPhysics(),
+                      physics:
+                          _isDescriptionExpanded
+                              ? const AlwaysScrollableScrollPhysics()
+                              : const NeverScrollableScrollPhysics(),
                       child: Html(
                         data: tourDetail.description,
+                        extensions: [SafeImageExtension()],
+                        // Áp dụng Style tương tự như ví dụ của bạn
                         style: {
                           "body": Style(
                             margin: Margins.zero,
                             padding: HtmlPaddings.zero,
                             fontSize: FontSize(15),
                             lineHeight: const LineHeight(1.6),
-                            color: isDark ? AppColors.grey300 : AppColors.grey700,
+                            color:
+                                isDark ? AppColors.grey300 : AppColors.grey700,
                           ),
-                          "p": Style(
-                            margin: Margins.only(bottom: 12),
-                          ),
+                          "p": Style(margin: Margins.only(bottom: 12)),
                           "h1, h2, h3, h4, h5, h6": Style(
                             margin: Margins.only(top: 16, bottom: 8),
                             fontWeight: FontWeight.bold,
@@ -622,6 +782,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                           "a": Style(
                             color: AppColors.primary,
                             textDecoration: TextDecoration.underline,
+                          ),
+                          "img": Style(
+                            display: Display.block,
+                            padding: HtmlPaddings.only(top: 8, bottom: 8),
                           ),
                         },
                       ),
@@ -641,7 +805,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                           color: AppColors.primary.withOpacity(0.08),
                           border: Border(
                             top: BorderSide(
-                              color: isDark ? AppColors.grey700 : AppColors.grey200,
+                              color:
+                                  isDark
+                                      ? AppColors.grey700
+                                      : AppColors.grey200,
                               width: 1,
                             ),
                           ),
@@ -650,8 +817,12 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              _isDescriptionExpanded ? 'Show Less' : 'Read More',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              _isDescriptionExpanded
+                                  ? 'Show Less'
+                                  : 'Read More',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -677,7 +848,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildItinerarySection(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  Widget _buildItinerarySection(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
       child: Column(
@@ -700,9 +875,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Text(
                 'Tour Itinerary',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -730,103 +905,200 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     int total,
     bool isDark,
   ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.4),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  '${index + 1}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            if (index != total - 1)
-              Container(
-                width: 3,
-                height: 110,
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.primary.withOpacity(0.5),
-                      AppColors.primary.withOpacity(0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-          ],
+    void _showFullDescriptionModal() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true, // Cho phép modal chiếm gần hết màn hình
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceDark : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? AppColors.grey700 : AppColors.grey200,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
+        builder: (context) {
+          // Sử dụng mã HTML tương tự như ví dụ bạn cung cấp
+          return Container(
+            height:
+                MediaQuery.of(context).size.height *
+                0.85, // Chiếm 85% chiều cao màn hình
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  timeline.tlTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+                // Thanh kéo (drag handle)
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.grey700 : AppColors.grey300,
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+                Image.network(
+                  width: double.infinity,
+                  timeline.imageTimeLine ?? '',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppColors.grey300,
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported_rounded,
+                          size: 64,
+                          color: AppColors.grey500,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                // Tiêu đề
                 Text(
-                  timeline.tlDescription,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.6,
-                    color: isDark ? AppColors.grey400 : AppColors.grey700,
+                  timeline.tlTitle,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Nội dung HTML (Full Description)
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Html(
+                      data: timeline.tlDescription,
+                      extensions: [SafeImageExtension()],
+                      // Áp dụng Style tương tự như ví dụ của bạn
+                      style: {
+                        "body": Style(
+                          margin: Margins.zero,
+                          padding: HtmlPaddings.zero,
+                          fontSize: FontSize(15),
+                          lineHeight: const LineHeight(1.6),
+                          color: isDark ? AppColors.grey300 : AppColors.grey700,
+                        ),
+                        "p": Style(margin: Margins.only(bottom: 12)),
+                        "h1, h2, h3, h4, h5, h6": Style(
+                          margin: Margins.only(top: 16, bottom: 8),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        "ul, ol": Style(
+                          margin: Margins.only(left: 16, bottom: 12),
+                        ),
+                        "a": Style(
+                          color: AppColors.primary,
+                          textDecoration: TextDecoration.underline,
+                        ),
+                        "img": Style(
+                          display: Display.block,
+                          padding: HtmlPaddings.only(top: 8, bottom: 8),
+                        ),
+                      },
+                    ),
                   ),
                 ),
               ],
             ),
+          );
+        },
+      );
+    }
+
+    return InkWell(
+      onTap: _showFullDescriptionModal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.secondary],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    '${index + 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              if (index != total - 1)
+                Container(
+                  width: 3,
+                  height: 110,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.primary.withOpacity(0.5),
+                        AppColors.primary.withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? AppColors.grey700 : AppColors.grey200,
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    timeline.tlTitle,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildGallerySection(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  Widget _buildGallerySection(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
@@ -851,9 +1123,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 const SizedBox(width: 12),
                 Text(
                   'Photo Gallery',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -869,7 +1141,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 final image = tourDetail.images[index];
                 return Container(
                   width: 320,
-                  margin: EdgeInsets.only(right: index == tourDetail.images.length - 1 ? 0 : 16),
+                  margin: EdgeInsets.only(
+                    right: index == tourDetail.images.length - 1 ? 0 : 16,
+                  ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Stack(
@@ -892,7 +1166,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                             );
                           },
                         ),
-                        if (image.description != null && image.description!.isNotEmpty)
+                        if (image.description != null &&
+                            image.description!.isNotEmpty)
                           Positioned(
                             bottom: 0,
                             left: 0,
@@ -935,36 +1210,28 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildLocationSection(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  Widget _buildLocationSection(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
+    final theme = Theme.of(context);
+    final hasAddress = tourDetail.address.trim().isNotEmpty;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.place_rounded,
-                  size: 20,
-                  color: AppColors.error,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Location & Rating',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          SectionHeader(
+            icon: Icons.place_rounded,
+            color: AppColors.error,
+            title: 'Location & Rating',
+            theme: theme,
           ),
           const SizedBox(height: 16),
+
+          // --- Card tổng chứa thông tin ---
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -972,7 +1239,6 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isDark ? AppColors.grey700 : AppColors.grey200,
-                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
@@ -984,63 +1250,32 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             ),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.location_on_rounded,
-                        color: AppColors.primary,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        tourDetail.address,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
+                InfoRow(
+                  icon: Icons.location_on_rounded,
+                  iconColor: AppColors.primary,
+                  text: tourDetail.address,
+                  theme: theme,
                 ),
                 const SizedBox(height: 16),
-                Divider(
-                  color: isDark ? AppColors.grey700 : AppColors.grey200,
-                  height: 1,
-                ),
+                Divider(color: isDark ? AppColors.grey700 : AppColors.grey200),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.star_rounded,
-                        color: AppColors.warning,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        tourDetail.reviews,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
+                InfoRow(
+                  icon: Icons.star_rounded,
+                  iconColor: AppColors.warning,
+                  text: tourDetail.reviews,
+                  theme: theme,
                 ),
+
+                // --- Map hiển thị nếu có địa chỉ ---
+                if (hasAddress) ...[
+                  const SizedBox(height: 16),
+                  AnimatedMapContainer(
+                    isDark: isDark,
+                    mapController: _mapController,
+                    mapCenter: _mapCenter,
+                    addressMarker: _addressMarker,
+                  ),
+                ],
               ],
             ),
           ),
@@ -1049,7 +1284,13 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildOrganizerSection(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  /// Header phần tiêu đề Location & Rating
+
+  Widget _buildOrganizerSection(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
       child: Column(
@@ -1072,9 +1313,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Text(
                 'Tour Organizer',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -1101,10 +1342,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.primary,
-                      width: 3,
-                    ),
+                    border: Border.all(color: AppColors.primary, width: 3),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.3),
@@ -1116,7 +1354,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   child: CircleAvatar(
                     radius: 36,
                     backgroundImage: NetworkImage(
-                      tourDetail.user.avatar ?? 'https://cdn-icons-png.flaticon.com/512/8483/8483939.png',
+                      tourDetail.user.avatar ??
+                          'https://cdn-icons-png.flaticon.com/512/8483/8483939.png',
                     ),
                   ),
                 ),
@@ -1127,9 +1366,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     children: [
                       Text(
                         tourDetail.user.fullName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -1140,7 +1378,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                       ),
                       const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(8),
@@ -1156,7 +1397,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                             const SizedBox(width: 6),
                             Text(
                               tourDetail.user.phoneNumber,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1175,7 +1418,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildReviewsSection(BuildContext context, List<ReviewModel> reviews, bool isDark) {
+  Widget _buildReviewsSection(
+    BuildContext context,
+    List<ReviewModel> reviews,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
       child: Column(
@@ -1198,9 +1445,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Text(
                 'Reviews (${reviews.length})',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -1235,22 +1482,28 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     const SizedBox(height: 8),
                     Text(
                       'Be the first to share your experience!',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.grey400,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.grey400),
                     ),
                   ],
                 ),
               ),
             )
           else
-            ...reviews.map((review) => _buildReviewCard(context, review, isDark)),
+            ...reviews.map(
+              (review) => _buildReviewCard(context, review, isDark),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildReviewCard(BuildContext context, ReviewModel review, bool isDark) {
+  Widget _buildReviewCard(
+    BuildContext context,
+    ReviewModel review,
+    bool isDark,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
@@ -1285,7 +1538,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 child: CircleAvatar(
                   radius: 24,
                   backgroundImage: NetworkImage(
-                    review.userAvatar ?? 'https://cdn-icons-png.flaticon.com/512/8483/8483939.png',
+                    review.userAvatar ??
+                        'https://cdn-icons-png.flaticon.com/512/8483/8483939.png',
                   ),
                 ),
               ),
@@ -1304,9 +1558,14 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
-                          index < review.rating ? Icons.star_rounded : Icons.star_border_rounded,
+                          index < review.rating
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
                           size: 16,
-                          color: index < review.rating ? AppColors.warning : AppColors.grey400,
+                          color:
+                              index < review.rating
+                                  ? AppColors.warning
+                                  : AppColors.grey400,
                         );
                       }),
                     ),
@@ -1314,7 +1573,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(8),
@@ -1343,7 +1605,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     );
   }
 
-  Widget _buildReviewForm(BuildContext context, TourDetailModel tourDetail, bool isDark) {
+  Widget _buildReviewForm(
+    BuildContext context,
+    TourDetailModel tourDetail,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
       child: Column(
@@ -1366,9 +1632,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               const SizedBox(width: 12),
               Text(
                 'Share Your Experience',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -1395,9 +1661,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
               children: [
                 Text(
                   'Rate Your Experience',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -1414,9 +1680,14 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           child: Icon(
-                            index < _selectedRating ? Icons.star_rounded : Icons.star_border_rounded,
+                            index < _selectedRating
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
                             size: 40,
-                            color: index < _selectedRating ? AppColors.warning : AppColors.grey300,
+                            color:
+                                index < _selectedRating
+                                    ? AppColors.warning
+                                    : AppColors.grey300,
                           ),
                         ),
                       ),
@@ -1426,9 +1697,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                 const SizedBox(height: 24),
                 Text(
                   'Your Feedback',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -1436,13 +1707,12 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   maxLines: 5,
                   decoration: InputDecoration(
                     hintText: 'Tell us about your experience with this tour...',
-                    hintStyle: TextStyle(
-                      color: AppColors.grey400,
-                    ),
+                    hintStyle: TextStyle(color: AppColors.grey400),
                     filled: true,
-                    fillColor: isDark
-                        ? AppColors.darkBackground.withOpacity(0.5)
-                        : AppColors.grey100,
+                    fillColor:
+                        isDark
+                            ? AppColors.darkBackground.withOpacity(0.5)
+                            : AppColors.grey100,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -1472,43 +1742,50 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: isLoading || _selectedRating == 0
-                            ? null
-                            : () {
-                                if (_selectedRating > 0) {
-                                  context.read<TourDetailCubit>().submitReview(
-                                        tourId: tourDetail.tourId,
-                                        userId: 1,
-                                        rating: _selectedRating,
-                                        comment: _commentController.text,
-                                      );
+                        onPressed:
+                            isLoading || _selectedRating == 0
+                                ? null
+                                : () {
+                                  if (_selectedRating > 0) {
+                                    context
+                                        .read<TourDetailCubit>()
+                                        .submitReview(
+                                          tourId: tourDetail.tourId,
+                                          userId: 1,
+                                          rating: _selectedRating,
+                                          comment: _commentController.text,
+                                        );
 
-                                  _commentController.clear();
-                                  setState(() {
-                                    _selectedRating = 0;
-                                  });
+                                    _commentController.clear();
+                                    setState(() {
+                                      _selectedRating = 0;
+                                    });
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle_rounded,
-                                            color: Colors.white,
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.check_circle_rounded,
+                                              color: Colors.white,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const Text(
+                                              'Review submitted successfully!',
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: AppColors.success,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                          const SizedBox(width: 12),
-                                          const Text('Review submitted successfully!'),
-                                        ],
+                                        ),
                                       ),
-                                      backgroundColor: AppColors.success,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
+                                    );
+                                  }
+                                },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -1518,29 +1795,34 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                           ),
                           elevation: 0,
                         ),
-                        child: isLoading
-                            ? SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.send_rounded, size: 20),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    'Submit Review',
-                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
+                        child:
+                            isLoading
+                                ? SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
                                     ),
                                   ),
-                                ],
-                              ),
+                                )
+                                : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.send_rounded, size: 20),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'Submit Review',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                       ),
                     );
                   },

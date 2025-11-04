@@ -16,6 +16,35 @@ class SavedScreen extends StatefulWidget {
 }
 
 class _SavedScreenState extends State<SavedScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<SavedCubit>().loadMore();
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Trigger load more when 200px from bottom
+    return currentScroll >= (maxScroll - 200);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -32,19 +61,58 @@ class _SavedScreenState extends State<SavedScreen> {
           if (state is SavedToursData) {
             return Scaffold(
               backgroundColor:context.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
-              body: const SafeArea(
-                child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      HomeAppBar(title: "Saved"),
-                      SizedBox(height: 24),
-                      SavedPackagesSection(),
-                      SizedBox(height: 20),
-                    ],
-                  ),
+              body: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: HomeAppBar(title: "Saved"),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: state.tours.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.bookmark_border,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Data is empty',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SavedPackagesSection(),
+                                  // Show loading indicator when loading more
+                                  if (state.isLoadingMore)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ],
                 ),
               ),
             );

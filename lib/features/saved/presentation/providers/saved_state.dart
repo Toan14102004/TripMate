@@ -8,17 +8,31 @@ class SavedState extends Equatable {
 
 class SavedToursData extends SavedState {
   final List<SavedTourModel> tours;
+  final int currentPage;
+  final bool hasMore;
+  final bool isLoadingMore;
 
-  SavedToursData({required this.tours});
+  SavedToursData({
+    required this.tours,
+    this.currentPage = 1,
+    this.hasMore = true,
+    this.isLoadingMore = false,
+  });
 
   @override
-  List<Object?> get props => [tours];
+  List<Object?> get props => [tours, currentPage, hasMore, isLoadingMore];
 
   SavedToursData copyWith({
     List<SavedTourModel>? tours,
+    int? currentPage,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return SavedToursData(
       tours: tours ?? this.tours,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 }

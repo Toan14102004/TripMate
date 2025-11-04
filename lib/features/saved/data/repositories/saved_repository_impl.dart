@@ -6,7 +6,13 @@ import 'package:trip_mate/service_locator.dart';
 
 class SavedRepositoryImpl implements SavedRepository {
   @override
-  Future<Either> getSavedTours() async {
-    return await sl<SavedApiSource>().getSavedTours();
+  Future<Either> getSavedTours({
+    int page = 1,
+    int limit = 4,
+  }) async {
+    return await sl<SavedApiSource>().getSavedTours(
+      page: page,
+      limit: limit,
+    );
   }
 }

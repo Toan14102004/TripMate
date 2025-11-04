@@ -8,54 +8,16 @@ import 'package:trip_mate/features/saved/domain/models/saved_tour_model.dart';
 import 'package:trip_mate/features/saved/presentation/providers/saved_state.dart';
 
 class SavedApiSource {
-  final List<SavedTourModel> savedTours = [
-  SavedTourModel(
-    tourId: 1,
-    title: 'Jammu Kashmir',
-    subtitle: '2 days 3 night full package',
-    image: 'assets/images/laguna.png', // Using available image as placeholder
-    rating: 4.8,
-    isBookmarked: true,
-  ),
-  SavedTourModel(
-    tourId: 2,
-    title: 'Rome, Italy',
-    subtitle: '2 days 3 night full package',
-    image: 'assets/images/luxury_hotel.png', // Using available image as placeholder
-    rating: 4.7,
-    isBookmarked: true,
-  ),
-  SavedTourModel(
-    tourId: 3,
-    title: 'Blue House Resort',
-    subtitle: '3 days 2 night full package',
-    image: 'assets/images/blue_house.png',
-    rating: 4.9,
-    isBookmarked: true,
-  ),
-  SavedTourModel(
-    tourId: 4,
-    title: 'Apanemo Resort',
-    subtitle: '2 days 3 night full package',
-    image: 'assets/images/apanemo.png',
-    rating: 4.8,
-    isBookmarked: true,
-  ),
-  SavedTourModel(
-    tourId: 5,
-    title: 'Hilton Resort',
-    subtitle: '4 days 3 night full package',
-    image: 'assets/images/hilton.png',
-    rating: 4.6,
-    isBookmarked: true,
-  ),
-];
 
-  Future<Either> getSavedTours() async {
+
+  Future<Either> getSavedTours({
+    int page = 1,
+    int limit = 4,
+  }) async {
     final apiService = ApiService();
     return apiService.sendRequest(() async {
       final responseData = await apiService.get(
-        AppEndPoints.kSavedTours,
+        '${AppEndPoints.kSavedTours}?page=$page&limit=$limit',
         skipAuth: false,
       );
       logDebug(responseData);
@@ -75,7 +37,7 @@ class SavedApiSource {
         
         // Convert entities to models for state
         final models = tours.map((e) => e.toModel()).toList();
-        return Right(SavedToursData(tours: savedTours));
+        return Right(SavedToursData(tours: models));
       }
       
       return const Left("Lỗi định dạng dữ liệu saved tours từ máy chủ.");

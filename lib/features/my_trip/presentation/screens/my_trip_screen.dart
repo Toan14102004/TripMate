@@ -9,11 +9,43 @@ import 'package:trip_mate/features/home/presentation/screens/package_detail_scre
 import 'package:trip_mate/features/home/presentation/widgets/home_appbar.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_provider.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
-import 'package:trip_mate/routes/app_route.dart';
-import '../../domain/entities/trip.dart';
 
-class MyTripScreen extends StatelessWidget {
+class MyTripScreen extends StatefulWidget {
   const MyTripScreen({super.key});
+
+  @override
+  State<MyTripScreen> createState() => _MyTripScreenState();
+}
+
+class _MyTripScreenState extends State<MyTripScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<MyTripCubit>().loadMore();
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Trigger load more when 200px from bottom
+    return currentScroll >= (maxScroll - 200);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,23 +62,42 @@ class MyTripScreen extends StatelessWidget {
               );
           } else if (state is MyTripToursData) {
             return Scaffold(
-              backgroundColor:context.isDarkMode
-                      ?  AppColors.darkBackground : AppColors.lightBackground,
+              backgroundColor:
+                  context.isDarkMode ? AppColors.black : AppColors.lightBackground,
               body: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: const HomeAppBar(title: "My Trips"),
-                    ),
-                    const SizedBox(height: 24),
+                        padding: const EdgeInsets.all(8.0),
+                        child: const HomeAppBar(title: "My Trips"),
+                      ),
+                      const SizedBox(height: 24),
+                    // Category tabs
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildCategoryTab(Icons.card_giftcard, "Packages", true, context),
-                        _buildCategoryTab(Icons.flight, "Flight", false, context),
-                        _buildCategoryTab(Icons.hotel, "Hotel", false, context),
+                        _buildCategoryTab(
+                          context,
+                          Icons.pending_actions,
+                          "Pending",
+                          "pending",
+                          state.bookingStatus == "pending",
+                        ),
+                        _buildCategoryTab(
+                          context,
+                          Icons.check_circle,
+                          "Confirmed",
+                          "confirmed",
+                          state.bookingStatus == "confirmed",
+                        ),
+                        _buildCategoryTab(
+                          context,
+                          Icons.cancel,
+                          "Cancelled",
+                          "canceled",
+                          state.bookingStatus == "canceled",
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -59,9 +110,42 @@ class MyTripScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: state.tours.length,
-                        itemBuilder: (context, index) {
+                      child: state.tours.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.inbox_outlined,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Data is empty',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _scrollController,
+                              itemCount: state.tours.length + (state.isLoadingMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                          // Show loading indicator at the end
+                          if (index == state.tours.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                
                           final trip = state.tours[index];
                           return GestureDetector(
                             onTap: () {
@@ -141,6 +225,7 @@ class MyTripScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  // Tour info
                                   Positioned(
                                     bottom: 16,
                                     left: 16,
@@ -209,34 +294,47 @@ class MyTripScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryTab(IconData icon, String title, bool selected, BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primaryLight : AppColors.grey50,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected ? AppColors.primary : AppColors.grey200,
-              width: 1.5,
+  Widget _buildCategoryTab(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String statusValue,
+    bool selected,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        if (!selected) {
+          context.read<MyTripCubit>().changeTab(statusValue);
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: selected ? Colors.blue.withOpacity(0.1) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected ? Colors.blue : Colors.grey.shade300,
+                width: 1.5,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: selected ? Colors.blue : Colors.grey,
+              size: 28,
             ),
           ),
-          child: Icon(
-            icon,
-            color: selected ? AppColors.primary : AppColors.grey400,
-            size: 28,
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: selected ? Colors.blue : Colors.grey,
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected ? AppColors.primary : AppColors.grey500,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

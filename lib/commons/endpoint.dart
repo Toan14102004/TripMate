@@ -10,11 +10,15 @@ class AppEndPoints {
   static const String kVerifyRegisterOTP = '/auth/verify-user-register-otp';
   static const String kUpdateUser = '/user/update';
   static const String kSavedTours = '/favourites/FilterPagination';
+  static const String kToggleFavorite = '/favourites';
   static const String kFilterPagination = '/tours/FilterPagination';
   static const String kTourDetail = '/tours';
   static const String kTimelines = '/timelines/FilterPagination';
   static const String kImageFromTour = '/images/TourId';
+  static const String kMyTripFilterPagination = '/bookings/FilterPagination';
   static String kTourHashtags = '/tour-hashtags';
   static String kReviews = '/reviews/FilterPagination';
   static String kSubmitReviews = '/reviews';
+  static String kStartEndDatesFilterPagination = '/start-end-dates/FilterPagination';
+  static String kBookings = '/bookings';
 }

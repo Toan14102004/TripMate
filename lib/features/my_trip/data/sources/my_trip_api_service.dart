@@ -1,11 +1,76 @@
 import 'dart:async';
 import 'package:dartz/dartz.dart';
+import 'package:trip_mate/commons/endpoint.dart';
+import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/core/api_client/api_client.dart';
 
 import '../dtos/trip_dto.dart';
 
 class MyTripApiService {
-  // Mock API call
-  Future<Either> fetchTrips() async {
+  Future<Either> fetchTrips({
+    required String userId,
+    String bookingStatus = 'pending',
+    int page = 1,
+    int limit = 4,
+  }) async {
+    final apiService = ApiService();
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        AppEndPoints.kMyTripFilterPagination,
+        queryParameters: {
+          'userId': userId,
+          'bookingStatus': bookingStatus,
+          'page': page,
+          'limit': limit,
+        },
+        skipAuth: false,
+      );
+      
+      logDebug('MyTrip Response: $responseData');
+      
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        if (statusCode == 200 && responseData['data'] != null) {
+          // Check if data contains bookings array
+          final data = responseData['data'];
+          List<dynamic> rawBookings = [];
+          
+          if (data is Map<String, dynamic>) {
+            rawBookings = data['bookings'] as List<dynamic>? ?? [];
+          } else if (data is List) {
+            rawBookings = data;
+          }
+          
+          logDebug('Found ${rawBookings.length} bookings');
+          
+          final trips = rawBookings
+              .map((e) {
+                try {
+                  // If item has tour object, use it
+                  final booking = e as Map<String, dynamic>;
+                  final tourData = booking['tour'] ?? booking;
+                  return TripDto.fromJson(tourData as Map<String, dynamic>);
+                } catch (error) {
+                  logDebug('Error parsing booking: $error');
+                  return null;
+                }
+              })
+              .where((trip) => trip != null)
+              .cast<TripDto>()
+              .toList();
+          
+          return Right(trips);
+        } else {
+          return Left(responseData['message'] ?? 'Lỗi khi lấy danh sách chuyến đi');
+        }
+      }
+      
+      return const Left('Lỗi định dạng dữ liệu từ máy chủ');
+    });
+  }
+
+  // Mock API call - keep for fallback
+  Future<Either> fetchTripsMock() async {
     await Future.delayed(const Duration(seconds: 1));
     final mockData = [
       {

@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:dartz/dartz.dart';
-import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trip_mate/commons/endpoint.dart';
-import 'package:trip_mate/commons/env.dart';
 import 'package:trip_mate/commons/log.dart';
+import 'package:trip_mate/commons/storage_keys/auth.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
@@ -197,6 +195,8 @@ class HomeApiSource {
         queryParameters: {'tourId': tourId.toString(), 'page': 1, 'limit': 10},
         skipAuth: true,
       );
+
+      logDebug(responseData);
 
       if (responseData is Map<String, dynamic>) {
         if (responseData['statusCode'] == 200 &&
@@ -427,6 +427,70 @@ class HomeApiSource {
       (r) {
         return r;
       },
+    );
+  }
+
+  // Get current user ID from SharedPreferences
+  Future<int> _getCurrentUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userIdString = prefs.getString(AuthKeys.kUserId);
+      
+      if (userIdString != null && userIdString.isNotEmpty) {
+        final userId = int.tryParse(userIdString);
+        if (userId != null) {
+          return userId;
+        }
+      }
+      
+      logDebug('UserId not found in SharedPreferences, using fallback: 1');
+      return 1;
+    } catch (e) {
+      logDebug('Error getting userId: $e, using fallback: 1');
+      return 1;
+    }
+  }
+
+  // Toggle favorite status for a tour
+  Future<Either<String, bool>> toggleFavorite(int tourId) async {
+    final apiService = ApiService();
+    final userId = await _getCurrentUserId();
+    
+    final result = await apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kToggleFavorite,
+        data: {
+          "tourId": tourId,
+          "userId": userId
+        },
+        skipAuth: false,
+      );
+
+      logWarning(responseData);
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        
+        if (statusCode == 200 || statusCode == 201) {
+          // Determine if tour is now favorited based on response
+          // You may need to adjust this based on actual API response structure
+          final isFavorited = responseData['data']?['isFavorited'] as bool? ?? 
+                              (responseData['data'] != null);
+          return Right(isFavorited);
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return Left(l);
+      },
+      (r) => Right(r),
     );
   }
 }
