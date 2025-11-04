@@ -198,6 +198,8 @@ class HomeApiSource {
         skipAuth: true,
       );
 
+      logDebug(responseData);
+
       if (responseData is Map<String, dynamic>) {
         if (responseData['statusCode'] == 200 &&
             responseData['data']?['timelines'] != null) {
