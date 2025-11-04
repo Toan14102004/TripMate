@@ -19,4 +19,6 @@ class AppEndPoints {
   static String kTourHashtags = '/tour-hashtags';
   static String kReviews = '/reviews/FilterPagination';
   static String kSubmitReviews = '/reviews';
+  static String kStartEndDatesFilterPagination = '/start-end-dates/FilterPagination';
+  static String kBookings = '/bookings';
 }
