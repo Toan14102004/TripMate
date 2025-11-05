@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -16,14 +19,20 @@ import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/security/presentation/providers/new_password/new_password_bloc.dart';
 import 'package:trip_mate/features/settings/presentation/providers/settings_bloc.dart';
 import 'package:trip_mate/features/splash/presentation/screens/splash_screen.dart';
+import 'package:trip_mate/firebase_options.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 String path = '';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDependencies();
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web

@@ -1,11 +1,18 @@
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/root/presentation/providers/page_state.dart';
 import 'package:trip_mate/features/root/presentation/widgets/my_drawer.dart';
+import 'package:trip_mate/services/fcm/fcm_service.dart';
 
 final GlobalKey<ScaffoldState> rootScaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -20,6 +27,9 @@ class _RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
+
+  StreamSubscription? _profileSubscription;
+  bool _fcmInitialized = false;
 
   @override
   void initState() {
@@ -44,6 +54,54 @@ class _RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
       parent: _animationController,
       curve: Curves.easeOutBack,
     ));
+    
+    _listenToProfileChanges();
+  }
+
+  void _listenToProfileChanges() {
+    _profileSubscription = context.read<ProfileCubit>().stream.listen((state) {
+      if (state is ProfileData && !_fcmInitialized && mounted) {
+        _fcmInitialized = true;
+        _initFCM(state.userId.toString());
+      }
+    });
+
+    // Kiểm tra ngay lập tức nếu đã có data
+    final currentState = context.read<ProfileCubit>().state;
+    if (currentState is ProfileData && !_fcmInitialized) {
+      _fcmInitialized = true;
+      _initFCM(currentState.userId.toString());
+    }
+  }
+
+  Future<void> _initFCM(String userId) async {
+    try {
+      final fcmService = FCMService();
+      fcmService.stopListening();
+      await fcmService.startListening(
+        context: context,
+        userId: userId,
+        onNotificationTapped: _showMessageDialog,
+      );
+      if (mounted) {
+        logDebug('FCM khởi tạo thành công');
+      }
+    } catch (e) {
+      logDebug('Lỗi FCM: $e');
+    }
+  }
+
+  void _showMessageDialog(RemoteMessage message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(message.notification?.title ?? 'Thông báo'),
+        content: Text(message.notification?.body ?? 'Có tin nhắn mới'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('OK')),
+        ],
+      ),
+    );
   }
 
   @override
