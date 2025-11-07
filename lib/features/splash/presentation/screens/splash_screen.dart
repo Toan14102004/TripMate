@@ -4,6 +4,7 @@ import 'package:trip_mate/commons/check_sign_in.dart';
 import 'dart:math' as math;
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/wallet/presentation/providers/wallet_provider.dart';
 import 'package:trip_mate/routes/app_route.dart';
 
 class TravelSplashScreen extends StatefulWidget {
@@ -104,6 +105,7 @@ class _TravelSplashScreenState extends State<TravelSplashScreen>
     await Future.delayed(const Duration(seconds: 4));
     if(await checkSignIn()){
       context.read<ProfileCubit>().initialize();
+      context.read<WalletCubit>().initialize();
       Navigator.of(context).pushNamed(AppRoutes.rootPage);
     }
     else {

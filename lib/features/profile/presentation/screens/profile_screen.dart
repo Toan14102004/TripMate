@@ -15,6 +15,7 @@ import 'package:trip_mate/features/profile/presentation/providers/profile_state.
 import 'package:trip_mate/features/profile/presentation/widgets/action_buttons.dart';
 import 'package:trip_mate/features/profile/presentation/widgets/success_dialog.dart';
 import 'package:trip_mate/features/profile/presentation/widgets/text_field.dart';
+import 'package:trip_mate/services/location_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -37,6 +38,7 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
   bool _isEditing = false;
   String _selectedAvatar = '😊';
   bool _isMapVisible = false;
+  bool _findingLocation = false;
   LatLng? _mapCenter;
   Marker? _addressMarker;
   final MapController _mapController = MapController();
@@ -94,7 +96,11 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
             point: newPosition,
             width: 80,
             height: 80,
-            child: const Icon(Icons.location_pin, color: AppColors.error, size: 40),
+            child: const Icon(
+              Icons.location_pin,
+              color: AppColors.error,
+              size: 40,
+            ),
           );
         });
 
@@ -178,7 +184,8 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
-          data:context.isDarkMode
+          data:
+              context.isDarkMode
                   ? ThemeData.dark().copyWith(
                     colorScheme: const ColorScheme.dark(
                       primary: AppColors.primaryDark,
@@ -192,19 +199,19 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       ),
                     ),
                   )
-                  :  ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: AppColors.white,
-              surface: AppColors.white,
-              onSurface: AppColors.black,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-              ),
-            ),
-          ),
+                  : ThemeData.light().copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: AppColors.primary,
+                      onPrimary: AppColors.white,
+                      surface: AppColors.white,
+                      onSurface: AppColors.black,
+                    ),
+                    textButtonTheme: TextButtonThemeData(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                      ),
+                    ),
+                  ),
           child: child!,
         );
       },
@@ -305,7 +312,8 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
       },
     );
   }
-   Widget _buildAdvancedHeader() {
+
+  Widget _buildAdvancedHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -361,7 +369,9 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                       child: Icon(
                         Icons.arrow_back_ios,
                         color:
-                            context.isDarkMode ? AppColors.white : AppColors.black,
+                            context.isDarkMode
+                                ? AppColors.white
+                                : AppColors.black,
                         size: 20,
                       ),
                     ),
@@ -588,6 +598,88 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
             }
           },
         ),
+        if (_isEditing) ...[
+          const SizedBox(height: 16),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () async {
+                if (!_findingLocation) {
+                  setState(() {
+                    _isMapVisible = false;
+                    _findingLocation = true;
+                  });
+                  final _locationService = LocationService();
+                  String city =
+                      await _locationService.getCurrentDetailLocation();
+                  setState(() {
+                    _addressController.text = city;
+                    _findingLocation = false;
+                  });
+                  context.read<ProfileCubit>().onChangeProfile(address: city);
+                  if (_isMapVisible) {
+                    setState(() => _isMapVisible = false);
+                  }
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primary.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          !_findingLocation
+                              ? AppColors.primary.withOpacity(0.3)
+                              : AppColors.greyDark,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 12,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.my_location,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          !_findingLocation ? 'Vị trí của tôi' : 'Finding...',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () {
@@ -615,7 +707,8 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (_isMapVisible ? AppColors.error : AppColors.primary).withOpacity(0.1),
+                  color: (_isMapVisible ? AppColors.error : AppColors.primary)
+                      .withOpacity(0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -633,7 +726,9 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
           ),
         ),
         const SizedBox(height: 16),
-        if (_isMapVisible && _mapCenter != null && _addressController.text.isNotEmpty)
+        if (_isMapVisible &&
+            _mapCenter != null &&
+            _addressController.text.isNotEmpty)
           AnimatedContainer(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOut,
@@ -732,7 +827,10 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.success.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(6),
@@ -792,7 +890,9 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 4,
         ),
         child: Text(
@@ -810,64 +910,68 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: context.isDarkMode ? AppColors.black : AppColors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Choose Your Avatar',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.black,
-                fontWeight: FontWeight.w700,
-              ),
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: context.isDarkMode ? AppColors.black : AppColors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            const SizedBox(height: 20),
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-              ),
-              itemCount: _avatarOptions.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedAvatar = _avatarOptions[index]);
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: _selectedAvatar == _avatarOptions[index]
-                          ? LinearGradient(
-                            colors: [AppColors.primary, AppColors.primaryDark],
-                          )
-                          : null,
-                      color: _selectedAvatar == _avatarOptions[index]
-                          ? null
-                          : AppColors.grey100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _avatarOptions[index],
-                        style: const TextStyle(fontSize: 28),
-                      ),
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Choose Your Avatar',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w700,
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 20),
+                GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                  ),
+                  itemCount: _avatarOptions.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedAvatar = _avatarOptions[index]);
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient:
+                              _selectedAvatar == _avatarOptions[index]
+                                  ? LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryDark,
+                                    ],
+                                  )
+                                  : null,
+                          color:
+                              _selectedAvatar == _avatarOptions[index]
+                                  ? null
+                                  : AppColors.grey100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _avatarOptions[index],
+                            style: const TextStyle(fontSize: 28),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }

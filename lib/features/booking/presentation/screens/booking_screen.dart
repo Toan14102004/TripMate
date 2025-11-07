@@ -10,6 +10,10 @@ import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trip_mate/features/booking/data/sources/booking_api_source.dart';
 import 'package:trip_mate/features/booking/domain/entities/start_end_date_model.dart';
+import 'package:trip_mate/features/booking/presentation/widgets/counter_card.dart';
+import 'package:trip_mate/features/booking/presentation/widgets/date_card.dart';
+import 'package:trip_mate/features/booking/presentation/widgets/infor_row.dart';
+import 'package:trip_mate/features/my_trip/presentation/screens/booking_detail_screen.dart';
 import 'package:trip_mate/services/location_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -38,6 +42,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _couponController = TextEditingController();
 
   // Booking data
   int? _selectedDateId;
@@ -302,7 +307,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                               final date = _dates[index];
                               final isSelected = _selectedDateId == date.id;
 
-                              return _DateCard(
+                              return DateCard(
                                 date: date,
                                 isSelected: isSelected,
                                 onTap: () {
@@ -322,6 +327,178 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
     );
   }
 
+  void _showCouponDialog() {
+    final isDark = context.isDarkMode;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.discount, color: AppColors.primary),
+            SizedBox(width: 12),
+            Text('Mã giảm giá'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _couponController,
+              decoration: InputDecoration(
+                labelText: 'Nhập mã coupon (tùy chọn)',
+                prefixIcon: const Icon(Icons.confirmation_number),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                hintText: 'VD: SUMMER2024',
+              ),
+              textCapitalization: TextCapitalization.characters,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Bạn có thể bỏ qua bước này nếu không có mã',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.grey400 : AppColors.grey600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _couponController.clear();
+              Navigator.pop(context);
+              _confirmBooking();
+            },
+            child: const Text('Bỏ qua'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _confirmBooking();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Áp dụng'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmBooking() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+    final result = await createBooking(
+      tourId: widget.tourId,
+      userId: widget.userId,
+      dateId: _selectedDateId ?? 0,
+      fullName: _fullNameController.text,
+      email: _emailController.text,
+      phoneNumber: _phoneController.text,
+      address: _addressController.text,
+      numAdults: _numAdults,
+      numChildren: _numChildren,
+      totalPrice: _totalPrice,
+      codeCoupon: _couponController.text,
+      bookingStatus: 'pending',
+      receiveEmail: _receiveEmail,
+    );
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (mounted && result['success'] as bool == true) {
+      Navigator.pop(context);
+
+      final bookingId = result['booking']['bookingId'].toString();
+
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Đặt tour thành công!'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Hãy chuyển tiền.'),
+                  if (_couponController.text.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_circle, 
+                            color: AppColors.success, 
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Mã: ${_couponController.text}',
+                            style: const TextStyle(
+                              color: AppColors.success,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => BookingDetailScreen(bookingId: int.parse(bookingId))));
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+      );
+    }
+  }
+
   Future<void> _submitBooking() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -334,51 +511,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
       return;
     }
 
-    // TODO: Call API to create booking
-    // final bookingData = {
-    //   'tourId': widget.tourId,
-    //   'userId': widget.userId,
-    //   'dateId': _selectedDateId,
-    //   'fullName': _fullNameController.text,
-    //   'email': _emailController.text,
-    //   'phoneNumber': _phoneController.text,
-    //   'address': _addressController.text,
-    //   'numAdults': _numAdults,
-    //   'numChildren': _numChildren,
-    //   'totalPrice': _totalPrice,
-    //   'bookingStatus': 'pending',
-    //   'receiveEmail': _receiveEmail,
-    // };
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      Navigator.pop(context); // Close loading
-
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Đặt tour thành công!'),
-              content: const Text('Chúng tôi sẽ liên hệ với bạn sớm nhất.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Close dialog
-                    Navigator.pop(context); // Back to previous screen
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-      );
-    }
+    _showCouponDialog();
   }
 
   @override
@@ -388,6 +521,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _scrollController.dispose();
+    _couponController.dispose();
     super.dispose();
   }
 
@@ -445,19 +579,19 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                         color: isDark ? AppColors.grey700 : AppColors.grey200,
                       ),
                       const SizedBox(height: 16),
-                      _InfoRow(
+                      InfoRow(
                         icon: Icons.calendar_month,
                         label: 'Khởi hành',
                         value: _formatDate(_selectedDate!.startDate),
                       ),
                       const SizedBox(height: 8),
-                      _InfoRow(
+                      InfoRow(
                         icon: Icons.event,
                         label: 'Kết thúc',
                         value: _formatDate(_selectedDate!.endDate),
                       ),
                       const SizedBox(height: 8),
-                      _InfoRow(
+                      InfoRow(
                         icon: Icons.people,
                         label: 'Số chỗ còn',
                         value: '${_selectedDate!.availableSlots} chỗ',
@@ -543,7 +677,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: _CounterCard(
+                    child: CounterCard(
                       label: 'Người lớn',
                       count: _numAdults,
                       onIncrement: () => setState(() => _numAdults++),
@@ -555,7 +689,7 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _CounterCard(
+                    child: CounterCard(
                       label: 'Trẻ em',
                       count: _numChildren,
                       onIncrement: () => setState(() => _numChildren++),
@@ -801,11 +935,11 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.primary, width: 1.5),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: AppColors.shadow,
                         blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
@@ -934,7 +1068,10 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _submitBooking,
+                  onPressed: () { 
+                    
+                    _submitBooking();
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -959,339 +1096,6 @@ class _BookingTourScreenState extends State<BookingTourScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  String _formatPrice(double price) {
-    return price
-        .toStringAsFixed(0)
-        .replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
-}
-
-// Models
-class StartEndDate {
-  final int id;
-  final DateTime startDate;
-  final DateTime endDate;
-  final double priceAdult;
-  final double priceChildren;
-  final int availableSlots;
-
-  StartEndDate({
-    required this.id,
-    required this.startDate,
-    required this.endDate,
-    required this.priceAdult,
-    required this.priceChildren,
-    required this.availableSlots,
-  });
-}
-
-// Widgets
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            color: isDark ? AppColors.grey400 : AppColors.grey600,
-            fontSize: 14,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: isDark ? AppColors.white : AppColors.black,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CounterCard extends StatelessWidget {
-  final String label;
-  final int count;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
-  final double? price;
-
-  const _CounterCard({
-    required this.label,
-    required this.count,
-    required this.onIncrement,
-    required this.onDecrement,
-    this.price,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? AppColors.grey700 : AppColors.grey200,
-        ),
-      ),
-      child: Column(
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          if (price != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${_formatPrice(price!)} đ',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _CounterButton(icon: Icons.remove, onTap: onDecrement),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  count.toString(),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-              _CounterButton(icon: Icons.add, onTap: onIncrement),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatPrice(double price) {
-    return price
-        .toStringAsFixed(0)
-        .replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
-}
-
-class _CounterButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _CounterButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
-      ),
-    );
-  }
-}
-
-class _DateCard extends StatelessWidget {
-  final StartEndDate date;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _DateCard({
-    required this.date,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? AppColors.primary.withOpacity(0.1)
-                  : (isDark ? AppColors.darkBackground : AppColors.grey50),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color:
-                isSelected
-                    ? AppColors.primary
-                    : (isDark ? AppColors.grey700 : AppColors.grey200),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color:
-                      isSelected
-                          ? AppColors.primary
-                          : (isDark ? AppColors.grey500 : AppColors.grey400),
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${_formatDate(date.startDate)} - ${_formatDate(date.endDate)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          isSelected
-                              ? AppColors.primary
-                              : (isDark ? AppColors.white : AppColors.black),
-                    ),
-                  ),
-                ),
-                if (isSelected)
-                  const Icon(
-                    Icons.check_circle,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Người lớn',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.grey400 : AppColors.grey600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_formatPrice(date.priceAdult)} đ',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Trẻ em',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.grey400 : AppColors.grey600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_formatPrice(date.priceChildren)} đ',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Còn trống',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? AppColors.grey400 : AppColors.grey600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            date.availableSlots > 10
-                                ? AppColors.success.withOpacity(0.1)
-                                : AppColors.warning.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${date.availableSlots} chỗ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color:
-                              date.availableSlots > 10
-                                  ? AppColors.success
-                                  : AppColors.warning,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
   }
 
   String _formatPrice(double price) {

@@ -74,6 +74,7 @@ Future<Map<String, dynamic>> createBooking({
   required String email,
   required String phoneNumber,
   String? address,
+  String? codeCoupon,
   required int numAdults,
   int numChildren = 0,
   required double totalPrice,
@@ -95,6 +96,7 @@ Future<Map<String, dynamic>> createBooking({
       'totalPrice': totalPrice,
       'bookingStatus': bookingStatus,
       'receiveEmail': receiveEmail,
+      if (codeCoupon != null && codeCoupon.isNotEmpty) 'codeCoupon': codeCoupon,
     };
     
     final responseData = await apiService.post(
@@ -109,6 +111,8 @@ Future<Map<String, dynamic>> createBooking({
       
       if (statusCode == 201 || statusCode == 200) {
         final bookingData = responseData['data'];
+
+        logDebug(responseData);
         
         return Right({
           'success': true,

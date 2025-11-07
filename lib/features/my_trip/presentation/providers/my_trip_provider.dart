@@ -1,12 +1,16 @@
 // MyTrip Cubit for managing MyTrip tours state
 import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/storage_keys/auth.dart';
+import 'package:trip_mate/core/app_global.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/my_trip/data/dtos/trip_dto.dart';
 import 'package:trip_mate/features/my_trip/domain/usecases/get_my_trip_usecase.dart';
 import 'package:trip_mate/features/my_trip/presentation/providers/my_trip_state.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
 import 'package:trip_mate/service_locator.dart';
 
 class MyTripCubit extends Cubit<MyTripState> {
@@ -16,19 +20,25 @@ class MyTripCubit extends Cubit<MyTripState> {
   String? _cachedUserId;
 
   Future<String> _getUserId() async {
-    if (_cachedUserId != null && _cachedUserId!.isNotEmpty) return _cachedUserId!;
-    
     try {
-      final prefs = await SharedPreferences.getInstance();
-      // Try to get userId from SharedPreferences, fallback to '1' if not found
-      _cachedUserId = prefs.getString(AuthKeys.kUserId);
       
-      if (_cachedUserId == null || _cachedUserId!.isEmpty) {
-        logDebug('UserId not found in SharedPreferences, using fallback: 1');
-        _cachedUserId = '1';
+      final context = AppGlobal.navigatorKey.currentContext!;
+      final profileCubit = BlocProvider.of<ProfileCubit>(context, listen: false); 
+      
+      if (profileCubit.state is ProfileData) {
+        _cachedUserId = (profileCubit.state as ProfileData).userId.toString();
+        return _cachedUserId!;
       }
-      
+
+      final dataState = await profileCubit.stream
+          .where((state) => state is ProfileData)
+          .cast<ProfileData>()                  
+          .first;               
+          
+      // 3. Lấy userId từ state đã đợi được
+      _cachedUserId = dataState.userId.toString();
       return _cachedUserId!;
+
     } catch (e) {
       logDebug('Error getting userId: $e, using fallback: 1');
       _cachedUserId = '1';

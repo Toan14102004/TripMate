@@ -19,6 +19,7 @@ import 'package:trip_mate/features/root/presentation/providers/page_bloc.dart';
 import 'package:trip_mate/features/security/presentation/providers/new_password/new_password_bloc.dart';
 import 'package:trip_mate/features/settings/presentation/providers/settings_bloc.dart';
 import 'package:trip_mate/features/splash/presentation/screens/splash_screen.dart';
+import 'package:trip_mate/features/wallet/presentation/providers/wallet_provider.dart';
 import 'package:trip_mate/firebase_options.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
     ToastUtil.ensureInitialized();
     return MultiBlocProvider(
       providers: [
+        BlocProvider<WalletCubit>(create: (context) => WalletCubit()),
         BlocProvider<NewPasswordCubit>(create: (context) => NewPasswordCubit()),
         BlocProvider<ThemeCubit>(create: (context) => ThemeCubit()),
         BlocProvider<VerificationCubit>(create:  (context) => VerificationCubit()),

@@ -16,9 +16,13 @@ class AppEndPoints {
   static const String kTimelines = '/timelines/FilterPagination';
   static const String kImageFromTour = '/images/TourId';
   static const String kMyTripFilterPagination = '/bookings/FilterPagination';
-  static String kTourHashtags = '/tour-hashtags';
+  static String kTourHashtags = '/tour-hashtags/FilterPagination';
   static String kReviews = '/reviews/FilterPagination';
   static String kSubmitReviews = '/reviews';
   static String kStartEndDatesFilterPagination = '/start-end-dates/FilterPagination';
   static String kBookings = '/bookings';
+  static String kCancelBookings = '/bookings/cancelBooking';
+  static String kGetWallet = '/accounts/FilterPagination';
+  static String kCreateWallet = '/accounts';
+  static String kPayCoinBooking = '/bookings/payCoinBooking';
 }

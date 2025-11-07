@@ -1,5 +1,5 @@
 class Environment {
-  static const String kDomain = 'http://10.145.4.228:3000/';
+  static const String kDomain = 'http://192.85.4.249:3000/';
   static const String kFcmAndroidApiKey = String.fromEnvironment('APP_FCM_ANDROID_API_KEY');
   static const String kFcmIosApiKey = String.fromEnvironment('APP_FCM_IOS_API_KEY');
   static const String kFcmSenderId =

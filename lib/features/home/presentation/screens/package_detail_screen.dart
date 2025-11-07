@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart' hide Marker;
 import 'package:equatable/equatable.dart';
+import 'package:trip_mate/commons/env.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/booking/presentation/screens/booking_screen.dart';
 import 'package:trip_mate/features/home/domain/models/time_line_item.dart';
@@ -12,6 +13,7 @@ import 'package:trip_mate/features/home/presentation/providers/detail_cubit.dart
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
 import 'package:trip_mate/features/home/domain/models/review_model.dart';
+import 'package:trip_mate/features/home/presentation/screens/hash_tag_bottomsheet.dart';
 import 'package:trip_mate/features/home/presentation/widgets/detail_component.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
@@ -261,7 +263,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       color: AppColors.grey300,
-                      child: Center(
+                      child: const Center(
                         child: Icon(
                           Icons.image_not_supported_rounded,
                           size: 64,
@@ -645,7 +647,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.tag_rounded,
                   size: 20,
                   color: AppColors.primary,
@@ -666,24 +668,38 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
             runSpacing: 10,
             children:
                 hashtags.map((hashtag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.12),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.3),
-                        width: 1.5,
+                  return InkWell(
+                    onTap: (){
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true, // Cho phép modal chiếm gần hết màn hình
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ), 
+                        builder: (BuildContext context) {  
+                          return HashtagToursBottomSheet(apiBaseUrl: Environment.kDomain, hashtag: hashtag.name);
+                        },                        
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
                       ),
-                    ),
-                    child: Text(
-                      '#${hashtag.name}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.12),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: AppColors.primary.withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        hashtag.name,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   );

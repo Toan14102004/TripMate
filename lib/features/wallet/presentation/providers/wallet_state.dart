@@ -8,6 +8,7 @@ class WalletLoading extends WalletState {}
 
 class WalletData extends WalletState {
   final String accountNumber;
+  final String accountName;
   final double balance;
   final String bankName;
   final String bankCode;
@@ -17,6 +18,7 @@ class WalletData extends WalletState {
     required this.accountNumber,
     required this.balance,
     required this.bankName,
+    required this.accountName,
     required this.bankCode,
     required this.createdAt,
   });
@@ -24,6 +26,7 @@ class WalletData extends WalletState {
   factory WalletData.fromEntity(WalletEntity entity) {
     return WalletData(
       accountNumber: entity.accountNumber,
+      accountName: entity.accountName,
       balance: entity.balance,
       bankName: entity.bankName,
       bankCode: entity.bankCode,
@@ -33,12 +36,14 @@ class WalletData extends WalletState {
 
   WalletData copyWith({
     String? accountNumber,
+    String? accountName,
     double? balance,
     String? bankName,
     String? bankCode,
     DateTime? createdAt,
   }) {
     return WalletData(
+      accountName: accountName ?? this.accountName,
       accountNumber: accountNumber ?? this.accountNumber,
       balance: balance ?? this.balance,
       bankName: bankName ?? this.bankName,

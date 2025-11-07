@@ -271,7 +271,7 @@ class HomeApiSource {
 
       // Giả sử API trả về List trực tiếp, hoặc trong field 'data'
       final listData = responseData is Map && responseData.containsKey('data')
-          ? responseData['data']
+          ? responseData['data']['tourHashtags']
           : responseData;
 
       if (listData is List) {
@@ -491,6 +491,57 @@ class HomeApiSource {
         return Left(l);
       },
       (r) => Right(r),
+    );
+  }
+
+   Future<List<TourModel>> fetchToursFromHashTag({
+    required int page,
+    required int limit,
+    required String hashtag
+  }) async {
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      // Build query parameters
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+        'hashtag': hashtag,
+      };
+      
+      final responseData = await apiService.get(
+        '${AppEndPoints.kTourHashtags}?page=$page&limit=$limit&hashtag=$hashtag',
+        skipAuth: false,
+      );
+
+      logDebug(responseData);
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+        
+        if (statusCode == 200) {
+          final data = responseData;
+          final List<dynamic> toursJson = data['data']['tourHashtags'] ?? [];
+          final List<TourModel> newTours = toursJson
+              .map((json) => TourModel.fromJson(json['tour']))
+              .toList();
+          logDebug(newTours);
+          return Right(newTours);
+        } else {
+          return Left("Lỗi server: $message");
+        }
+      }
+      return const Left("Lỗi định dạng phản hồi từ máy chủ.");
+    });
+
+    return result.fold(
+      (l) {
+        ToastUtil.showErrorToast(l.toString());
+        return <TourModel>[];
+      },
+      (r) {
+        return r;
+      },
     );
   }
 }
