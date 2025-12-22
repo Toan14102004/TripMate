@@ -107,7 +107,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  Row(
+                  const Row(
                     children: const [
                       Icon(Icons.flight_takeoff_outlined, color: Colors.black54),
                       SizedBox(width: 6),

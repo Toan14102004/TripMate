@@ -69,9 +69,9 @@ class UserModel {
 
       // 5. Các trường String non-nullable còn lại
       phoneNumber: _safeString(json['phoneNumber']),
-      address: _safeString(json['address']),
-      isActive: _safeString(json['isActive']),
-      role: _safeString(json['role']),
+      address: _safeString(json['address'], required: false),
+      isActive: _safeString(json['isActive'], required: false),
+      role: _safeString(json['role'], required: false),
 
       // 6. DateTime
       birthDay: _safeDateTime(json['birthDay']),

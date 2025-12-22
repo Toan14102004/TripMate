@@ -350,17 +350,23 @@ class HomeApiSource {
       final reviewJson = responseData is Map && responseData.containsKey('data')
           ? responseData['data']
           : responseData;
-
-      if (reviewJson is Map<String, dynamic>) {
+      final message = responseData is Map && responseData.containsKey('message')
+          ? responseData['message']
+          : responseData;
+      final statusCode = responseData is Map && responseData.containsKey('statusCode')
+          ? responseData['statusCode']
+          : responseData;
+      if (reviewJson is Map<String, dynamic> && statusCode == 200) {
         // Show Toast thông báo thành công
         ToastUtil.showSuccessToast('Gửi đánh giá thành công!');
         return ReviewModel.fromJson(reviewJson);
       } else {
-       logError('Invalid response format for submitReview: $responseData');
+        ToastUtil.showErrorToast(message);
+        logError('Invalid response format for submitReview: $responseData');
         throw Exception('Failed to parse submitted review response');
       }
     } catch (e) {
-      logError('Gửi đánh giá thất bại. Vui lòng thử lại.');
+      logError(e.toString());
       throw Exception('Failed to submit review: $e');
     }
   }

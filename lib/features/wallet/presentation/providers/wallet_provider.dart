@@ -55,23 +55,23 @@ class WalletCubit extends Cubit<WalletState> {
   }
 
   Future<void> registerNewWallet({required String accountName, required String accountNumber, required String bankName, required String bankCode, required double initialBalance}) async {
-     final result = await WalletApiSource.createWallet(accountName: accountName, accountNumber: accountNumber, bankName: bankName);
-     result.fold(
-      (left) {
-        ToastUtil.showErrorToast(left);
-        emit(WalletError(left));
-      },
-      (right) {
-        ToastUtil.showSuccessToast(right);
-        Navigator.of(AppGlobal.navigatorKey.currentContext!).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WalletScreen()),
-        );
+      final result = await WalletApiSource.createWallet(accountName: accountName, accountNumber: accountNumber, bankName: bankName);
+      result.fold(
+        (left) {
+          ToastUtil.showErrorToast(left);
+          emit(WalletError(left));
+        },
+        (right) {
+          ToastUtil.showSuccessToast(right);
+          Navigator.of(AppGlobal.navigatorKey.currentContext!).pushReplacement(
+            MaterialPageRoute(builder: (_) => const WalletScreen()),
+          );
 
-        ScaffoldMessenger.of(AppGlobal.navigatorKey.currentContext!).showSnackBar(
-          const SnackBar(content: Text('Wallet registered successfully!')),
-        );
-      },
-    );
+          ScaffoldMessenger.of(AppGlobal.navigatorKey.currentContext!).showSnackBar(
+            const SnackBar(content: Text('Wallet registered successfully!')),
+          );
+        },
+      );
   }
 
   Future<double> getUserBalance() async {
@@ -101,6 +101,37 @@ class WalletCubit extends Cubit<WalletState> {
     } catch (e) {
       logDebug('Error getting userId: $e, using fallback: 1');
       _cachedUserId = 0;
+      return _cachedUserId!;
+    }
+  }
+
+  Future<String> getWalletId() async {
+    String? _cachedUserId;
+    await initialize();
+    try {
+      final context = AppGlobal.navigatorKey.currentContext!;
+      final profileCubit = BlocProvider.of<WalletCubit>(
+        context,
+        listen: false,
+      );
+
+      if (profileCubit.state is WalletData) {
+        _cachedUserId = (profileCubit.state as WalletData).id;
+        return _cachedUserId!;
+      }
+
+      final dataState =
+          await profileCubit.stream
+              .where((state) => state is WalletData)
+              .cast<WalletData>()
+              .first;
+
+      // 3. Lấy userId từ state đã đợi được
+      _cachedUserId = dataState.id;
+      return _cachedUserId!;
+    } catch (e) {
+      logDebug('Error getting userId: $e, using fallback: 1');
+      _cachedUserId = '0';
       return _cachedUserId!;
     }
   }

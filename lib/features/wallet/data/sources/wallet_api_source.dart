@@ -4,6 +4,7 @@ import 'package:trip_mate/commons/endpoint.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/core/app_global.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/wallet/data/dtos/wallet_request.dart';
 import 'package:trip_mate/features/wallet/data/dtos/wallet_response.dart';
@@ -117,5 +118,64 @@ class WalletApiSource {
     } catch (e) {
       return Left(e.toString());
     }
+  }
+
+  static Future<Map<String, dynamic>> getHistoryTransactions({
+    int? currentPage,
+    int? limit,
+    String? status,
+    String? type,
+    String? accountId,
+  }) async {
+    final apiService = ApiService();
+    final result = await apiService.sendRequest(() async {
+      final responseData = await apiService.get(
+        AppEndPoints
+            .kTransactions,
+        queryParameters: {
+          'page': currentPage,
+          'limit': limit,
+          'status': status,
+          'type': type,
+          'accountId': accountId,
+        },
+        skipAuth: true,
+      );
+      logDebug('MyWallet Response: $responseData');
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        if (statusCode == 200 && responseData['data'] != null) {
+          final data = responseData['data'];
+          if (data is Map<String, dynamic>) {
+            return Right(
+              data,
+            ); // Trả về Map chứa 'transactions' và 'countTransaction'
+          } else {
+            return const Left(
+              'Dữ liệu lịch sử giao dịch không đúng định dạng.',
+            );
+          }
+        } else {
+          return Left(
+            responseData['message'] ?? 'Lỗi khi lấy chi tiết chuyến đi',
+          );
+        }
+      }
+
+      return const Left('Lỗi định dạng dữ liệu từ máy chủ');
+    });
+
+    return result.fold(
+      (left) {
+        ToastUtil.showErrorToast(left.toString());
+        return {"transactions": [], "countTransaction": 0};
+      },
+      (right) {
+        return right is Map<String, dynamic>
+            ? right
+            : {"transactions": [], "countTransaction": 0};
+      },
+    );
   }
 }

@@ -56,24 +56,26 @@ class _MyTripScreenState extends State<MyTripScreen> {
         builder: (context, state) {
           if (state is MyTripLoading) {
             return const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.blue,
-                  strokeWidth: 5,
-                ),
-              );
+              child: CircularProgressIndicator(
+                color: Colors.blue,
+                strokeWidth: 5,
+              ),
+            );
           } else if (state is MyTripToursData) {
             return Scaffold(
               backgroundColor:
-                  context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+                  context.isDarkMode
+                      ? AppColors.black
+                      : AppColors.lightBackground,
               body: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const HomeAppBar(title: "My Trips"),
-                      ),
-                      const SizedBox(height: 24),
+                      padding: const EdgeInsets.all(8.0),
+                      child: const HomeAppBar(title: "My Trips"),
+                    ),
+                    const SizedBox(height: 24),
                     // Category tabs
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -111,180 +113,197 @@ class _MyTripScreenState extends State<MyTripScreen> {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: state.tours.isEmpty
-                          ? const Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'Data is empty',
-                                    style: TextStyle(
-                                      fontSize: 16,
+                      child:
+                          state.tours.isEmpty
+                              ? const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.inbox_outlined,
+                                      size: 64,
                                       color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.builder(
-                              controller: _scrollController,
-                              itemCount: state.tours.length + (state.isLoadingMore ? 1 : 0),
-                              itemBuilder: (context, index) {
-                          // Show loading indicator at the end
-                          if (index == state.tours.length) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                
-                          final trip = state.tours[index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BookingDetailScreen(bookingId: int.tryParse(trip.bookingId) ?? 0 )
-                                ),
-                              )..then((value){
-                                context.read<MyTripCubit>().initialize();
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  image: DecorationImage(
-                                    image: NetworkImage(trip.imageUrl),
-                                    fit: BoxFit.cover,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: AppColors.shadow,
-                                      blurRadius: 8,
-                                      offset: Offset(0, 2),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'Data is empty',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ],
                                 ),
-                                height: 180,
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            Colors.transparent,
-                                            Colors.black.withOpacity(0.6),
-                                          ],
-                                        ),
+                              )
+                              : ListView.builder(
+                                controller: _scrollController,
+                                itemCount:
+                                    state.tours.length +
+                                    (state.isLoadingMore ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  // Show loading indicator at the end
+                                  if (index == state.tours.length) {
+                                    return const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16,
                                       ),
-                                    ),
-                                    Positioned(
-                                      top: 12,
-                                      left: 12,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  }
+
+                                  final trip = state.tours[index];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => BookingDetailScreen(
+                                                bookingId:
+                                                    int.tryParse(
+                                                      trip.bookingId,
+                                                    ) ??
+                                                    0,
+                                              ),
+                                        ),
+                                      )..then((value) {
+                                        context
+                                            .read<MyTripCubit>()
+                                            .initialize();
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 16,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.white.withOpacity(0.95),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          image: DecorationImage(
+                                            image: NetworkImage(trip.imageUrl),
+                                            fit: BoxFit.cover,
+                                          ),
                                           boxShadow: const [
                                             BoxShadow(
-                                              color: AppColors.shadowLight,
-                                              blurRadius: 4,
-                                              offset: Offset(0, 1),
+                                              color: AppColors.shadow,
+                                              blurRadius: 8,
+                                              offset: Offset(0, 2),
                                             ),
                                           ],
                                         ),
-                                        child: Row(
+                                        height: 180,
+                                        child: Stack(
                                           children: [
-                                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              trip.rating.toString(),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.black,
-                                                fontSize: 12,
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                    Colors.black.withOpacity(
+                                                      0.6,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              top: 12,
+                                              left: 12,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 6,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.white
+                                                      .withOpacity(0.95),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color:
+                                                          AppColors.shadowLight,
+                                                      blurRadius: 4,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.star,
+                                                      color: Colors.amber,
+                                                      size: 16,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      trip.rating.toString(),
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: AppColors.black,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            // Tour info
+                                            Positioned(
+                                              bottom: 16,
+                                              left: 16,
+                                              right: 16,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    trip.title,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 18,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    removeHtmlTags(
+                                                      trip.duration,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 13,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    // Tour info
-                                    Positioned(
-                                      bottom: 16,
-                                      left: 16,
-                                      right: 16,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            trip.title,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 18,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            removeHtmlTags(trip.duration),
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 13,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 16,
-                                      right: 16,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppColors.shadow,
-                                              blurRadius: 8,
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.bookmark_outline,
-                                          color: AppColors.primary,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
-                            ),
-                          );
-                        },
-                      ),
                     ),
                   ],
                 ),

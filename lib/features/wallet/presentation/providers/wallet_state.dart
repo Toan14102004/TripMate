@@ -7,6 +7,7 @@ class WalletInitial extends WalletState {}
 class WalletLoading extends WalletState {}
 
 class WalletData extends WalletState {
+  final String id;
   final String accountNumber;
   final String accountName;
   final double balance;
@@ -15,6 +16,7 @@ class WalletData extends WalletState {
   final DateTime createdAt;
 
   WalletData({
+    required this.id,
     required this.accountNumber,
     required this.balance,
     required this.bankName,
@@ -25,6 +27,7 @@ class WalletData extends WalletState {
 
   factory WalletData.fromEntity(WalletEntity entity) {
     return WalletData(
+      id: entity.id,
       accountNumber: entity.accountNumber,
       accountName: entity.accountName,
       balance: entity.balance,
@@ -43,6 +46,7 @@ class WalletData extends WalletState {
     DateTime? createdAt,
   }) {
     return WalletData(
+      id: id,
       accountName: accountName ?? this.accountName,
       accountNumber: accountNumber ?? this.accountNumber,
       balance: balance ?? this.balance,

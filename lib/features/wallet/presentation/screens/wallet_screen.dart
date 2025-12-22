@@ -5,8 +5,9 @@ import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/features/wallet/presentation/providers/wallet_provider.dart';
 import 'package:trip_mate/features/wallet/presentation/providers/wallet_state.dart';
+import 'package:trip_mate/features/wallet/presentation/screens/deposit_dialog.dart';
+import 'package:trip_mate/features/wallet/presentation/screens/wallet_histories.dart';
 import 'package:trip_mate/features/wallet/presentation/screens/wallet_registor.dart';
-import 'package:trip_mate/features/wallet/presentation/widgets/deposit_dialog.dart';
 import 'package:trip_mate/features/wallet/presentation/widgets/wallet_card.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -17,7 +18,6 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  late WalletCubit _walletCubit;
 
   @override
   void initState() {
@@ -27,7 +27,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   void dispose() {
-    _walletCubit.close();
     super.dispose();
   }
 
@@ -39,6 +38,13 @@ class _WalletScreenState extends State<WalletScreen> {
         backgroundColor: context.isDarkMode ? AppColors.surfaceDark : AppColors.white,
         elevation: 0,
         centerTitle: true,
+        actions:[ IconButton(
+          onPressed: () async {
+            String walletId = await context.read<WalletCubit>().getWalletId();
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => TransactionHistoryScreen(accountId: walletId)));
+          }, 
+          icon: const Icon(Icons.history)
+        )],
         title: Text(
           'Ví Tiền',
           style: TextStyle(
@@ -91,7 +97,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => _walletCubit.initialize(),
+                    onPressed: () => context.read<WalletCubit>().initialize(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -170,7 +176,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           showDialog(
                             context: context,
                             builder: (_) => DepositDialog(
-                              walletCubit: _walletCubit,
+                              walletCubit: context.read<WalletCubit>(),
                             ),
                           );
                         },

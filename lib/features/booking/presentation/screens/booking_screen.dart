@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart' hide Marker;
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
@@ -14,6 +15,8 @@ import 'package:trip_mate/features/booking/presentation/widgets/counter_card.dar
 import 'package:trip_mate/features/booking/presentation/widgets/date_card.dart';
 import 'package:trip_mate/features/booking/presentation/widgets/infor_row.dart';
 import 'package:trip_mate/features/my_trip/presentation/screens/booking_detail_screen.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
 import 'package:trip_mate/services/location_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 

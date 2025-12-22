@@ -922,23 +922,22 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
     bool isDark,
   ) {
     void _showFullDescriptionModal() {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true, // Cho phép modal chiếm gần hết màn hình
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder: (context) {
-          // Sử dụng mã HTML tương tự như ví dụ bạn cung cấp
-          return Container(
-            height:
-                MediaQuery.of(context).size.height *
-                0.85, // Chiếm 85% chiều cao màn hình
-            padding: const EdgeInsets.all(20),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          padding: const EdgeInsets.all(20),
+          // SingleChildScrollView bao bọc toàn bộ nội dung để cuộn cả ảnh lẫn chữ
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Thanh kéo (drag handle)
+                // --- Thanh kéo (drag handle) ---
                 Center(
                   child: Container(
                     width: 40,
@@ -950,12 +949,15 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
+
+                // --- Ảnh ---
                 Image.network(
                   width: double.infinity,
                   timeline.imageTimeLine ?? '',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
+                      height: 200, // Nên set chiều cao cố định cho placeholder
                       color: AppColors.grey300,
                       child: const Center(
                         child: Icon(
@@ -968,56 +970,57 @@ class _PackageDetailScreenState extends State<PackageDetailScreen>
                   },
                 ),
                 const SizedBox(height: 20),
-                // Tiêu đề
+
+                // --- Tiêu đề ---
                 Text(
                   timeline.tlTitle,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
                 ),
                 const SizedBox(height: 16),
-                // Nội dung HTML (Full Description)
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Html(
-                      data: timeline.tlDescription,
-                      extensions: [SafeImageExtension()],
-                      // Áp dụng Style tương tự như ví dụ của bạn
-                      style: {
-                        "body": Style(
-                          margin: Margins.zero,
-                          padding: HtmlPaddings.zero,
-                          fontSize: FontSize(15),
-                          lineHeight: const LineHeight(1.6),
-                          color: isDark ? AppColors.grey300 : AppColors.grey700,
-                        ),
-                        "p": Style(margin: Margins.only(bottom: 12)),
-                        "h1, h2, h3, h4, h5, h6": Style(
-                          margin: Margins.only(top: 16, bottom: 8),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        "ul, ol": Style(
-                          margin: Margins.only(left: 16, bottom: 12),
-                        ),
-                        "a": Style(
-                          color: AppColors.primary,
-                          textDecoration: TextDecoration.underline,
-                        ),
-                        "img": Style(
-                          display: Display.block,
-                          padding: HtmlPaddings.only(top: 8, bottom: 8),
-                        ),
-                      },
+
+                // --- Nội dung HTML ---
+                // ĐÃ SỬA: Bỏ Expanded đi, để Html tự chiếm chiều cao cần thiết
+                Html(
+                  data: timeline.tlDescription,
+                  extensions: [SafeImageExtension()],
+                  style: {
+                    "body": Style(
+                      margin: Margins.zero,
+                      padding: HtmlPaddings.zero,
+                      fontSize: FontSize(15),
+                      lineHeight: const LineHeight(1.6),
+                      color: isDark ? AppColors.grey300 : AppColors.grey700,
                     ),
-                  ),
+                    "p": Style(margin: Margins.only(bottom: 12)),
+                    "h1, h2, h3, h4, h5, h6": Style(
+                      margin: Margins.only(top: 16, bottom: 8),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    "ul, ol": Style(
+                      margin: Margins.only(left: 16, bottom: 12),
+                    ),
+                    "a": Style(
+                      color: AppColors.primary,
+                      textDecoration: TextDecoration.underline,
+                    ),
+                    "img": Style(
+                      display: Display.block,
+                      padding: HtmlPaddings.only(top: 8, bottom: 8),
+                    ),
+                  },
                 ),
+                // Thêm một khoảng trống ở dưới cùng để không bị sát đáy khi cuộn hết
+                const SizedBox(height: 40),
               ],
             ),
-          );
-        },
-      );
-    }
+          ),
+        );
+      },
+    );
+  }
 
     return InkWell(
       onTap: _showFullDescriptionModal,

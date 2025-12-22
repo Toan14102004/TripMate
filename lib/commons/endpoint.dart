@@ -24,5 +24,6 @@ class AppEndPoints {
   static String kCancelBookings = '/bookings/cancelBooking';
   static String kGetWallet = '/accounts/FilterPagination';
   static String kCreateWallet = '/accounts';
+  static String kTransactions = '/transactions/FilterPagination';
   static String kPayCoinBooking = '/bookings/payCoinBooking';
 }

@@ -1,4 +1,5 @@
 class WalletEntity {
+  final String id;
   final String accountNumber;
   final String accountName;
   final double balance;
@@ -7,6 +8,7 @@ class WalletEntity {
   final DateTime createdAt;
 
   WalletEntity({
+    required this.id,
     required this.accountName,
     required this.accountNumber,
     required this.balance,

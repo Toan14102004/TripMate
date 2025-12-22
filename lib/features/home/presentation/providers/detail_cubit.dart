@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/features/home/domain/models/tour_detail_model.dart';
 import 'package:trip_mate/features/home/domain/models/hashtag_model.dart';
 import 'package:trip_mate/features/home/domain/models/review_model.dart';
@@ -92,6 +93,10 @@ class TourDetailCubit extends Cubit<TourDetailState> {
       final tourDetail = await sl<HomeRepository>().getTourDetail(tourId);
       final hashtags = await sl<HomeRepository>().getTourHashtags(tourId);
       final reviews = await sl<HomeRepository>().getTourReviews(tourId);
+
+      logDebug(tourDetail);
+      logDebug(hashtags);
+      logDebug(reviews);
       
       emit(TourDetailSuccess(tourDetail, hashtags, reviews));
     } catch (e) {

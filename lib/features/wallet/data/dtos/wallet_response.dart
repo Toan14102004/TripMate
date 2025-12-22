@@ -35,6 +35,7 @@ class WalletResponse {
 
   WalletEntity toEntity() {
     return WalletEntity(
+      id: id,
       accountNumber: accountNumber,
       balance: balance,
       bankName: bankName,

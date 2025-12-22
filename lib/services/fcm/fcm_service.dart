@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:trip_mate/commons/env.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/services/local_notification/local_notification_service.dart';
 
@@ -28,7 +29,7 @@ class FCMService {
   String? get currentToken => _currentToken;
 
   // --- Server URL (thay bằng URL thật của bạn) ---
-  final String _serverUrl = 'https://your-server.com/api/save-fcm-token';
+  final String _serverUrl = Environment.kDomain;
 
   /// Khởi động toàn bộ: FCM + Local Notif + Token
   Future<void> startListening({
@@ -97,16 +98,18 @@ class FCMService {
 
       // Lưu local (SharedPreferences)
       final prefs = await SharedPreferences.getInstance();
+      final oldToken = prefs.getString('fcm_token') ?? null;
       await prefs.setString('fcm_token', token ?? '');
 
       // Gửi lên server
-      await _sendTokenToServer(token ?? '', userId);
+      await _sendTokenToServer(token, userId, oldToken);
 
       // Lắng nghe khi token thay đổi (refresh)
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         _currentToken = newToken;
+        final oldToken = prefs.getString('fcm_token') ?? null;
         await prefs.setString('fcm_token', newToken);
-        await _sendTokenToServer(newToken, userId);
+        await _sendTokenToServer(newToken, userId, oldToken);
         logDebug('FCM Token refreshed: $newToken');
       });
     } catch (e) {
@@ -115,26 +118,43 @@ class FCMService {
   }
 
   /// Gửi token lên server
-  Future<void> _sendTokenToServer(String token, String userId) async {
-    // try {
-    //   final response = await http.post(
-    //     Uri.parse(_serverUrl),
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: jsonEncode({
-    //       'userId': userId,
-    //       'fcmToken': token,
-    //       'platform': 'flutter', // optional
-    //     }),
-    //   );
+  Future<void> _sendTokenToServer(String? token, String userId, String? oldToken) async {
+    try {
+      // Chỉ gửi khi có ít nhất 1 token hợp lệ
+      if (token != null || oldToken != null) {
+        
+        final url = Uri.parse('${_serverUrl}fcm');
+        
+        // Tạo body
+        final bodyData = {
+            'userId': userId,
+            'fcmToken': token ?? oldToken ?? "",
+            'oldFcmToken': oldToken ?? ""
+        };
 
-    //   if (response.statusCode == 200) {
-    //     print('Token gửi server thành công');
-    //   } else {
-    //     print('Lỗi gửi token: ${response.statusCode}');
-    //   }
-    // } catch (e) {
-    //   print('Lỗi mạng khi gửi token: $e');
-    // }
+        print('--- Sending FCM to Server ---');
+        print('URL: $url');
+        print('Body: ${jsonEncode(bodyData)}');
+
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(bodyData),
+        );
+
+        logDebug('Response Status: ${response.statusCode}');
+        logDebug('Response Body: ${response.body}'); // QUAN TRỌNG: Xem server báo lỗi gì cụ thể
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          print('✅ Token gửi server thành công');
+        } else {
+          print('❌ Lỗi gửi token: ${response.statusCode}');
+          print('Chi tiết lỗi: ${response.body}');
+        }
+      }
+    } catch (e) {
+      print('❌ Lỗi mạng hoặc code khi gửi token: $e');
+    }
   }
 
   // --- Dừng & dọn dẹp ---
