@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:trip_mate/commons/endpoint.dart';
+import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/features/wallet/data/dtos/wallet_request.dart';
 
@@ -10,25 +11,71 @@ class WalletApiSource {
     final apiService = ApiService();
     
     return apiService.sendRequest(() async {
-      final responseData = await apiService.get(
-        AppEndPoints.kGetWallet,
-        queryParameters: {'limit': '10', 'page': '1'},
-      );
+      try {
+        logDebug('🔍 Getting wallet info...');
+        final responseData = await apiService.get(
+          AppEndPoints.kGetWallet,
+          queryParameters: {'limit': '10', 'page': '1'},
+        );
 
-      if (responseData is Map<String, dynamic>) {
-        final statusCode = responseData['statusCode'] as int?;
-        final message = responseData['message'] as String?;
+        logDebug('💚 Wallet API response: $responseData');
 
-        if (statusCode == 200) {
-          final data = responseData['data'] as Map<String, dynamic>?;
-          if (data != null) {
-            return Right(data);
+        if (responseData is Map<String, dynamic>) {
+          final statusCode = responseData['statusCode'] as int?;
+          final message = responseData['message'] as String?;
+          final data = responseData['data'] as dynamic;
+
+          logDebug('💚 Status code: $statusCode');
+          logDebug('💚 Message: $message');
+          logDebug('💚 Data: $data');
+
+          if (statusCode == 200) {
+            // Check if data is null or empty
+            if (data == null) {
+              logDebug('❤️ Data is null - no wallet');
+              return const Left('Wallet not found');
+            }
+            
+            if (data is Map<String, dynamic>) {
+              // Check if it's accounts response with empty array
+              if (data.containsKey('accounts')) {
+                final accounts = data['accounts'] as List?;
+                if (accounts == null || accounts.isEmpty) {
+                  logDebug('❤️ Accounts array is empty - no wallet');
+                  return const Left('Wallet not found');
+                }
+                return Right(accounts[0] as Map<String, dynamic>);
+              }
+              // Data is directly a single account object
+              return Right(data);
+            } else if (data is Map && data.containsKey('accounts')) {
+              // Data contains accounts array
+              final accounts = data['accounts'] as List?;
+              if (accounts != null && accounts.isNotEmpty) {
+                return Right(accounts[0] as Map<String, dynamic>);
+              }
+              logDebug('❤️ Accounts array is empty');
+              return const Left('Wallet not found');
+            } else if (data is List) {
+              // Data is directly an array
+              if (data.isEmpty) {
+                logDebug('❤️ Data list is empty - no wallet');
+                return const Left('Wallet not found');
+              }
+              return Right(data[0] as Map<String, dynamic>);
+            } else {
+              logDebug('❤️ Unexpected data format: $data');
+              return const Left('Wallet not found');
+            }
           }
+          return Left(message ?? 'Có lỗi xảy ra khi lấy thông tin ví');
         }
-        return Left(message ?? 'Có lỗi xảy ra khi lấy thông tin ví');
-      }
 
-      return const Left('Lỗi định dạng phản hồi từ máy chủ');
+        return const Left('Lỗi định dạng phản hồi từ máy chủ');
+      } catch (e) {
+        logDebug('❤️ Error in getWallet: $e');
+        return Left('Lỗi: ${e.toString()}');
+      }
     });
   }
 
