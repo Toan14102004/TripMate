@@ -44,7 +44,7 @@ class _PopularPackageSectionState extends State<PopularPackageSection> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              "Popular Packages b",
+              "Popular Packages",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             GestureDetector(
