@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/commons/widgets/basic_app_button.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/wallet/data/sources/wallet_api_source.dart';
+import 'package:trip_mate/features/wallet/presentation/providers/wallet_provider.dart';
+import 'package:trip_mate/features/wallet/presentation/providers/wallet_state.dart';
 
 class WithdrawScreen extends StatefulWidget {
   const WithdrawScreen({super.key});
@@ -19,29 +23,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   final WalletApiSource _walletApiSource = WalletApiSource();
   
   bool _isLoading = false;
-  int? _userWalletAccountId;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadWalletInfo();
-  }
-
-  Future<void> _loadWalletInfo() async {
-    // Load wallet account ID from API or storage
-    // For now, we'll use a default value
-    setState(() {
-      _userWalletAccountId = 1; // This should be fetched from user's wallet data
-    });
-  }
 
   Future<void> _handleWithdraw() async {
     if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_userWalletAccountId == null) {
-      ToastUtil.showErrorToast('Wallet information not found');
       return;
     }
 
@@ -49,28 +33,44 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       _isLoading = true;
     });
 
-    final amount = double.parse(_amountController.text);
+    try {
+      // Get wallet account ID from WalletCubit state (exactly same as deposit_dialog.dart line 62-64)
+      final walletCubit = context.read<WalletCubit>();
+      final userWalletAccountId = walletCubit.state is WalletData 
+          ? int.tryParse((walletCubit.state as WalletData).id) ?? 0
+          : 1; // Default to 1 if wallet not loaded (same as deposit_dialog)
 
-    final result = await _walletApiSource.withdrawMoney(
-      userWalletAccountId: _userWalletAccountId!,
-      amount: amount,
-    );
+      final amount = double.parse(_amountController.text);
 
-    setState(() {
-      _isLoading = false;
-    });
+      final result = await _walletApiSource.withdrawMoney(
+        userWalletAccountId: userWalletAccountId,
+        amount: amount,
+      );
 
-    result.fold(
-      (error) {
-        ToastUtil.showErrorToast(error);
-      },
-      (success) {
-        ToastUtil.showSuccessToast('Withdrawal request successful!');
-        _amountController.clear();
-        // Navigate back or refresh wallet
-        Navigator.pop(context, true);
-      },
-    );
+      setState(() {
+        _isLoading = false;
+      });
+
+      result.fold(
+        (error) {
+          ToastUtil.showErrorToast(error);
+        },
+        (success) {
+          ToastUtil.showSuccessToast('Rút tiền thành công!');
+          _amountController.clear();
+          // Refresh wallet data
+          walletCubit.initialize();
+          // Navigate back
+          Navigator.pop(context, true);
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      logDebug('Error in withdraw: $e');
+      ToastUtil.showErrorToast('Có lỗi xảy ra: ${e.toString()}');
+    }
   }
 
   @override
@@ -159,43 +159,57 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Wallet Account ID (readonly)
-              Text(
-                'Wallet Account ID',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.grey50 : AppColors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.grey700 : AppColors.grey100,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark ? AppColors.grey600 : AppColors.grey300,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.credit_card,
-                      color: isDark ? AppColors.grey400 : AppColors.grey600,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      _userWalletAccountId?.toString() ?? 'Loading...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.grey300 : AppColors.grey700,
+              // Wallet Account ID (readonly) - Display from WalletCubit
+              BlocBuilder<WalletCubit, WalletState>(
+                builder: (context, walletState) {
+                  // Get wallet ID from state (same logic as deposit_dialog)
+                  final walletId = walletState is WalletData 
+                      ? walletState.id
+                      : '--';
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Wallet Account ID',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.grey50 : AppColors.black,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.grey700 : AppColors.grey100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? AppColors.grey600 : AppColors.grey300,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.credit_card,
+                              color: isDark ? AppColors.grey400 : AppColors.grey600,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              walletId,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? AppColors.grey300 : AppColors.grey700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 24),
 
