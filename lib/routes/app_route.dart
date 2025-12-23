@@ -14,6 +14,8 @@ import 'package:trip_mate/features/root/presentation/screens/root_screen.dart';
 import 'package:trip_mate/features/security/presentation/screens/new_password_screen.dart';
 import 'package:trip_mate/features/security/presentation/screens/reset_password_screen.dart';
 import 'package:trip_mate/features/wallet/presentation/screens/wallet_screen.dart';
+import 'package:trip_mate/features/wallet/presentation/screens/withdraw_screen.dart';
+
 class AppRoutes {
   // Route names
   static const String onboarding = '/onboarding';
@@ -32,6 +34,8 @@ class AppRoutes {
   static const String tripDetail = '/trip-detail';
   static const String topPackages = '/top-packages';
   static const String wallet = '/wallets';
+  static const String withdraw = '/withdraw';
+  
   // Route generator
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -59,5 +63,6 @@ class AppRoutes {
     topPackages: (context) => const TopPackagesScreen(),
     profilePage: (context) => const ProfileScreen(),
     wallet: (context) => const WalletScreen(),
+    withdraw: (context) => const WithdrawScreen(),
   };
 }
