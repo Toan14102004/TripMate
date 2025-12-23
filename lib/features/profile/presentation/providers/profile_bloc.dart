@@ -10,6 +10,8 @@ import 'package:trip_mate/features/profile/domain/usecases/update_profile_usecas
 import 'package:trip_mate/features/profile/presentation/providers/profile_state.dart';
 import 'package:trip_mate/features/splash/presentation/screens/splash_screen.dart';
 import 'package:trip_mate/service_locator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trip_mate/commons/storage_keys/auth.dart';
 import 'package:trip_mate/services/local_storage/auth.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
@@ -34,11 +36,23 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     result.fold(
       (left) {
+        logDebug('❤️ Get profile error: $left');
         ToastUtil.showErrorToast(left);
         emit(ProfileError(message: left));
       },
-      (right) {
-        emit(right as ProfileData);
+      (right) async {
+        final profileData = right as ProfileData;
+        
+        // Save userId to SharedPreferences
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(AuthKeys.kUserId, profileData.userId.toString());
+          logDebug('💚 Saved userId to SharedPreferences: ${profileData.userId}');
+        } catch (e) {
+          logDebug('❤️ Error saving userId to SharedPreferences: $e');
+        }
+        
+        emit(profileData);
       },
     );
   }

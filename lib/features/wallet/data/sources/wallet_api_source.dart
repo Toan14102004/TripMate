@@ -141,6 +141,7 @@ class WalletApiSource {
   /// Create new wallet
   /// Returns Either - Left: error message, Right: success message
   static Future<Either> createWallet({
+    required int userId,
     required String accountName,
     required String accountNumber,
     required String bankName,
@@ -148,14 +149,18 @@ class WalletApiSource {
     final apiService = ApiService();
     
     return apiService.sendRequest(() async {
+      logDebug('🔍 Creating wallet for userId: $userId');
       final responseData = await apiService.post(
         AppEndPoints.kCreateWallet,
         data: {
-          "accountName": accountName,
+          "userId": userId,
           "accountNumber": accountNumber,
           "bankName": bankName,
+          "accountName": accountName,
         },
       );
+      
+      logDebug('💚 Create wallet response: $responseData');
 
       if (responseData is Map<String, dynamic>) {
         final statusCode = responseData['statusCode'] as int?;
