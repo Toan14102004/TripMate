@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:trip_mate/core/ultils/favorite_manager.dart';
 import 'package:trip_mate/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:trip_mate/features/auth/data/sources/auth_api_source.dart';
 import 'package:trip_mate/features/auth/domain/repositories/auth_repository.dart';
@@ -39,6 +40,11 @@ import 'package:trip_mate/services/location_service.dart';
 GetIt sl = GetIt.instance;
 
 Future<void> initializeDependencies() async {
+  // Core Services
+  final favoriteManager = FavoriteManager();
+  await favoriteManager.initialize();
+  sl.registerSingleton<FavoriteManager>(favoriteManager);
+
   // Services
   sl.registerSingleton<AuthApiSource>(AuthApiSource());
   sl.registerSingleton<SecurityApiSource>(SecurityApiSource());

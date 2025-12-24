@@ -1,11 +1,13 @@
 // Saved API source for calling backend
 import 'package:dartz/dartz.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trip_mate/commons/endpoint.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
 import 'package:trip_mate/features/saved/data/dtos/saved_response.dart';
 import 'package:trip_mate/features/saved/domain/models/saved_tour_model.dart';
 import 'package:trip_mate/features/saved/presentation/providers/saved_state.dart';
+import 'package:trip_mate/commons/storage_keys/auth.dart';
 
 class SavedApiSource {
 
@@ -16,11 +18,13 @@ class SavedApiSource {
   }) async {
     final apiService = ApiService();
     return apiService.sendRequest(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString(AuthKeys.kUserId);
       final responseData = await apiService.get(
-        '${AppEndPoints.kSavedTours}?page=$page&limit=$limit',
+        '${AppEndPoints.kSavedTours}?page=$page&limit=$limit&userId=$userId',
         skipAuth: false,
       );
-      logDebug(responseData);
+      logDebug('responseDataaac: $userId');
       
       if (responseData is Map<String, dynamic>) {
         final savedListResponse = SavedListResponse.fromJson(responseData);

@@ -2,14 +2,37 @@
 import 'package:bloc/bloc.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
+import 'package:trip_mate/core/ultils/favorite_manager.dart';
 import 'package:trip_mate/features/saved/domain/usecases/saved_usecase.dart';
 import 'package:trip_mate/features/saved/presentation/providers/saved_state.dart';
 import 'package:trip_mate/service_locator.dart';
 
 class SavedCubit extends Cubit<SavedState> {
-  SavedCubit() : super(SavedLoading());
+  SavedCubit() : super(SavedLoading()) {
+    _initializeFavoriteManager();
+  }
 
   static const int _pageLimit = 4;
+  late final FavoriteManager _favoriteManager;
+
+  void _initializeFavoriteManager() {
+    _favoriteManager = sl<FavoriteManager>();
+    _favoriteManager.addListener(_onFavoritesChanged);
+  }
+
+  void _onFavoritesChanged() {
+    // Refresh saved tours when favorites change
+    // This ensures the saved screen stays in sync with favorite state
+    if (state is SavedToursData) {
+      refreshTours();
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _favoriteManager.removeListener(_onFavoritesChanged);
+    return super.close();
+  }
 
   Future<void> initialize() async {
     // Emit loading state unless already loading
@@ -31,6 +54,11 @@ class SavedCubit extends Cubit<SavedState> {
         final data = right as SavedToursData;
         // Check if there are more items to load
         final hasMore = data.tours.length >= _pageLimit;
+
+        // Sync favorite manager with server data
+        final serverFavoriteIds = data.tours.map((tour) => tour.tourId).toList();
+        _favoriteManager.syncWithServerFavorites(serverFavoriteIds);
+
         emit(data.copyWith(
           currentPage: 1,
           hasMore: hasMore,

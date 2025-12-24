@@ -44,12 +44,21 @@ class AuthApiSource {
           AuthRepository.setAccessToken(accessToken);
           AuthRepository.setRefreshToken(refreshToken);
           prefs.setString(AuthKeys.kEmail, signInUserReq.email);
-          
+
+          // Debug: Log login response
+          print('🔍 Login Response Debug:');
+          print('  - Access Token: ${accessToken.substring(0, 20)}...');
+          print('  - Refresh Token: ${refreshToken.substring(0, 20)}...');
+          print('  - Email: ${signInUserReq.email}');
+          print('  - Full Response: $responseData');
+
           // Save userId to SharedPreferences
           if (userId != null) {
             prefs.setString(AuthKeys.kUserId, userId.toString());
+            print('✅ User ID saved: $userId');
           } else {
-            print('WARNING: userId not found in login response!');
+            print('❌ WARNING: userId not found in login response!');
+            print('   Available keys: ${responseData.keys.toList()}');
           }
 
           return const Right("Đăng nhập thành công!");

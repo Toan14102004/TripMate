@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,8 +25,40 @@ import 'package:trip_mate/firebase_options.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:trip_mate/commons/storage_keys/auth.dart';
 String path = '';
 
+
+/// Log current user ID to console
+Future<void> logCurrentUserId() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Debug: Log all stored data
+    print('🔍 SharedPreferences Debug:');
+    final allKeys = prefs.getKeys();
+    for (final key in allKeys) {
+      final value = prefs.get(key);
+      print('  $key: $value');
+    }
+    print('---');
+
+    final userIdString = prefs.getString(AuthKeys.kUserId);
+    if (userIdString != null && userIdString.isNotEmpty) {
+      final userId = int.tryParse(userIdString);
+      if (userId != null) {
+        print('🆔 Current User ID: $userId');
+        return;
+      } else {
+        print('⚠️  User ID string found but cannot parse to int: $userIdString');
+        return;
+      }
+    }
+    print('❌ No user ID found in storage');
+  } catch (e) {
+    print('❌ Error getting user ID: $e');
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +73,9 @@ Future<void> main() async {
         : HydratedStorageDirectory((await getTemporaryDirectory()).path),
   );
   runApp(const MyApp());
+
+  // Log user ID after app starts
+  await logCurrentUserId();
 }
 
 class MyApp extends StatelessWidget {
