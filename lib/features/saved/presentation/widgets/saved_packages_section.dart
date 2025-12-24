@@ -89,7 +89,7 @@ class _SavedPackagesSectionState extends State<SavedPackagesSection> {
                     title: tour.title,
                     subtitle: tour.subtitle,
                     rating: tour.rating,
-                    tourId: tour.tourId,
+                    isBookmarked: tour.isBookmarked,
                     onBookmarkToggle: () {
                       // Remove tour from list when bookmark is toggled
                       context.read<SavedCubit>().removeTour(tour.tourId);

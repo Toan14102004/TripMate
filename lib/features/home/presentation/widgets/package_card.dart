@@ -3,8 +3,6 @@ import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
 import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
 import 'package:trip_mate/core/ultils/toast_util.dart';
-import 'package:trip_mate/core/ultils/favorite_manager.dart';
-import 'package:trip_mate/service_locator.dart';
 
 class PackageCard extends StatefulWidget {
   final String image;
@@ -32,73 +30,48 @@ class PackageCard extends StatefulWidget {
 
 class _PackageCardState extends State<PackageCard> {
   bool _isHovered = false;
+  late bool _isBookmarked;
   final HomeApiSource _apiSource = HomeApiSource();
-  late final FavoriteManager _favoriteManager;
 
   @override
   void initState() {
     super.initState();
-    _favoriteManager = sl<FavoriteManager>();
-    _favoriteManager.addListener(_onFavoriteChanged);
+    _isBookmarked = widget.isBookmarked;
   }
 
-  @override
-  void dispose() {
-    _favoriteManager.removeListener(_onFavoriteChanged);
-    super.dispose();
-  }
-
-  void _onFavoriteChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void _toggleFavorite() {
+  Future<void> _toggleFavorite() async {
     // Check if tourId is available
     if (widget.tourId == null) {
       ToastUtil.showErrorToast('Không thể thêm vào yêu thích');
       return;
     }
 
-    final tourId = widget.tourId!;
-    final wasFavorited = _favoriteManager.isFavorite(tourId);
+    if (_isBookmarked) return;
 
-    // Optimistically update local state first for better UX
-    if (wasFavorited) {
-      _favoriteManager.removeFromFavorites(tourId);
-    } else {
-      _favoriteManager.addToFavorites(tourId);
-    }
-
-    // Then sync with server
-    _apiSource.toggleFavorite(tourId).then((result) {
-      result.fold(
-        (error) {
-          // Revert local state on API error
-          if (wasFavorited) {
-            _favoriteManager.addToFavorites(tourId);
-          } else {
-            _favoriteManager.removeFromFavorites(tourId);
-          }
-          // Error toast is already shown by API source
-        },
-        (isFavorited) {
-          // Ensure local state matches server state
-          if (isFavorited && !_favoriteManager.isFavorite(tourId)) {
-            _favoriteManager.addToFavorites(tourId);
-          } else if (!isFavorited && _favoriteManager.isFavorite(tourId)) {
-            _favoriteManager.removeFromFavorites(tourId);
-          }
-
-          if (isFavorited) {
-            ToastUtil.showSuccessToast('Đã thêm vào danh sách yêu thích');
-          } else {
-            ToastUtil.showSuccessToast('Đã xóa khỏi danh sách yêu thích');
-          }
-        },
-      );
+    setState(() {
+      _isBookmarked = true;
     });
+
+    final result = await _apiSource.toggleFavorite(widget.tourId!);
+
+    result.fold(
+      (error) {
+        // Error already handled by API source (shows toast)
+        setState(() {
+          _isBookmarked = false;
+        });
+      },
+      (isFavorited) {
+        setState(() {
+          _isBookmarked = isFavorited;
+        });
+        if (isFavorited) {
+          ToastUtil.showSuccessToast('Đã thêm vào danh sách yêu thích');
+        } else {
+          ToastUtil.showSuccessToast('Đã xóa khỏi danh sách yêu thích');
+        }
+      },
+    );
   }
 
   @override
@@ -199,7 +172,7 @@ class _PackageCardState extends State<PackageCard> {
                           ),
                           padding: const EdgeInsets.all(8),
                           child: Icon(
-                            _favoriteManager.isFavorite(widget.tourId!) ? Icons.bookmark : Icons.bookmark_border,
+                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                             color: AppColors.primary,
                             size: 24,
                           ),
