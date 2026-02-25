@@ -26,4 +26,5 @@ class AppEndPoints {
   static String kCreateWallet = '/accounts';
   static String kTransactions = '/transactions/FilterPagination';
   static String kPayCoinBooking = '/bookings/payCoinBooking';
+  static String kWithdraw = '/transactions/RutTien';
 }

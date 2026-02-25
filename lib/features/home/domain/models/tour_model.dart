@@ -62,6 +62,25 @@ class TourModel {
             ? parsedPrice!
             : randomDoubleInRange(1000000, 10000000);
 
+    // Parse statusFavourite: 1 = favorite (true), 0 or null = not favorite (false)
+    bool? parsedIsBookmarked;
+    final statusFavourite = json['statusFavourite'];
+    if (statusFavourite != null) {
+      if (statusFavourite is int) {
+        parsedIsBookmarked = statusFavourite == 1;
+      } else if (statusFavourite is String) {
+        parsedIsBookmarked = statusFavourite == '1';
+      } else if (statusFavourite is bool) {
+        parsedIsBookmarked = statusFavourite;
+      }
+    } else {
+      // Fallback to old isBookmarked field if statusFavourite not present
+      final isBookmarked = json['isBookmarked'];
+      if (isBookmarked is bool) {
+        parsedIsBookmarked = isBookmarked;
+      }
+    }
+
     final result = TourModel(
       tourId:
           parsedTourId ?? (throw const FormatException('Tour ID is required.')),
@@ -78,7 +97,7 @@ class TourModel {
       price: safePrice,
 
       subtitle: (json['subtitle'] as String?),
-      isBookmarked: (json['isBookmarked'] as bool?),
+      isBookmarked: parsedIsBookmarked,
     );
     return result;
   }

@@ -36,12 +36,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   Future<void> _loadTransactions() async {
     setState(() => isLoading = true);
     
+    final accountIdInt = int.tryParse(widget.accountId) ?? 0;
+    
     final data = await WalletApiSource.getHistoryTransactions(
         currentPage: currentPage,
         limit: limit,
         status: selectedStatus,
         type: selectedType,
-        accountId: widget.accountId
+        accountId: accountIdInt
     );
     setState(() {
         final rawTransactions = data['transactions'] as List<dynamic>? ?? []; 

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:trip_mate/core/ultils/favorite_manager.dart';
+import 'package:trip_mate/service_locator.dart';
 
 class SavedPackageCard extends StatefulWidget {
   final String image;
   final String title;
   final String subtitle;
   final double rating;
-  final bool isBookmarked;
+  final int tourId;
   final VoidCallback? onBookmarkToggle;
 
   const SavedPackageCard({
@@ -14,7 +16,7 @@ class SavedPackageCard extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.rating,
-    this.isBookmarked = true,
+    required this.tourId,
     this.onBookmarkToggle,
   });
 
@@ -23,27 +25,28 @@ class SavedPackageCard extends StatefulWidget {
 }
 
 class _SavedPackageCardState extends State<SavedPackageCard> {
-  late bool _isBookmarked;
+  late final FavoriteManager _favoriteManager;
 
   @override
   void initState() {
     super.initState();
-    _isBookmarked = widget.isBookmarked;
+    _favoriteManager = sl<FavoriteManager>();
+    _favoriteManager.addListener(_onFavoriteChanged);
   }
 
   @override
-  void didUpdateWidget(SavedPackageCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Sync internal state when props change
-    if (oldWidget.isBookmarked != widget.isBookmarked) {
-      _isBookmarked = widget.isBookmarked;
+  void dispose() {
+    _favoriteManager.removeListener(_onFavoriteChanged);
+    super.dispose();
+  }
+
+  void _onFavoriteChanged() {
+    if (mounted) {
+      setState(() {});
     }
   }
 
   void _toggleBookmark() {
-    setState(() {
-      _isBookmarked = !_isBookmarked;
-    });
     widget.onBookmarkToggle?.call();
   }
 
@@ -163,7 +166,7 @@ class _SavedPackageCardState extends State<SavedPackageCard> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  _favoriteManager.isFavorite(widget.tourId) ? Icons.bookmark : Icons.bookmark_border,
                   color: Colors.white,
                   size: 24,
                 ),

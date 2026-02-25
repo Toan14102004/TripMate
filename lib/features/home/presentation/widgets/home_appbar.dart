@@ -48,6 +48,11 @@ class _HomeAppBarState extends State<HomeAppBar> with TickerProviderStateMixin {
       'color': Colors.orange,
     },
     {
+      'label': 'Withdraw',
+      'icon': Icons.money_off_rounded,
+      'color': Colors.amber,
+    },
+    {
       'label': 'Privacy',
       'icon': Icons.security_rounded,
       'color': Colors.indigo,
@@ -189,6 +194,9 @@ class _HomeAppBarState extends State<HomeAppBar> with TickerProviderStateMixin {
         break;
       case 'My Wallet':
         Navigator.of(context).pushNamed(AppRoutes.wallet);
+        break;
+      case 'Withdraw':
+        Navigator.of(context).pushNamed(AppRoutes.withdraw);
         break;
       case 'My Trips':
         context.read<PageCubit>().changePage(index: PageEnum.myTrip.index);

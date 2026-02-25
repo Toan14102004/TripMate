@@ -91,6 +91,8 @@ class _TopPackageSectionState extends State<TopPackageSection> {
                       price: '\$${package.price?.toStringAsFixed(0) ?? '0'}/Night',
                       rating: package.rating ?? 0,
                       reviews: package.reviewCount?.toString() ?? '0',
+                      tourId: package.tourId,
+                      isBookmarked: package.isBookmarked ?? false,
                     ),
                   ),
                 );

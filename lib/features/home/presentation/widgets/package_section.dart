@@ -111,6 +111,8 @@ class _PackageSectionState extends State<PackageSection> {
                       location: pkg.destination ?? '',
                       price: '${pkg.reviewCount?.toStringAsFixed(0) ?? '0'} Reviews',
                       rating: pkg.rating ?? 0,
+                      tourId: pkg.tourId,
+                      isBookmarked: pkg.isBookmarked ?? false,
                     ),
                   );
                 },

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
 
 class PackageCard extends StatefulWidget {
   final String image;
@@ -8,6 +10,8 @@ class PackageCard extends StatefulWidget {
   final String location;
   final String price;
   final double rating;
+  final bool isBookmarked;
+  final int? tourId;
 
   const PackageCard({
     super.key,
@@ -16,6 +20,8 @@ class PackageCard extends StatefulWidget {
     required this.location,
     required this.price,
     required this.rating,
+    this.tourId,
+    this.isBookmarked = false,
   });
 
   @override
@@ -24,6 +30,49 @@ class PackageCard extends StatefulWidget {
 
 class _PackageCardState extends State<PackageCard> {
   bool _isHovered = false;
+  late bool _isBookmarked;
+  final HomeApiSource _apiSource = HomeApiSource();
+
+  @override
+  void initState() {
+    super.initState();
+    _isBookmarked = widget.isBookmarked;
+  }
+
+  Future<void> _toggleFavorite() async {
+    // Check if tourId is available
+    if (widget.tourId == null) {
+      ToastUtil.showErrorToast('Không thể thêm vào yêu thích');
+      return;
+    }
+
+    if (_isBookmarked) return;
+
+    setState(() {
+      _isBookmarked = true;
+    });
+
+    final result = await _apiSource.toggleFavorite(widget.tourId!);
+
+    result.fold(
+      (error) {
+        // Error already handled by API source (shows toast)
+        setState(() {
+          _isBookmarked = false;
+        });
+      },
+      (isFavorited) {
+        setState(() {
+          _isBookmarked = isFavorited;
+        });
+        if (isFavorited) {
+          ToastUtil.showSuccessToast('Đã thêm vào danh sách yêu thích');
+        } else {
+          ToastUtil.showSuccessToast('Đã xóa khỏi danh sách yêu thích');
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,29 +153,32 @@ class _PackageCardState extends State<PackageCard> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.95),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 8,
+                  if (widget.tourId != null)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: GestureDetector(
+                        onTap: _toggleFavorite,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.95),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 8,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        // isBookmarked ? Icons.bookmark : 
-                        Icons.bookmark_border,
-                        color: AppColors.primary,
-                        size: 24,
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               Padding(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trip_mate/core/configs/theme/app_colors.dart';
 import 'package:trip_mate/commons/helpers/is_dark_mode.dart';
+import 'package:trip_mate/features/home/data/sources/home_api_source.dart';
+import 'package:trip_mate/core/ultils/toast_util.dart';
 
 class TopPackageCard extends StatefulWidget {
   final String image;
@@ -10,6 +12,7 @@ class TopPackageCard extends StatefulWidget {
   final double rating;
   final String reviews;
   final bool isBookmarked;
+  final int? tourId;
 
   const TopPackageCard({
     super.key,
@@ -19,6 +22,7 @@ class TopPackageCard extends StatefulWidget {
     required this.price,
     required this.rating,
     required this.reviews,
+    this.tourId,
     this.isBookmarked = false,
   });
 
@@ -28,6 +32,50 @@ class TopPackageCard extends StatefulWidget {
 
 class _TopPackageCardState extends State<TopPackageCard> {
   bool _isHovered = false;
+  late bool _isBookmarked;
+  final HomeApiSource _apiSource = HomeApiSource();
+
+  @override
+  void initState() {
+    super.initState();
+    _isBookmarked = widget.isBookmarked;
+  }
+
+  Future<void> _toggleFavorite() async {
+    // Check if tourId is available
+    print('tourIdaa: ${widget.tourId}');
+    if (widget.tourId == null) {
+      ToastUtil.showErrorToast('Không thể thêm vào yêu thích');
+      return;
+    }
+
+    if (_isBookmarked) return;
+
+    setState(() {
+      _isBookmarked = true;
+    });
+
+    final result = await _apiSource.toggleFavorite(widget.tourId!);
+
+    result.fold(
+      (error) {
+        // Error already handled by API source (shows toast)
+        setState(() {
+          _isBookmarked = false;
+        });
+      },
+      (isFavorited) {
+        setState(() {
+          _isBookmarked = isFavorited;
+        });
+        if (isFavorited) {
+          ToastUtil.showSuccessToast('Đã thêm vào danh sách yêu thích');
+        } else {
+          ToastUtil.showSuccessToast('Đã xóa khỏi danh sách yêu thích');
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,29 +104,6 @@ class _TopPackageCardState extends State<TopPackageCard> {
           padding: const EdgeInsets.all(12),
           child: Stack(
             children: [
-              Positioned(
-                right: 8,
-                bottom: 15,
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.95),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(
-                    //isBookmarked ? Icons.bookmark :
-                    Icons.bookmark_border,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
-                ),
-              ),
               Row(
                 children: [
                   ClipRRect(
@@ -164,6 +189,36 @@ class _TopPackageCardState extends State<TopPackageCard> {
                   ),
                   const SizedBox(width: 8),            ],
               ),
+              if (widget.tourId != null)
+                Positioned(
+                  right: 8,
+                  bottom: 15,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      print('Bookmark tapped!');
+                      _toggleFavorite();
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.95),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                        color: AppColors.primary,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

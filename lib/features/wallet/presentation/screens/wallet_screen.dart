@@ -22,7 +22,10 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<WalletCubit>().initialize();
+    // Use addPostFrameCallback to ensure context is ready before accessing BLoC
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletCubit>().initialize();
+    });
   }
 
   @override
@@ -63,57 +66,153 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             );
           } else if (state is WalletError) {
-            if(state.message == "Wallet not found"){
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const WalletRegistrationScreen()),
+            // Check if wallet not found - show friendly empty state
+            if (state.message.contains("Wallet not found") || 
+                state.message.contains("not found") ||
+                state.message.contains("Chưa có ví")) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.account_balance_wallet_outlined,
+                          size: 80,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Chưa có ví',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: context.isDarkMode ? AppColors.white : AppColors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Bạn chưa có ví điện tử.\nTạo ví ngay để bắt đầu giao dịch!',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: context.isDarkMode ? AppColors.grey400 : AppColors.grey600,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const WalletRegistrationScreen(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 4,
+                          ),
+                          icon: const Icon(Icons.add_circle_outline, color: AppColors.white),
+                          label: const Text(
+                            'Tạo ví mới',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
+            
+            // Show error state for other errors (same UI as empty state)
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Lỗi tải dữ liệu',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.isDarkMode ? AppColors.white : AppColors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.message,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: context.isDarkMode ? AppColors.grey400 : AppColors.grey600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => context.read<WalletCubit>().initialize(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 80,
+                        color: AppColors.primary,
                       ),
                     ),
-                    child: const Text(
-                      'Thử lại',
+                    const SizedBox(height: 32),
+                    Text(
+                      'Chưa có dữ liệu',
                       style: TextStyle(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: context.isDarkMode ? AppColors.white : AppColors.black,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Text(
+                      'Bạn chưa có ví điện tử.\nTạo ví ngay để bắt đầu giao dịch!',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: context.isDarkMode ? AppColors.grey400 : AppColors.grey600,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const WalletRegistrationScreen(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 4,
+                        ),
+                        icon: const Icon(Icons.add_circle_outline, color: AppColors.white),
+                        label: const Text(
+                          'Tạo ví mới',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           } else if (state is WalletData) {

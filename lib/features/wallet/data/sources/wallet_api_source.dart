@@ -1,78 +1,155 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trip_mate/commons/endpoint.dart';
 import 'package:trip_mate/commons/log.dart';
 import 'package:trip_mate/core/api_client/api_client.dart';
-import 'package:trip_mate/core/app_global.dart';
-import 'package:trip_mate/core/ultils/toast_util.dart';
-import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/features/wallet/data/dtos/wallet_request.dart';
-import 'package:trip_mate/features/wallet/data/dtos/wallet_response.dart';
 
 class WalletApiSource {
+  /// Get wallet information
+  /// Returns Either<String, Map<String, dynamic>> - Left: error message, Right: wallet data
   Future<Either> getWallet() async {
     final apiService = ApiService();
-    String userId =
-        await AppGlobal.navigatorKey.currentContext!
-            .read<ProfileCubit>()
-            .getUserId();
-    return await apiService.sendRequest(() async {
-      final responseData = await apiService.get(
-        '${AppEndPoints.kGetWallet}?status=active&userId=$userId&limit=10&page=1',
-      );
-      logDebug('MyWallet Response: $responseData');
+    
+    return apiService.sendRequest(() async {
+      try {
+        logDebug('🔍 Getting wallet info...');
+        final responseData = await apiService.get(
+          AppEndPoints.kGetWallet,
+          queryParameters: {'limit': '10', 'page': '1'},
+        );
 
-      if (responseData is Map<String, dynamic>) {
-        final statusCode = responseData['statusCode'] as int?;
-        if (statusCode == 200 && responseData['data'] != null) {
-          final data = responseData['data'];
-          List<dynamic> raw = [];
+        logDebug('💚 Wallet API response: $responseData');
 
-          if (data is Map<String, dynamic>) {
-            raw = data['accounts'] as List<dynamic>? ?? [];
-          } else if (data is List) {
-            raw = data;
+        if (responseData is Map<String, dynamic>) {
+          final statusCode = responseData['statusCode'] as int?;
+          final message = responseData['message'] as String?;
+          final data = responseData['data'] as dynamic;
+
+          logDebug('💚 Status code: $statusCode');
+          logDebug('💚 Message: $message');
+          logDebug('💚 Data: $data');
+
+          if (statusCode == 200) {
+            // Check if data is null or empty
+            if (data == null) {
+              logDebug('❤️ Data is null - no wallet');
+              return const Left('Wallet not found');
+            }
+            
+            if (data is Map<String, dynamic>) {
+              // Check if it's accounts response with empty array
+              if (data.containsKey('accounts')) {
+                final accounts = data['accounts'] as List?;
+                if (accounts == null || accounts.isEmpty) {
+                  logDebug('❤️ Accounts array is empty - no wallet');
+                  return const Left('Wallet not found');
+                }
+                return Right(accounts[0] as Map<String, dynamic>);
+              }
+              // Data is directly a single account object
+              return Right(data);
+            } else if (data is Map && data.containsKey('accounts')) {
+              // Data contains accounts array
+              final accounts = data['accounts'] as List?;
+              if (accounts != null && accounts.isNotEmpty) {
+                return Right(accounts[0] as Map<String, dynamic>);
+              }
+              logDebug('❤️ Accounts array is empty');
+              return const Left('Wallet not found');
+            } else if (data is List) {
+              // Data is directly an array
+              if (data.isEmpty) {
+                logDebug('❤️ Data list is empty - no wallet');
+                return const Left('Wallet not found');
+              }
+              return Right(data[0] as Map<String, dynamic>);
+            } else {
+              logDebug('❤️ Unexpected data format: $data');
+              return const Left('Wallet not found');
+            }
           }
-
-          final wallet =
-              raw
-                  .map((e) {
-                    try {
-                      final booking = e as Map<String, dynamic>;
-                      final tourData = booking;
-                      return WalletResponse.fromMap(tourData);
-                    } catch (error) {
-                      logDebug('Error parsing booking: $error');
-                      return null;
-                    }
-                  })
-                  .where((trip) => trip != null)
-                  .cast<WalletResponse>()
-                  .toList();
-          if (wallet.isEmpty) return const Left("Wallet not found");
-          return Right(wallet.first.toEntity());
-        } else {
-          return Left(
-            responseData['message'] ?? 'Lỗi khi lấy chi tiết chuyến đi',
-          );
+          return Left(message ?? 'Có lỗi xảy ra khi lấy thông tin ví');
         }
-      }
 
-      return const Left('Lỗi định dạng dữ liệu từ máy chủ');
+        return const Left('Lỗi định dạng phản hồi từ máy chủ');
+      } catch (e) {
+        logDebug('❤️ Error in getWallet: $e');
+        return Left('Lỗi: ${e.toString()}');
+      }
     });
   }
 
-  static Future<Either> createWallet({
-    required String accountName, 
-    required String accountNumber, 
-    required String bankName, 
+  /// Deposit money to wallet
+  /// Returns Either - Left: error message, Right: success message
+  Future<Either> depositMoney(WalletRequest request) async {
+    final apiService = ApiService();
+    
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kCreateWallet,
+        data: request.toMap(),
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200 || statusCode == 201) {
+          return Right(message ?? 'Nạp tiền thành công!');
+        } else {
+          return Left(message ?? 'Có lỗi xảy ra khi nạp tiền');
+        }
+      }
+
+      return const Left('Lỗi định dạng phản hồi từ máy chủ');
+    });
+  }
+
+  /// Withdraw money from wallet
+  /// Returns Either - Left: error message, Right: success message
+  Future<Either> withdrawMoney({
+    required int userWalletAccountId,
+    required double amount,
   }) async {
     final apiService = ApiService();
-    String userId =
-        await AppGlobal.navigatorKey.currentContext!
-            .read<ProfileCubit>()
-            .getUserId();
-    return await apiService.sendRequest(() async {
+    
+    return apiService.sendRequest(() async {
+      final responseData = await apiService.post(
+        AppEndPoints.kWithdraw,
+        data: {
+          "userWalletAccountId": userWalletAccountId,
+          "amount": amount,
+          "type": "RUT_TIEN",
+        },
+      );
+
+      if (responseData is Map<String, dynamic>) {
+        final statusCode = responseData['statusCode'] as int?;
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200 || statusCode == 201) {
+          return Right(message ?? 'Rút tiền thành công!');
+        } else {
+          return Left(message ?? 'Có lỗi xảy ra khi rút tiền');
+        }
+      }
+
+      return const Left('Lỗi định dạng phản hồi từ máy chủ');
+    });
+  }
+
+  /// Create new wallet
+  /// Returns Either - Left: error message, Right: success message
+  static Future<Either> createWallet({
+    required int userId,
+    required String accountName,
+    required String accountNumber,
+    required String bankName,
+  }) async {
+    final apiService = ApiService();
+    
+    return apiService.sendRequest(() async {
+      logDebug('🔍 Creating wallet for userId: $userId');
       final responseData = await apiService.post(
         AppEndPoints.kCreateWallet,
         data: {
@@ -81,101 +158,79 @@ class WalletApiSource {
           "bankName": bankName,
           "accountName": accountName,
         },
-        skipAuth: false,
       );
-      logDebug('MyWallet Response: $responseData');
+      
+      logDebug('💚 Create wallet response: $responseData');
 
       if (responseData is Map<String, dynamic>) {
         final statusCode = responseData['statusCode'] as int?;
-        if (statusCode == 200 && responseData['data'] != null) {
-          return Right(responseData['message'] ?? 'Tạo tài khoản thành công');
+        final message = responseData['message'] as String?;
+
+        if (statusCode == 200 || statusCode == 201) {
+          return Right(message ?? 'Tạo ví thành công!');
         } else {
-          return Left(
-            responseData['message'] ?? 'Lỗi khi lấy chi tiết chuyến đi',
-          );
+          return Left(message ?? 'Có lỗi xảy ra khi tạo ví');
         }
       }
 
-      return const Left('Lỗi định dạng dữ liệu từ máy chủ');
+      return const Left('Lỗi định dạng phản hồi từ máy chủ');
     });
   }
 
-  Future<Either> depositMoney(WalletRequest request) async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 1000));
-
-      final response = WalletResponse(
-        accountNumber: request.accountNumber,
-        balance: 5250000 + request.amount,
-        bankName: 'Vietcombank',
-        bankCode: 'VCB',
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
-        id: '',
-        accountName: '',
-      );
-
-      return Right(response.toEntity());
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
+  /// Get history transactions
+  /// Returns Map with 'transactions' and 'countTransaction'
   static Future<Map<String, dynamic>> getHistoryTransactions({
-    int? currentPage,
-    int? limit,
+    required int currentPage,
+    required int limit,
     String? status,
     String? type,
-    String? accountId,
+    required int accountId,
   }) async {
     final apiService = ApiService();
-    final result = await apiService.sendRequest(() async {
+    
+    try {
+      final queryParams = {
+        'page': currentPage.toString(),
+        'limit': limit.toString(),
+        'userWalletAccountId': accountId.toString(),
+      };
+      
+      if (status != null && status.isNotEmpty && status != 'Tất cả') {
+        queryParams['status'] = status;
+      }
+      
+      if (type != null && type.isNotEmpty && type != 'Tất cả') {
+        queryParams['type'] = type;
+      }
+
       final responseData = await apiService.get(
-        AppEndPoints
-            .kTransactions,
-        queryParameters: {
-          'page': currentPage,
-          'limit': limit,
-          'status': status,
-          'type': type,
-          'accountId': accountId,
-        },
-        skipAuth: true,
+        AppEndPoints.kTransactions,
+        queryParameters: queryParams,
       );
-      logDebug('MyWallet Response: $responseData');
 
       if (responseData is Map<String, dynamic>) {
         final statusCode = responseData['statusCode'] as int?;
-        if (statusCode == 200 && responseData['data'] != null) {
-          final data = responseData['data'];
-          if (data is Map<String, dynamic>) {
-            return Right(
-              data,
-            ); // Trả về Map chứa 'transactions' và 'countTransaction'
-          } else {
-            return const Left(
-              'Dữ liệu lịch sử giao dịch không đúng định dạng.',
-            );
+        
+        if (statusCode == 200) {
+          final data = responseData['data'] as Map<String, dynamic>?;
+          if (data != null) {
+            return {
+              'transactions': data['transactions'] ?? [],
+              'countTransaction': data['countTransaction'] ?? 0,
+            };
           }
-        } else {
-          return Left(
-            responseData['message'] ?? 'Lỗi khi lấy chi tiết chuyến đi',
-          );
         }
       }
 
-      return const Left('Lỗi định dạng dữ liệu từ máy chủ');
-    });
-
-    return result.fold(
-      (left) {
-        ToastUtil.showErrorToast(left.toString());
-        return {"transactions": [], "countTransaction": 0};
-      },
-      (right) {
-        return right is Map<String, dynamic>
-            ? right
-            : {"transactions": [], "countTransaction": 0};
-      },
-    );
+      return {
+        'transactions': [],
+        'countTransaction': 0,
+      };
+    } catch (e) {
+      return {
+        'transactions': [],
+        'countTransaction': 0,
+      };
+    }
   }
 }

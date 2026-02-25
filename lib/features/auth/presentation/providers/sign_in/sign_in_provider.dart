@@ -7,6 +7,8 @@ import 'package:trip_mate/core/ultils/toast_util.dart';
 import 'package:trip_mate/features/auth/data/dtos/signin_request.dart';
 import 'package:trip_mate/features/auth/domain/usecases/signin_usecase.dart';
 import 'package:trip_mate/features/auth/presentation/providers/sign_in/sign_in_state.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
+import 'package:trip_mate/features/profile/presentation/providers/profile_bloc.dart';
 import 'package:trip_mate/routes/app_route.dart';
 import 'package:trip_mate/service_locator.dart';
 
@@ -91,8 +93,13 @@ class SignInCubit extends Cubit<SignInState> {
             );
             emit(currentState);
           },
-          (right) {
+          (right) async {
             ToastUtil.showSuccessToast(title: "Success", right);
+            
+            // Initialize profile to get userId and save to SharedPreferences
+            final context = AppGlobal.navigatorKey.currentContext!;
+            await context.read<ProfileCubit>().initialize();
+            
             comeToMainPage();
           },
         );
@@ -115,6 +122,11 @@ class SignInCubit extends Cubit<SignInState> {
         title: "Success",
         'Đăng nhập Google thành công!',
       );
+      
+      // Initialize profile after login
+      final context = AppGlobal.navigatorKey.currentContext!;
+      await context.read<ProfileCubit>().initialize();
+      
       comeToMainPage();
     } catch (e) {
       ToastUtil.showErrorToast(
@@ -134,6 +146,11 @@ class SignInCubit extends Cubit<SignInState> {
         title: "Success",
         'Đăng nhập Facebook thành công!',
       );
+      
+      // Initialize profile after login
+      final context = AppGlobal.navigatorKey.currentContext!;
+      await context.read<ProfileCubit>().initialize();
+      
       comeToMainPage();
     } catch (e) {
       ToastUtil.showErrorToast(
@@ -153,6 +170,11 @@ class SignInCubit extends Cubit<SignInState> {
         title: "Success",
         'Đăng nhập Apple thành công!',
       );
+      
+      // Initialize profile after login
+      final context = AppGlobal.navigatorKey.currentContext!;
+      await context.read<ProfileCubit>().initialize();
+      
       comeToMainPage();
     } catch (e) {
       ToastUtil.showErrorToast(

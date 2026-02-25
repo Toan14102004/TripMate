@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
@@ -16,6 +17,7 @@ import 'package:trip_mate/features/profile/presentation/widgets/action_buttons.d
 import 'package:trip_mate/features/profile/presentation/widgets/success_dialog.dart';
 import 'package:trip_mate/features/profile/presentation/widgets/text_field.dart';
 import 'package:trip_mate/services/location_service.dart';
+import 'package:trip_mate/commons/storage_keys/auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -227,6 +229,31 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
     }
   }
 
+  /// Log current user ID to console
+  Future<void> _logCurrentUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userIdString = prefs.getString(AuthKeys.kUserId);
+      if (userIdString != null && userIdString.isNotEmpty) {
+        final userId = int.tryParse(userIdString);
+        if (userId != null) {
+          print('🆔 Current User ID: $userId');
+          ToastUtil.showSuccessToast('User ID: $userId (logged to console)');
+          return;
+        } else {
+          print('⚠️  User ID string found but cannot parse to int: $userIdString');
+          ToastUtil.showErrorToast('Invalid user ID format');
+          return;
+        }
+      }
+      print('❌ No user ID found in storage');
+      ToastUtil.showErrorToast('No user ID found');
+    } catch (e) {
+      print('❌ Error getting user ID: $e');
+      ToastUtil.showErrorToast('Error getting user ID');
+    }
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -305,6 +332,12 @@ class _AdvancedProfilePageState extends State<ProfileScreen>
                   ),
                 ],
               ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: _logCurrentUserId,
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.person, color: Colors.white),
+              tooltip: 'Log User ID',
             ),
           );
         }

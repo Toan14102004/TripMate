@@ -24,15 +24,42 @@ class AuthApiSource {
         skipAuth: true,
       );
 
+      // Debug log to check API response
+      print('Login Response Data: $responseData');
+
       if (responseData is Map<String, dynamic>) {
         final accessToken = responseData['access_token'] as String?;
         final refreshToken = responseData['refresh_token'] as String?;
+        
+        // Try to get userId from multiple possible locations in response
+        dynamic userId = responseData['userId'] ?? 
+                        responseData['user_id'] ?? 
+                        responseData['user']?['userId'] ?? 
+                        responseData['user']?['user_id'] ??
+                        responseData['user']?['id'] ??
+                        responseData['id'];
 
         if (accessToken != null && refreshToken != null) {
           final prefs = await SharedPreferences.getInstance();
           AuthRepository.setAccessToken(accessToken);
           AuthRepository.setRefreshToken(refreshToken);
           prefs.setString(AuthKeys.kEmail, signInUserReq.email);
+
+          // Debug: Log login response
+          print('🔍 Login Response Debug:');
+          print('  - Access Token: ${accessToken.substring(0, 20)}...');
+          print('  - Refresh Token: ${refreshToken.substring(0, 20)}...');
+          print('  - Email: ${signInUserReq.email}');
+          print('  - Full Response: $responseData');
+
+          // Save userId to SharedPreferences
+          if (userId != null) {
+            prefs.setString(AuthKeys.kUserId, userId.toString());
+            print('✅ User ID saved: $userId');
+          } else {
+            print('❌ WARNING: userId not found in login response!');
+            print('   Available keys: ${responseData.keys.toList()}');
+          }
 
           return const Right("Đăng nhập thành công!");
         } else {
